@@ -12,10 +12,17 @@ enum SidebarItem {
   programs(Icons.menu_book_outlined, 'Programmes'),
   ue(Icons.dashboard_outlined, 'UE (Unités)'),
   classrooms(Icons.meeting_room_outlined, 'Salles'),
+  structure(Icons.account_tree_outlined, 'Structure'),
   schedule(Icons.calendar_today_outlined, 'Emploi du temps'),
   attendance(Icons.event_available_outlined, 'Présences'),
+  assignments(Icons.task_outlined, 'Devoirs'),
+  grades(Icons.grade_outlined, 'Notes'),
+  library(Icons.library_books_outlined, 'Bibliothèque'),
   conferences(Icons.videocam_outlined, 'Conférences'),
+  sentinelle(Icons.security_outlined, 'Sentinelle IoT'),
+  teams(Icons.groups_outlined, 'Équipe'),
   communications(Icons.chat_bubble_outline, 'Communications'),
+  payments(Icons.payments_outlined, 'Paiements'),
   statistics(Icons.bar_chart_outlined, 'Statistiques'),
   settings(Icons.settings_outlined, 'Paramètres');
 
@@ -58,7 +65,7 @@ class AppSidebar extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(9),
                     child: Image.asset(
-                      'assets/images/logo.jpg',
+                      'assets/images/logo.png',
                       fit: BoxFit.cover,
                     ),
                   ),

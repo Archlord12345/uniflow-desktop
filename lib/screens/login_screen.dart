@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../widgets/uniflow_logo.dart';
 import '../widgets/app_text_field.dart';
+import '../repositories/auth_repository.dart';
 import 'main_shell.dart';
 
 /// Écran de connexion : 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _rememberMe = false;
   bool _isLoading = false;
+  String? _errorMessage;
 
   // Rôle sélectionné dans le menu déroulant ajouté sous "Se connecter".
   String? _selectedRole;
@@ -31,15 +34,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
-    // TODO: brancher l'appel API réel ici (ex: appel POST /auth/login
-    // avec _emailController.text et _passwordController.text)
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainShell()),
-    );
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.login(_emailController.text, _passwordController.text);
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainShell()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Identifiants invalides ou problème de connexion.';
+      });
+    }
   }
 
   /// Contenu du formulaire seul (sans fond ni ombre propres : le panneau
@@ -54,6 +70,14 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           const SizedBox(height: 28),
           const Text('Se connecter', textAlign: TextAlign.center, style: AppTextStyles.h1),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ],
           const SizedBox(height: 6),
           const Text('Connectez-vous à votre compte', textAlign: TextAlign.center, style: AppTextStyles.body),
           const SizedBox(height: 28),

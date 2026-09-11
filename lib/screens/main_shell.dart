@@ -9,6 +9,7 @@ import 'teaching_units_screen.dart';
 import 'classrooms_screen.dart';
 import 'schedule_screen.dart';
 import 'management_screens.dart';
+import 'academic_management_screens.dart';
 
 /// Coquille principale de l'application une fois connecté : affiche la
 /// sidebar fixe à gauche (jamais reconstruite lors du changement de page)
@@ -86,14 +87,28 @@ class _MainShellState extends State<MainShell> {
         return const TeachingUnitsScreen();
       case SidebarItem.classrooms:
         return const ClassroomsScreen();
+      case SidebarItem.structure:
+        return const StructureManagementScreen();
       case SidebarItem.schedule:
         return const ScheduleScreen();
       case SidebarItem.attendance:
         return const AttendanceScreen();
+      case SidebarItem.assignments:
+        return const AssignmentsManagementScreen();
+      case SidebarItem.grades:
+        return const GradesManagementScreen();
+      case SidebarItem.library:
+        return const LibraryManagementScreen();
       case SidebarItem.conferences:
         return const ConferencesScreen();
+      case SidebarItem.sentinelle:
+        return const SentinelleManagementScreen();
+      case SidebarItem.teams:
+        return const TeamsScreen();
       case SidebarItem.communications:
         return const CommunicationsScreen();
+      case SidebarItem.payments:
+        return const PaymentsManagementScreen();
       case SidebarItem.statistics:
         return const StatisticsScreen();
       case SidebarItem.settings:

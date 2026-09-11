@@ -1,0 +1,39 @@
+name: UniFlow Desktop Windows (Exe)
+
+on:
+  push:
+    branches: [ main, feature/frontend-uniflow-app ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create .env file
+        shell: bash
+        run: |
+          echo "APPWRITE_ENDPOINT=${{ secrets.APPWRITE_ENDPOINT }}" >> .env
+          echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}" >> .env
+          echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}" >> .env
+          echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}" >> .env
+          echo "UNIFLOW_API_TOKEN=${{ secrets.UNIFLOW_API_TOKEN }}" >> .env
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniFlow-Desktop-Windows
+          path: build/windows/x64/runner/Release/

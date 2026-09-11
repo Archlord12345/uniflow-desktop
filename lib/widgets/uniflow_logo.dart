@@ -5,7 +5,7 @@ import '../theme/app_theme.dart';
 /// Widget séparé de [UniFlowLogo] pour pouvoir l'utiliser seule
 /// (ex: petite icône dans la sidebar une fois repliée, favicon web, etc.)
 class UniFlowIcon extends StatelessWidget {
-  static const String _logoAssetPath = 'assets/images/logo.jpg';
+  static const String _logoAssetPath = 'assets/images/logo.png';
 
   /// Taille du carré contenant l'icône (largeur = hauteur)
   final double size;

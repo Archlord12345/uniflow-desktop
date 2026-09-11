@@ -1,74 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/user_avatar.dart';
+import '../repositories/academic_repository.dart';
+import '../providers/auth_provider.dart';
+import '../models/appwrite_models.dart';
 
-/// Page "Dashboard" : recherche globale, 4 cartes statistiques, graphique
-/// des inscriptions, graphique en anneau du flux de présence, et activités
-/// récentes. Fidèle à la maquette "UniFlow Desktop Partie 1".
-///
-/// Ce widget n'a pas de Scaffold/sidebar propre : il est affiché à
-/// l'intérieur de [MainShell].
-class DashboardScreen extends StatelessWidget {
+final dashboardStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return ref.read(academicRepositoryProvider).getGlobalStats();
+});
+
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(dashboardStatsProvider);
+    final user = ref.watch(currentUserProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTopBar(),
+        _buildTopBar(user),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(28),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ----- 4 cartes statistiques -----
-                Row(
-                  children: const [
-                    Expanded(
-                      child: StatCard(
-                        label: 'Étudiants',
-                        value: '1 248',
-                        delta: '12%',
-                        icon: Icons.person_outline,
-                        iconBackground: Color(0xFF1E3A8A),
+                statsAsync.when(
+                  data: (stats) => Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          label: 'Étudiants',
+                          value: '${stats['studentCount']}',
+                          delta: 'Direct',
+                          icon: Icons.person_outline,
+                          iconBackground: const Color(0xFF1E3A8A),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: StatCard(
-                        label: 'Enseignants',
-                        value: '312',
-                        delta: '5%',
-                        icon: Icons.person_outline,
-                        iconBackground: AppColors.primaryBlue,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: StatCard(
+                          label: 'Enseignants',
+                          value: '${stats['teacherCount']}',
+                          delta: 'Direct',
+                          icon: Icons.person_outline,
+                          iconBackground: AppColors.primaryBlue,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: StatCard(
-                        label: 'Cours actifs',
-                        value: '24',
-                        delta: '0%',
-                        isPositive: false,
-                        icon: Icons.badge_outlined,
-                        iconBackground: Color(0xFFF5A623),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: StatCard(
+                          label: 'Cours actifs',
+                          value: '${stats['courseCount']}',
+                          delta: 'Total',
+                          icon: Icons.badge_outlined,
+                          iconBackground: const Color(0xFFF5A623),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: StatCard(
-                        label: 'Sessions aujourd\'hui',
-                        value: '156',
-                        delta: '8%',
-                        icon: Icons.event_note_outlined,
-                        iconBackground: Color(0xFF0FBFA0),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: StatCard(
+                          label: 'Sessions',
+                          value: '${stats['sessionCount']}',
+                          delta: 'Historique',
+                          icon: Icons.event_note_outlined,
+                          iconBackground: const Color(0xFF0FBFA0),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  loading: () => const Center(child: LinearProgressIndicator()),
+                  error: (e, _) => Text('Erreur stats: $e'),
                 ),
                 const SizedBox(height: 18),
 
@@ -98,7 +105,7 @@ class DashboardScreen extends StatelessWidget {
   /// Barre du haut spécifique au dashboard : recherche globale + notif + avatar
   /// (pas de titre de page ici, contrairement aux autres écrans — fidèle à
   /// la maquette où le nom de l'utilisateur est affiché dans la sidebar).
-  Widget _buildTopBar() {
+  Widget _buildTopBar(UniFlowUser? user) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       decoration: const BoxDecoration(
@@ -119,9 +126,9 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.search, size: 18, color: AppColors.textMuted),
                   const SizedBox(width: 10),
-                  Expanded(
+                  const Expanded(
                     child: TextField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Rechercher globalement...',
                         hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 13.5),
                         border: InputBorder.none,
@@ -156,7 +163,7 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 18),
-          const InitialsAvatar(initials: 'AD', size: 36),
+          InitialsAvatar(initials: user?.name.substring(0, 1).toUpperCase() ?? 'AD', size: 36),
         ],
       ),
     );

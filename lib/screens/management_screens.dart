@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/stat_card.dart';
+import '../providers/auth_provider.dart';
+import '../repositories/auth_repository.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -163,7 +167,117 @@ class _MessageRow extends StatelessWidget { final IconData icon; final String ti
 
 class StatisticsScreen extends StatelessWidget { const StatisticsScreen({super.key}); @override Widget build(BuildContext context) => _ManagementPage(title: 'Tableau de bord Statistiques', subtitle: 'Analysez les performances académiques de votre établissement', action: 'Exporter PDF', icon: Icons.download_outlined, stats: const [_Metric('Taux de présence moyen', '78,4%', '+3,2%', Icons.event_available_outlined), _Metric('Taux de réussite', '86,7%', '+1,5%', Icons.trending_up), _Metric('Moyenne générale', '4,2/5', 'sur barème 5', Icons.star_border), _Metric('Satisfaction étudiants', '82,1%', '+5,1%', Icons.sentiment_satisfied_alt_outlined)], child: Column(children: [Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: _ChartPanel(title: 'Évolution du taux de présence', values: const [72, 74, 78, 77])), const SizedBox(width: 16), Expanded(child: _ChartPanel(title: 'Répartition par matière', values: const [92, 85, 80, 78, 74, 68]))]), const SizedBox(height: 16), Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: _ChartPanel(title: 'Réussite des étudiants', values: const [82, 12, 6])), const SizedBox(width: 16), Expanded(child: _DataTableCard(title: 'Top 5 UE par présence', columns: const ['UE', 'Taux', 'Tendance'], rows: const [['INFO201', '92,3%', '+4,1%'], ['INFO202', '88,7%', '+3,2%'], ['RESE301', '84,5%', '+2,7%'], ['MATH101', '79,8%', '+1,9%'], ['INFO204', '76,6%', '+1,3%']]))]) ])); }
 
-class SettingsScreen extends StatelessWidget { const SettingsScreen({super.key}); @override Widget build(BuildContext context) => _ManagementPage(title: 'Paramètres', subtitle: 'Configurez votre espace UniFlow', stats: const [], child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: _Panel(title: 'Préférences générales', child: Column(children: const [_SettingRow(title: 'Notifications système', subtitle: 'Recevoir les alertes importantes', value: true), _SettingRow(title: 'Mode hors connexion', subtitle: 'Conserver une copie locale des données', value: true), _SettingRow(title: 'Synchronisation automatique', subtitle: 'Mettre à jour les données après reconnexion', value: true)]))), const SizedBox(width: 18), const Expanded(child: _Panel(title: 'Compte administrateur', child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Administrateur', style: TextStyle(fontWeight: FontWeight.w700)), SizedBox(height: 6), Text('admin@uniflow.edu', style: AppTextStyles.body), SizedBox(height: 20), Text('Les données seront connectées à Appwrite dans la prochaine intégration.', style: AppTextStyles.body)]))) ])); }
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+
+    return _ManagementPage(
+      title: 'Paramètres',
+      subtitle: 'Configurez votre espace UniFlow',
+      stats: const [],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _Panel(
+                  title: 'Préférences générales',
+                  child: Column(
+                    children: const [
+                      _SettingRow(title: 'Notifications système', subtitle: 'Recevoir les alertes importantes', value: true),
+                      _SettingRow(title: 'Mode hors connexion', subtitle: 'Conserver une copie locale des données', value: true),
+                      _SettingRow(title: 'Synchronisation automatique', subtitle: 'Mettre à jour les données après reconnexion', value: true),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: _Panel(
+                  title: 'Profil utilisateur',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentUser?.name ?? 'Utilisateur non connecté',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        currentUser?.email ?? '---',
+                        style: AppTextStyles.body,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Rôle : ${currentUser?.role ?? '---'}',
+                        style: AppTextStyles.body,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Type de compte : ${currentUser?.accountType ?? '---'}',
+                        style: AppTextStyles.body,
+                      ),
+                      if (currentUser?.university != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Université : ${currentUser!.university}',
+                          style: AppTextStyles.body,
+                        ),
+                      ],
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await ref.read(authRepositoryProvider).logout();
+                          ref.read(currentUserProvider.notifier).state = null;
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Se déconnecter', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _Panel(
+            title: 'Développement & API',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('UniFlow API Token', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: TextField(
+                    obscureText: true,
+                    controller: TextEditingController(text: dotenv.get('UNIFLOW_API_TOKEN', fallback: '')),
+                    decoration: InputDecoration(
+                      hintText: 'Saisissez votre clé d\'API...',
+                      filled: true,
+                      fillColor: AppColors.inputFill,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Ce jeton est utilisé pour les échanges de données sécurisés entre le client et le backend.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 class _SettingRow extends StatelessWidget { final String title, subtitle; final bool value; const _SettingRow({required this.title, required this.subtitle, required this.value}); @override Widget build(BuildContext context) => SwitchListTile(contentPadding: EdgeInsets.zero, title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: Text(subtitle), value: value, onChanged: null); }
 
 class _ManagementPage extends StatelessWidget { final String title, subtitle; final String? action; final IconData? icon; final VoidCallback? onAction; final List<_Metric> stats; final Widget child; const _ManagementPage({required this.title, required this.subtitle, required this.stats, required this.child, this.action, this.icon, this.onAction}); @override Widget build(BuildContext context) => Scaffold(backgroundColor: AppColors.background, body: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(30, 24, 30, 30), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [AppTopBar(title: title, subtitle: subtitle, actions: [if (action != null) ElevatedButton.icon(onPressed: onAction, icon: Icon(icon ?? Icons.arrow_forward, size: 16), label: Text(action!))]), if (stats.isNotEmpty) ...[const SizedBox(height: 22), Wrap(spacing: 14, runSpacing: 14, children: stats.map((m) => SizedBox(width: 210, child: StatCard(label: m.label, value: m.value, delta: m.detail, icon: m.icon, iconBackground: AppColors.primaryBlue))).toList())], const SizedBox(height: 22), child])))); }
@@ -179,3 +293,130 @@ class _FilterRow extends StatelessWidget {
 class _Panel extends StatelessWidget { final String title; final Widget child; const _Panel({required this.title, required this.child}); @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.inputBorder)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [Text(title, style: AppTextStyles.h2.copyWith(fontSize: 16)), const SizedBox(height: 14), child])); }
 class _DataTableCard extends StatelessWidget { final String title; final List<String> columns; final List<List<String>> rows; const _DataTableCard({required this.title, required this.columns, required this.rows}); @override Widget build(BuildContext context) => _Panel(title: title, child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textSecondary, fontSize: 12), dataTextStyle: const TextStyle(fontSize: 12.5, color: AppColors.textPrimary), columns: columns.map((c) => DataColumn(label: Text(c))).toList(), rows: rows.map((r) => DataRow(cells: r.map((v) => DataCell(Text(v))).toList())).toList()))); }
 class _ChartPanel extends StatelessWidget { final String title; final List<int> values; const _ChartPanel({required this.title, required this.values}); @override Widget build(BuildContext context) => _Panel(title: title, child: SizedBox(height: 180, child: Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: values.asMap().entries.map((e) => Column(mainAxisAlignment: MainAxisAlignment.end, children: [Text('${e.value}%'), const SizedBox(height: 6), Container(width: 30, height: e.value * 1.25, decoration: BoxDecoration(color: e.key.isEven ? AppColors.primaryBlue : AppColors.teal, borderRadius: const BorderRadius.vertical(top: Radius.circular(6)))), const SizedBox(height: 8), Text('S${e.key + 1}', style: AppTextStyles.body.copyWith(fontSize: 11))])).toList()))); }
+
+class SentinelleManagementScreen extends StatelessWidget {
+  const SentinelleManagementScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ManagementPage(
+      title: 'UniFlow Sentinelle',
+      subtitle: 'Surveillance IoT et Pré-diagnostic santé (Edge AI)',
+      stats: const [
+        _Metric('Kiosques Santé', '4', 'Actifs', Icons.monitor_heart_outlined),
+        _Metric('Alertes Vigie', '0', 'Aujourd\'hui', Icons.security),
+        _Metric('Urgences Santé', '1', 'Semaine', Icons.emergency_outlined),
+        _Metric('État Réseau Edge', 'Normal', '100% Offline', Icons.wifi_off_outlined),
+      ],
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _Panel(
+                  title: 'Moniteur Vigie - Flux Vidéo local',
+                  child: Container(
+                    height: 250,
+                    decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)),
+                    alignment: Alignment.center,
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.videocam_off, color: Colors.white54, size: 48),
+                        SizedBox(height: 12),
+                        Text('Flux sécurisé LAN uniquement', style: TextStyle(color: Colors.white54)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: _Panel(
+                  title: 'Journal d\'événements Sentinelle',
+                  child: Column(
+                    children: const [
+                      _EventRow(time: '14:20', msg: 'Système initialisé', type: 'info'),
+                      _EventRow(time: '14:25', msg: 'Kiosque A : Scan terminé (Normal)', type: 'success'),
+                      _EventRow(time: '15:10', msg: 'Vigie : Mouvement détecté labo', type: 'warning'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventRow extends StatelessWidget {
+  final String time, msg, type;
+  const _EventRow({required this.time, required this.msg, required this.type});
+  @override Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Row(
+      children: [
+        Text(time, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+        const SizedBox(width: 12),
+        Expanded(child: Text(msg, style: const TextStyle(fontSize: 13))),
+        Icon(Icons.circle, size: 8, color: type == 'success' ? Colors.green : (type == 'warning' ? Colors.orange : Colors.blue)),
+      ],
+    ),
+  );
+}
+
+class TeamsScreen extends StatelessWidget {
+  const TeamsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ManagementPage(
+      title: 'Équipe KERNEL FORGE',
+      subtitle: 'Les créateurs de la plateforme UniFlow',
+      stats: const [],
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        children: const [
+          _TeamMemberCard(name: 'NGHOMSI RAVEL', role: 'Lead Architect'),
+          _TeamMemberCard(name: 'Aliyatou Rachid', role: 'Frontend Web/Desktop'),
+          _TeamMemberCard(name: 'Mandeng Judith', role: 'Mobile Developer'),
+          _TeamMemberCard(name: 'Meli William', role: 'Backend Developer'),
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamMemberCard extends StatelessWidget {
+  final String name, role;
+  const _TeamMemberCard({required this.name, required this.role});
+  @override Widget build(BuildContext context) => Container(
+    width: 280,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.inputBorder)),
+    child: Column(
+      children: [
+        const CircleAvatar(radius: 30, backgroundColor: AppColors.inputFill, child: Icon(Icons.person, size: 30)),
+        const SizedBox(height: 12),
+        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text(role, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+        const SizedBox(height: 12),
+        const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.link, size: 16), SizedBox(width: 8), Icon(Icons.mail_outline, size: 16)]),
+      ],
+    ),
+  );
+}
+
+class StructureManagementScreen extends StatelessWidget {
+  const StructureManagementScreen({super.key});
+  @override Widget build(BuildContext context) => _ManagementPage(title: 'Structure Académique', subtitle: 'Gérez les facultés, départements et niveaux', stats: const [], child: const Center(child: Text('Configuration de la structure académique connectée à Appwrite.')));
+}
+
+class PaymentsManagementScreen extends StatelessWidget {
+  const PaymentsManagementScreen({super.key});
+  @override Widget build(BuildContext context) => _ManagementPage(title: 'Gestion des Paiements', subtitle: 'Suivi des abonnements et frais de scolarité', stats: const [_Metric('Recettes ce mois', '450 000 XAF', '+15%', Icons.account_balance_wallet_outlined)], child: const Center(child: Text('Historique des transactions et validation des paiements WhatsApp.')));
+}
