@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Flutter ne déclare INTERNET que dans les variantes debug et profile :
+         sans cette ligne, l'APK release n'a aucun accès réseau et toutes les
+         requêtes Appwrite échouent silencieusement. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="uniflow_app"
         android:name="${applicationName}"

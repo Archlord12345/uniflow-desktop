@@ -44,11 +44,19 @@ class AuthRepository {
         program: doc.data['program'],
         level: doc.data['level'],
         country: doc.data['country'],
+        username: doc.data['username'],
+        avatarFileId: doc.data['avatarFileId'],
       );
     } catch (e) {
       return null;
     }
   }
+
+  /// Relit uniquement le document de profil, sans repasser par le compte.
+  ///
+  /// Utilisé après un changement de photo : le compte Appwrite n'a pas bougé,
+  /// seul le document `users` a été mis à jour.
+  Future<UniFlowUser?> refreshProfile() => getCurrentUser();
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

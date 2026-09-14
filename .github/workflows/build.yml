@@ -15,7 +15,10 @@ jobs:
       - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+          # libwebkit2gtk-4.1-dev est requis par `desktop_webview_window`, tire par
+          # `flutter_web_auth_2` lui-meme tire par le SDK Appwrite. Sans lui, CMake
+          # echoue sur `pkg_check_modules(webkit2gtk-4.0)` et le build Linux casse.
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libwebkit2gtk-4.1-dev
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -28,7 +31,6 @@ jobs:
           echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}" >> .env
           echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}" >> .env
           echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}" >> .env
-          echo "UNIFLOW_API_TOKEN=${{ secrets.UNIFLOW_API_TOKEN }}" >> .env
       - name: Build Linux
         run: flutter build linux --release
       - name: Upload Artifacts
@@ -55,7 +57,6 @@ jobs:
           echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}" >> .env
           echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}" >> .env
           echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}" >> .env
-          echo "UNIFLOW_API_TOKEN=${{ secrets.UNIFLOW_API_TOKEN }}" >> .env
       - name: Build Windows
         run: flutter build windows --release
       - name: Upload Artifacts
@@ -73,7 +74,10 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          # Java 21 : compatible a la fois avec Gradle 8.14 (mobile) et 9.1 (desktop),
+          # et au-dessus du minimum exige par AGP 9.0.1. Le projet compile de toute
+          # facon en bytecode 17 (app/build.gradle.kts).
+          java-version: '21'
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -86,7 +90,6 @@ jobs:
           echo "APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }}" >> .env
           echo "APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }}" >> .env
           echo "APPWRITE_STORAGE_BUCKET_ID=${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}" >> .env
-          echo "UNIFLOW_API_TOKEN=${{ secrets.UNIFLOW_API_TOKEN }}" >> .env
       - name: Build APK
         run: flutter build apk --release
       - name: Upload Artifacts

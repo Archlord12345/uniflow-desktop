@@ -1,4 +1,41 @@
 import 'package:appwrite/models.dart' as models;
+import 'package:flutter/material.dart';
+
+/// "L1" -> "Licence 1" : la base stocke le code, l'interface affiche le nom.
+String directoryLevelLabel(String level) {
+  const labels = {
+    'L1': 'Licence 1',
+    'L2': 'Licence 2',
+    'L3': 'Licence 3',
+    'M1': 'Master 1',
+    'M2': 'Master 2',
+  };
+  return labels[level] ?? level;
+}
+
+/// Statut d'annuaire (`ACTIVE`, `SUSPENDED`…) rendu lisible.
+String directoryStatusLabel(String? status) {
+  switch ((status ?? '').toUpperCase()) {
+    case 'ACTIVE':
+      return 'Actif';
+    case 'SUSPENDED':
+      return 'Suspendu';
+    default:
+      return 'En attente';
+  }
+}
+
+/// Couleur associée au statut, alignée sur la charte du desktop.
+Color directoryStatusColor(String? status) {
+  switch ((status ?? '').toUpperCase()) {
+    case 'ACTIVE':
+      return const Color(0xFF34C77B);
+    case 'SUSPENDED':
+      return const Color(0xFFE85C5C);
+    default:
+      return const Color(0xFFF5A623);
+  }
+}
 
 class AcademicCourse {
   final String id;
@@ -96,6 +133,12 @@ class AcademicDirectoryEntry {
   final String? matricule;
   final String? status;
 
+  /// Ces trois champs vivent dans la collection `users`, pas dans
+  /// `academic_directory` : le dépôt les joint avant de renvoyer l'entrée.
+  final String? email;
+  final String? username;
+  final String? avatarFileId;
+
   AcademicDirectoryEntry({
     required this.id,
     required this.userId,
@@ -106,6 +149,9 @@ class AcademicDirectoryEntry {
     required this.level,
     this.matricule,
     this.status,
+    this.email,
+    this.username,
+    this.avatarFileId,
   });
 
   factory AcademicDirectoryEntry.fromDocument(models.Document doc) {
@@ -119,6 +165,28 @@ class AcademicDirectoryEntry {
       level: doc.data['level'] ?? 'L1',
       matricule: doc.data['matricule'],
       status: doc.data['status'],
+    );
+  }
+
+  /// Complète l'entrée avec les données de profil de `users`.
+  AcademicDirectoryEntry withProfile({
+    String? email,
+    String? username,
+    String? avatarFileId,
+  }) {
+    return AcademicDirectoryEntry(
+      id: id,
+      userId: userId,
+      name: name,
+      role: role,
+      university: university,
+      program: program,
+      level: level,
+      matricule: matricule,
+      status: status,
+      email: email,
+      username: username,
+      avatarFileId: avatarFileId,
     );
   }
 }
@@ -330,6 +398,12 @@ class UniFlowUser {
   final String? level;
   final String? country;
 
+  /// Pseudo unique : c'est le référent de la messagerie.
+  final String? username;
+
+  /// Fichier de la photo de profil dans le bucket Appwrite `uniflow_avatars`.
+  final String? avatarFileId;
+
   UniFlowUser({
     required this.id,
     required this.email,
@@ -340,5 +414,23 @@ class UniFlowUser {
     this.program,
     this.level,
     this.country,
+    this.username,
+    this.avatarFileId,
   });
+
+  UniFlowUser copyWith({String? name, String? username, String? avatarFileId}) {
+    return UniFlowUser(
+      id: id,
+      email: email,
+      name: name ?? this.name,
+      accountType: accountType,
+      role: role,
+      university: university,
+      program: program,
+      level: level,
+      country: country,
+      username: username ?? this.username,
+      avatarFileId: avatarFileId ?? this.avatarFileId,
+    );
+  }
 }

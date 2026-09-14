@@ -1,73 +1,27 @@
-import 'package:flutter/material.dart';
-
 /// Modèle représentant une salle, pour la page "Salles" (Gestion des Salles).
-/// Données statiques pour l'instant (voir [Classroom.mockList]), à
-/// remplacer par un appel API plus tard.
+///
+/// Appwrite ne possède pas de collection `classrooms` : le nom de la salle est
+/// un simple champ texte sur `academic_schedules` et `academic_courses`. Les
+/// salles listées ici sont donc les valeurs distinctes réellement planifiées,
+/// agrégées avec leur nombre de créneaux — et non un catalogue de salles
+/// (capacité, bâtiment, statut) que la base ne contient pas.
 class Classroom {
-  final String code;       // ex: "S101"
-  final String nom;        // ex: "Amphi 101"
-  final int capacite;
-  final String type;       // ex: "Amphithéâtre", "Salle de cours"...
-  final String batiment;   // ex: "Bâtiment A"
-  final String statut;     // "Disponible" | "Occupée" | "Maintenance"
-  final Color statutColor;
+  /// Libellé de la salle tel qu'il est stocké dans l'emploi du temps.
+  final String nom;
+
+  /// Nombre de créneaux d'emploi du temps qui s'y tiennent.
+  final int creneaux;
+
+  /// Nombre d'UE distinctes qui y sont planifiées.
+  final int cours;
+
+  /// Type de créneau, quand tous ceux de la salle partagent le même.
+  final String type;
 
   const Classroom({
-    required this.code,
     required this.nom,
-    required this.capacite,
-    required this.type,
-    required this.batiment,
-    required this.statut,
-    required this.statutColor,
+    required this.creneaux,
+    required this.cours,
+    this.type = '',
   });
-
-  /// Jeu de données factices reproduisant la maquette "Classroom Management".
-  static const List<Classroom> mockList = [
-    Classroom(
-      code: 'S101',
-      nom: 'Amphi 101',
-      capacite: 120,
-      type: 'Amphithéâtre',
-      batiment: 'Bâtiment A',
-      statut: 'Disponible',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    Classroom(
-      code: 'S102',
-      nom: 'Salle 102',
-      capacite: 40,
-      type: 'Salle de cours',
-      batiment: 'Bâtiment A',
-      statut: 'Disponible',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    Classroom(
-      code: 'S201',
-      nom: 'Salle Info 1',
-      capacite: 30,
-      type: 'Salle Informatique',
-      batiment: 'Bâtiment B',
-      statut: 'Occupée',
-      statutColor: Color(0xFFFFE9CC),
-    ),
-    Classroom(
-      code: 'S202',
-      nom: 'Salle Info 2',
-      capacite: 30,
-      type: 'Salle Informatique',
-      batiment: 'Bâtiment B',
-      statut: 'Disponible',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    Classroom(
-      code: 'S301',
-      nom: 'Laboratoire Chimie',
-      capacite: 25,
-      type: 'Laboratoire',
-      batiment: 'Bâtiment C',
-      statut: 'Maintenance',
-      statutColor: Color(0xFFFFE0E9),
-    ),
-  ];
 }

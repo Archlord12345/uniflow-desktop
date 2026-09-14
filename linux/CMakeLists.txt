@@ -7,7 +7,10 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "uniflow_app")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.uniflow_app")
+# Doit rester unique sur la machine : c'est cet identifiant que GTK utilise pour
+# regrouper les fenetres et associer le fichier .desktop. La valeur d'exemple de
+# Flutter (« com.example.* ») ne doit pas partir en production.
+set(APPLICATION_ID "codes.kernelforge.uniflow")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

@@ -9,7 +9,7 @@ Alors que le mobile sert à la consommation, UniFlow Desktop sert à la **gestio
 
 ## 🛠️ Unification Appwrite & Améliorations
 Le projet a été restructuré pour supprimer les données simulées (mocks) au profit d'une **intégration native avec l'infrastructure Appwrite** de KERNEL FORGE.
-- **Accès Privilégié** : Gestion des clés d'API UniFlow directement dans les paramètres.
+- **Accès Privilégié** : Les opérations sensibles passent par les Functions Appwrite (clé API côté serveur uniquement).
 - **Performance Native** : Compilation optimisée pour Windows et Linux.
 - **Mode Tablette** : Une version spécifique APK est générée pour les tablettes grand format, utilisant l'interface Desktop pour une mobilité administrative sur le terrain.
 
@@ -43,8 +43,39 @@ APPWRITE_ENDPOINT=https://appwrite.kernelforge.codes/v1
 APPWRITE_PROJECT_ID=6a959096002a64d9d4e6
 APPWRITE_DATABASE_ID=uniflow
 APPWRITE_STORAGE_BUCKET_ID=uniflow_assets
-UNIFLOW_API_TOKEN=votre_token_secret
 ```
+
+> ⚠️ **Ne jamais mettre de clé d'API serveur (`APPWRITE_API_KEY`) dans ce fichier.**
+> `pubspec.yaml` déclare `.env` comme asset : tout ce qu'il contient est embarqué
+> en clair dans le binaire et dans l'APK tablette. Les opérations privilégiées
+> passent par les **Functions Appwrite**, qui détiennent la clé côté serveur.
+
+## 🧰 Prérequis outillage
+
+**Java 21 est requis.** Le projet tourne sous Gradle 9.1.0 / AGP 9.0.1. Si votre
+`java` par défaut est plus récent (Java 25, par exemple), Gradle refuse de démarrer
+avec `Gradle build failed due to Java/Gradle incompatibility`. Épinglez le JDK une
+bonne fois pour toutes — c'est un réglage utilisateur, rien n'est écrit dans le dépôt :
+
+```bash
+flutter config --jdk-dir=/usr/lib/jvm/java-21-openjdk-amd64
+```
+
+**Sous Linux, `libwebkit2gtk-4.1-dev` est obligatoire.** Il vient de la chaîne
+`appwrite` → `flutter_web_auth_2` → `desktop_webview_window`, dont le CMake réclame
+WebKit. Sur Ubuntu 24.04, seul le paquet `4.1` existe :
+
+```bash
+sudo apt install -y libwebkit2gtk-4.1-dev
+```
+
+> Le message d'erreur CMake parle de `webkit2gtk-4.0` : c'est le *fallback* du
+> plugin. S'il s'affiche, c'est que **4.1 manque aussi**. N'essayez pas d'installer
+> le paquet `4.0`, il n'existe plus sur Ubuntu 24.04.
+
+> Si le build Linux échoue ensuite sur
+> `file INSTALL cannot copy ... to /usr/local/uniflow_app`, c'est un `CMakeCache.txt`
+> périmé : lancez `flutter clean` puis relancez.
 
 ---
 © 2026 **KERNEL FORGE** — L'excellence au service de la gestion académique.

@@ -41,16 +41,27 @@ class StatCard extends StatelessWidget {
             child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(label, style: AppTextStyles.body.copyWith(fontSize: 13)),
+          // `maxLines` + ellipse sur le libellé : dans une grille de KPI, la
+          // colonne peut devenir étroite (fenêtre réduite, tablette) et un
+          // libellé long n'a alors nulle part où aller.
+          Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.body.copyWith(fontSize: 13),
+          ),
           const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-              ),
-            ],
+          // La valeur est en `FittedBox` plutôt qu'en `Text` nu : « 1 248 »
+          // en 22 px gras déborde d'une carte étroite, et une taille qui
+          // s'ajuste est préférable à des points de suspension sur un chiffre.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
           ),
           const SizedBox(height: 4),
           Row(
@@ -61,12 +72,19 @@ class StatCard extends StatelessWidget {
                 color: isPositive ? AppColors.success : AppColors.textMuted,
               ),
               const SizedBox(width: 2),
-              Text(
-                delta,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: isPositive ? AppColors.success : AppColors.textMuted,
+              // Sans `Flexible`, cette Row n'avait aucun enfant capable de se
+              // réduire : dès que la carte était plus étroite que l'icône plus
+              // le texte, Flutter signalait un débordement au lieu de tronquer.
+              Flexible(
+                child: Text(
+                  delta,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: isPositive ? AppColors.success : AppColors.textMuted,
+                  ),
                 ),
               ),
             ],

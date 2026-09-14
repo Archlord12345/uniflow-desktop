@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/classroom.dart';
-import '../widgets/app_breadcrumb.dart';
+import '../providers/directory_provider.dart';
+import '../widgets/app_page_bar.dart';
+import '../widgets/data_state_view.dart';
 import '../widgets/status_badge.dart';
 
-/// Page "Salles" (Gestion des Salles) : recherche, tableau paginé des
-/// salles avec leur capacité, type, bâtiment et statut de disponibilité.
+/// Page "Salles" (Gestion des Salles).
+///
+/// Appwrite n'a pas de collection `classrooms` : les salles listées sont les
+/// libellés réellement présents dans l'emploi du temps (`academic_schedules`),
+/// agrégés avec leur nombre de créneaux et d'UE. La page affichait auparavant
+/// cinq salles inventées avec des capacités et des bâtiments qui n'existent
+/// nulle part en base, ainsi qu'une pagination factice.
 ///
 /// Ce widget n'a pas de Scaffold/sidebar propre : il est affiché à
 /// l'intérieur de [MainShell].
-class ClassroomsScreen extends StatefulWidget {
+class ClassroomsScreen extends ConsumerStatefulWidget {
   const ClassroomsScreen({super.key});
 
   @override
-  State<ClassroomsScreen> createState() => _ClassroomsScreenState();
+  ConsumerState<ClassroomsScreen> createState() => _ClassroomsScreenState();
 }
 
-class _ClassroomsScreenState extends State<ClassroomsScreen> {
+class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
   final _searchController = TextEditingController();
-  static const int totalClassrooms = 156;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
@@ -26,9 +39,18 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
     super.dispose();
   }
 
+  List<Classroom> _filtered(List<Classroom> classrooms) {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return classrooms;
+    return classrooms.where((room) {
+      return room.nom.toLowerCase().contains(query) ||
+          room.type.toLowerCase().contains(query);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final classrooms = Classroom.mockList;
+    final classroomsAsync = ref.watch(classroomsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -48,13 +70,15 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.inputBorder),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildTableHeader(),
-                      ...classrooms.map((c) => _ClassroomRow(classroom: c)),
-                      _buildPagination(),
-                    ],
+                  child: classroomsAsync.when(
+                    loading: () => const DataLoadingView(
+                      label: 'Chargement de l\'emploi du temps…',
+                    ),
+                    error: (error, _) => DataErrorView(
+                      error: error,
+                      onRetry: () => ref.invalidate(classroomsProvider),
+                    ),
+                    data: (classrooms) => _buildTable(_filtered(classrooms)),
                   ),
                 ),
               ],
@@ -65,35 +89,40 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
     );
   }
 
+  Widget _buildTable(List<Classroom> classrooms) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildTableHeader(),
+        if (classrooms.isEmpty)
+          DataEmptyView(
+            icon: Icons.meeting_room_outlined,
+            message: _searchController.text.trim().isEmpty
+                ? 'Aucune salle planifiée.\nLes salles apparaissent ici dès qu\'un créneau d\'emploi du temps les référence.'
+                : 'Aucune salle ne correspond à « ${_searchController.text.trim()} ».',
+          )
+        else
+          ...classrooms.map((room) => _ClassroomRow(classroom: room)),
+        _buildFooter(classrooms),
+      ],
+    );
+  }
+
   Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-      decoration: const BoxDecoration(
-        color: AppColors.cardWhite,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder)),
-      ),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppBreadcrumb(items: ['Accueil', 'Salles']),
-                SizedBox(height: 4),
-                Text('Gérez les salles et leurs disponibilités', style: AppTextStyles.body),
-              ],
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: ouvrir le formulaire de création de salle
-            },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Ajouter salle'),
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
-          ),
-        ],
-      ),
+    return AppPageBar(
+      breadcrumb: const ['Accueil', 'Salles'],
+      subtitle: 'Salles réellement utilisées par l\'emploi du temps',
+      actions: [
+        ElevatedButton.icon(
+          onPressed: () {
+            // TODO: ouvrir le formulaire de création de salle — nécessite
+            // d'abord une collection `classrooms` côté Appwrite.
+          },
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Ajouter salle'),
+          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
+        ),
+      ],
     );
   }
 
@@ -121,43 +150,31 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: const Row(
         children: [
-          SizedBox(width: 70, child: Text('CODE', style: style)),
-          Expanded(flex: 3, child: Text('NOM DE LA SALLE', style: style)),
-          SizedBox(width: 80, child: Text('CAPACITÉ', style: style)),
-          Expanded(flex: 2, child: Text('TYPE', style: style)),
-          Expanded(flex: 2, child: Text('BÂTIMENT', style: style)),
-          Expanded(flex: 2, child: Text('STATUT', style: style)),
+          Expanded(flex: 3, child: Text('SALLE', style: style)),
+          SizedBox(width: 120, child: Text('CRÉNEAUX', style: style)),
+          SizedBox(width: 120, child: Text('UE PLANIFIÉES', style: style)),
+          Expanded(flex: 2, child: Text('TYPE DE CRÉNEAU', style: style)),
         ],
       ),
     );
   }
 
-  Widget _buildPagination() {
+  /// Pied de tableau : décompte réel des salles affichées.
+  Widget _buildFooter(List<Classroom> classrooms) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Affichage de 1 à ${Classroom.mockList.length} sur $totalClassrooms salles',
+            classrooms.length <= 1 ? '${classrooms.length} salle' : '${classrooms.length} salles',
             style: AppTextStyles.body.copyWith(fontSize: 13),
           ),
-          Row(
-            children: [
-              const _PageArrow(icon: Icons.chevron_left),
-              const SizedBox(width: 6),
-              const _PageButton(label: '1', isActive: true),
-              const SizedBox(width: 6),
-              const _PageButton(label: '2'),
-              const SizedBox(width: 6),
-              const _PageButton(label: '3'),
-              const SizedBox(width: 6),
-              const Text('...', style: TextStyle(color: AppColors.textMuted)),
-              const SizedBox(width: 6),
-              const _PageButton(label: '16'),
-              const SizedBox(width: 6),
-              const _PageArrow(icon: Icons.chevron_right),
-            ],
+          const Spacer(),
+          IconButton(
+            onPressed: () => ref.invalidate(classroomsProvider),
+            icon: const Icon(Icons.refresh, size: 18),
+            color: AppColors.textSecondary,
+            tooltip: 'Recharger depuis Appwrite',
           ),
         ],
       ),
@@ -177,56 +194,47 @@ class _ClassroomRow extends StatelessWidget {
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
-          SizedBox(width: 70, child: Text(classroom.code, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary))),
-          Expanded(flex: 3, child: Text(classroom.nom, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary))),
-          SizedBox(width: 80, child: Text(classroom.capacite.toString(), style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(classroom.type, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(classroom.batiment, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                const Icon(Icons.meeting_room_outlined, size: 18, color: AppColors.textMuted),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    classroom.nom,
+                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 120,
+            child: Text(
+              classroom.creneaux <= 1 ? '${classroom.creneaux} créneau' : '${classroom.creneaux} créneaux',
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
+          SizedBox(
+            width: 120,
+            child: Text(
+              classroom.cours.toString(),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
           Expanded(
             flex: 2,
-            child: Align(alignment: Alignment.centerLeft, child: StatusBadge(label: classroom.statut, backgroundColor: classroom.statutColor)),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: classroom.type.isEmpty
+                  ? const Text('—', style: TextStyle(fontSize: 13, color: AppColors.textMuted))
+                  : StatusBadge(label: classroom.type, backgroundColor: AppColors.inputFill, textColor: AppColors.textSecondary),
+            ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _PageButton extends StatelessWidget {
-  final String label;
-  final bool isActive;
-
-  const _PageButton({required this.label, this.isActive = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.primaryBlue : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        border: isActive ? null : Border.all(color: AppColors.inputBorder),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.textSecondary)),
-    );
-  }
-}
-
-class _PageArrow extends StatelessWidget {
-  final IconData icon;
-
-  const _PageArrow({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.inputBorder)),
-      child: Icon(icon, size: 18, color: AppColors.textMuted),
     );
   }
 }

@@ -4,6 +4,7 @@ import '../models/teacher.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
 import '../widgets/status_badge.dart';
+import 'messaging_screen.dart';
 
 /// Page de détail d'un enseignant. Aucune maquette spécifique ne l'illustre,
 /// donc cette page reprend la même structure que [StudentDetailScreen]
@@ -121,7 +122,15 @@ class TeacherDetailScreen extends StatelessWidget {
               const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: ouvrir la messagerie / composer un message à l'enseignant
+                  // La messagerie s'adresse par pseudo, pas par identifiant
+                  // interne : on ouvre l'écran avec le nom de l'enseignant
+                  // pré-rempli dans la recherche de contact, à charge pour
+                  // l'administrateur de confirmer le bon interlocuteur.
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MessagingScreen(initialQuery: teacher.fullName),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.mail_outline, size: 16),
                 label: const Text('Envoyer un message'),
@@ -218,7 +227,11 @@ class _HistoryCard extends StatelessWidget {
           const Text('Historique', style: AppTextStyles.h2),
           const SizedBox(height: 16),
           if (historique.isEmpty)
-            const Text('Aucun événement récent', style: TextStyle(color: AppColors.textMuted, fontSize: 13))
+            const Text(
+              'Aucun événement enregistré pour cet enseignant. Cet historique '
+              'se remplira quand une collection de journalisation sera ajoutée.',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
+            )
           else
             for (final event in historique)
               Padding(

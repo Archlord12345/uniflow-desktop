@@ -14,6 +14,13 @@ dependencies:
   flutter_dotenv: ^6.0.1
   appwrite: ^26.2.0
   flutter_riverpod: ^2.6.1
+  # `file_selector` plutôt qu'`image_picker` : c'est le paquet soutenu par
+  # l'équipe Flutter pour Linux et Windows, où `image_picker` est peu fiable.
+  file_selector: ^1.0.3
+  # Signature des jetons d'accès LiveKit (HMAC-SHA256) par le service de
+  # visioconférence embarqué. Déjà présent en dépendance transitive ; déclaré
+  # explicitement puisqu'on l'importe directement.
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

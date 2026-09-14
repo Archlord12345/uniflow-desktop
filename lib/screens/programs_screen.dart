@@ -1,48 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/program_tree.dart';
+import '../providers/program_provider.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/simple_tab_bar.dart';
 
-/// Page "Programmes & Facultés" : arborescence Faculté > Département >
-/// Programme à gauche, panneau de détail du programme sélectionné à droite.
+/// Page "Programmes & Facultés" : arborescence Université > Filière > Niveau
+/// à gauche, détail du niveau sélectionné à droite.
+///
+/// L'arborescence est construite depuis les UE de `academic_courses` : il n'y
+/// a plus de jeu de données d'exemple. Si la base est vide, la page le dit.
 ///
 /// Comme les autres pages internes, ce widget n'a pas de Scaffold/sidebar
 /// propre : il est affiché à l'intérieur de [MainShell].
-class ProgramsScreen extends StatefulWidget {
+class ProgramsScreen extends ConsumerStatefulWidget {
   const ProgramsScreen({super.key});
 
   @override
-  State<ProgramsScreen> createState() => _ProgramsScreenState();
+  ConsumerState<ProgramsScreen> createState() => _ProgramsScreenState();
 }
 
-class _ProgramsScreenState extends State<ProgramsScreen> {
-  // Programme actuellement affiché dans le panneau de droite.
-  // On démarre directement sur "Licence Informatique" pour matcher la maquette.
-  ProgramNode _selectedProgram = ProgramTreeData.licenceInformatique;
+class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
+  /// Niveau sélectionné, identifié par « université|filière|code » : la liste
+  /// est reconstruite à chaque rechargement, une référence directe deviendrait
+  /// obsolète.
+  String? _selectedKey;
 
-  // Suit quelles facultés/départements sont actuellement dépliés dans
-  // l'arborescence. On utilise le nom comme clé pour simplifier (à
-  // remplacer par un id stable si deux entités pouvaient avoir le même nom).
-  final Set<String> _expandedFaculties = {'Faculté des Sciences'};
-  final Set<String> _expandedDepartments = {"Département d'Informatique"};
+  /// Éléments repliés. L'arborescence est dépliée par défaut : mémoriser les
+  /// replis plutôt que les dépliages évite d'avoir à initialiser l'état une
+  /// fois les données chargées.
+  final Set<String> _collapsed = {};
+
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  static String _keyOf(FacultyNode faculty, DepartmentNode department, ProgramNode program) =>
+      '${faculty.name}|${department.name}|${program.code}';
 
   @override
   Widget build(BuildContext context) {
+    final treeAsync = ref.watch(programTreeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AppTopBar(
           title: 'Programmes & Facultés',
-          subtitle: 'Hiérarchie des facultés, départements et programmes',
+          subtitle: 'Hiérarchie des universités, filières et niveaux',
           actions: [
             TopBarIconButton(icon: Icons.search),
             TopBarIconButton(icon: Icons.notifications_none_rounded, showDot: true),
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO: ouvrir le formulaire de création de programme
-              },
+              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('La création de programmes se fait depuis la '
+                      'gestion des UE : chaque UE porte sa filière et son niveau.'),
+                ),
+              ),
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Ajouter programme'),
               style: ElevatedButton.styleFrom(
@@ -52,47 +74,146 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
           ],
         ),
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ----- Panneau gauche : recherche + arborescence -----
-              SizedBox(
-                width: 360,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    border: Border(right: BorderSide(color: AppColors.inputBorder)),
-                  ),
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildSearchField(),
-                      const SizedBox(height: 20),
-                      Expanded(child: _buildTree()),
-                    ],
-                  ),
-                ),
-              ),
-              // ----- Panneau droit : détail du programme sélectionné -----
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(32),
-                  child: _ProgramDetailPanel(program: _selectedProgram),
-                ),
-              ),
-            ],
+          child: treeAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => _Message(
+              icon: Icons.cloud_off_outlined,
+              title: 'Programmes indisponibles',
+              message: '$error',
+            ),
+            data: (faculties) {
+              if (faculties.isEmpty) {
+                return const _Message(
+                  icon: Icons.account_tree_outlined,
+                  title: 'Aucune UE enregistrée',
+                  message: 'L\'arborescence se construit à partir de la collection '
+                      '« academic_courses » : chaque UE y porte une université, une '
+                      'filière et un niveau. Ajoutez des UE pour voir la hiérarchie '
+                      'apparaître ici.',
+                );
+              }
+              return _buildBody(faculties);
+            },
           ),
         ),
       ],
     );
   }
 
+  Widget _buildBody(List<FacultyNode> faculties) {
+    final visible = _filtered(faculties);
+    final selected = _resolveSelected(visible) ?? _resolveSelected(faculties);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ----- Panneau gauche : recherche + arborescence -----
+        SizedBox(
+          width: 360,
+          child: Container(
+            decoration: const BoxDecoration(
+              border: Border(right: BorderSide(color: AppColors.inputBorder)),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSearchField(),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: visible.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'Aucun résultat pour cette recherche.',
+                            style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                          ),
+                        )
+                      : ListView(
+                          children: [
+                            for (final faculty in visible) _buildFacultyNode(faculty),
+                          ],
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // ----- Panneau droit : détail du niveau sélectionné -----
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: selected == null
+                ? const Text(
+                    'Sélectionnez un niveau dans l\'arborescence.',
+                    style: TextStyle(color: AppColors.textMuted),
+                  )
+                : _ProgramDetailPanel(program: selected),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Restreint l'arborescence aux niveaux dont le libellé, la filière ou le
+  /// code contient la recherche. Les parents d'un niveau retenu sont conservés
+  /// pour garder la hiérarchie lisible.
+  List<FacultyNode> _filtered(List<FacultyNode> faculties) {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return faculties;
+
+    final result = <FacultyNode>[];
+    for (final faculty in faculties) {
+      final departments = <DepartmentNode>[];
+      for (final department in faculty.departments) {
+        final programs = department.programs
+            .where((program) =>
+                program.name.toLowerCase().contains(query) ||
+                program.program.toLowerCase().contains(query) ||
+                program.code.toLowerCase().contains(query))
+            .toList();
+        if (programs.isNotEmpty) {
+          departments.add(DepartmentNode(name: department.name, programs: programs));
+        }
+      }
+      if (departments.isNotEmpty) {
+        result.add(FacultyNode(name: faculty.name, departments: departments));
+      }
+    }
+    return result;
+  }
+
+  /// Le niveau sélectionné s'il existe encore, sinon le premier de la liste.
+  ProgramNode? _resolveSelected(List<FacultyNode> faculties) {
+    final key = _selectedKey;
+    for (final faculty in faculties) {
+      for (final department in faculty.departments) {
+        for (final program in department.programs) {
+          if (key == null || _keyOf(faculty, department, program) == key) {
+            return program;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   Widget _buildSearchField() {
     return TextField(
+      controller: _searchController,
+      onChanged: (value) => setState(() => _query = value),
       decoration: InputDecoration(
-        hintText: 'Rechercher une entité...',
+        hintText: 'Rechercher une filière, un niveau...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
         prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        suffixIcon: _query.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() => _query = '');
+                },
+              ),
         filled: true,
         fillColor: AppColors.cardWhite,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -112,31 +233,28 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     );
   }
 
-  /// Construit l'arborescence complète : une entrée par faculté, chacune
-  /// pouvant être dépliée pour révéler ses départements, eux-mêmes
-  /// dépliables pour révéler leurs programmes.
-  Widget _buildTree() {
-    return ListView(
-      children: [
-        for (final faculty in ProgramTreeData.faculties) _buildFacultyNode(faculty),
-      ],
-    );
+  bool _isExpanded(String key) => !_collapsed.contains(key);
+
+  void _toggle(String key) {
+    setState(() {
+      if (_collapsed.contains(key)) {
+        _collapsed.remove(key);
+      } else {
+        _collapsed.add(key);
+      }
+    });
   }
 
   Widget _buildFacultyNode(FacultyNode faculty) {
-    final isExpanded = _expandedFaculties.contains(faculty.name);
+    // Une recherche en cours force le dépli, sinon les résultats resteraient
+    // cachés derrière une faculté repliée.
+    final isExpanded = _query.isNotEmpty || _isExpanded(faculty.name);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () => setState(() {
-            if (isExpanded) {
-              _expandedFaculties.remove(faculty.name);
-            } else {
-              _expandedFaculties.add(faculty.name);
-            }
-          }),
+          onTap: () => _toggle(faculty.name),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
@@ -159,8 +277,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
             ),
           ),
         ),
-        // Départements affichés uniquement si la faculté est dépliée,
-        // avec un léger décalage + une ligne verticale pour marquer la hiérarchie.
+        // Filières affichées uniquement si l'université est dépliée, avec un
+        // léger décalage + une ligne verticale pour marquer la hiérarchie.
         if (isExpanded)
           Padding(
             padding: const EdgeInsets.only(left: 12),
@@ -171,7 +289,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final dept in faculty.departments) _buildDepartmentNode(dept),
+                  for (final department in faculty.departments)
+                    _buildDepartmentNode(faculty, department),
                 ],
               ),
             ),
@@ -180,20 +299,14 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     );
   }
 
-  Widget _buildDepartmentNode(DepartmentNode dept) {
-    final isExpanded = _expandedDepartments.contains(dept.name);
+  Widget _buildDepartmentNode(FacultyNode faculty, DepartmentNode department) {
+    final isExpanded = _query.isNotEmpty || _isExpanded(department.name);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () => setState(() {
-            if (isExpanded) {
-              _expandedDepartments.remove(dept.name);
-            } else {
-              _expandedDepartments.add(dept.name);
-            }
-          }),
+          onTap: () => _toggle(department.name),
           child: Padding(
             padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
             child: Row(
@@ -206,7 +319,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    dept.name,
+                    department.name,
                     style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   ),
                 ),
@@ -220,7 +333,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final program in dept.programs) _buildProgramLeaf(program),
+                for (final program in department.programs)
+                  _buildProgramLeaf(faculty, department, program),
               ],
             ),
           ),
@@ -228,14 +342,13 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     );
   }
 
-  /// Feuille de l'arborescence : un programme cliquable qui met à jour
-  /// le panneau de détail à droite. Mis en surbrillance bleue s'il
-  /// correspond au programme actuellement sélectionné.
-  Widget _buildProgramLeaf(ProgramNode program) {
-    final isSelected = program.name == _selectedProgram.name;
+  /// Feuille de l'arborescence : un niveau cliquable qui met à jour le panneau
+  /// de détail. Mis en surbrillance s'il est le niveau affiché.
+  Widget _buildProgramLeaf(FacultyNode faculty, DepartmentNode department, ProgramNode program) {
+    final isSelected = _selectedKey == _keyOf(faculty, department, program);
 
     return InkWell(
-      onTap: () => setState(() => _selectedProgram = program),
+      onTap: () => setState(() => _selectedKey = _keyOf(faculty, department, program)),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 2),
@@ -243,7 +356,9 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFEAF1FF) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          border: isSelected ? Border.all(color: AppColors.primaryBlue.withOpacity(0.3)) : null,
+          border: isSelected
+              ? Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3))
+              : null,
         ),
         child: Row(
           children: [
@@ -263,6 +378,10 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                 ),
               ),
             ),
+            Text(
+              '${program.ueCount}',
+              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+            ),
           ],
         ),
       ),
@@ -270,8 +389,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   }
 }
 
-/// Panneau de droite affichant le détail complet du programme sélectionné :
-/// en-tête, statistiques, onglets, curriculum par semestre.
+/// Panneau de droite : en-tête, chiffres du niveau, onglets, liste des UE.
 class _ProgramDetailPanel extends StatefulWidget {
   final ProgramNode program;
 
@@ -283,18 +401,16 @@ class _ProgramDetailPanel extends StatefulWidget {
 
 class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
   int _selectedTab = 0;
-  static const _tabs = ['Curriculum (Semestres)', 'Enseignants', 'Prérequis', 'Documents'];
-
-  // Suit quels semestres sont actuellement dépliés (affichent leurs modules).
-  final Set<String> _expandedSemesters = {};
+  static const _tabs = ['Unités d\'enseignement', 'Enseignants'];
 
   @override
   void didUpdateWidget(covariant _ProgramDetailPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Quand on change de programme sélectionné dans l'arbre, on réinitialise
-    // les semestres dépliés pour éviter d'afficher un état incohérent.
-    if (oldWidget.program.name != widget.program.name) {
-      _expandedSemesters.clear();
+    // Changer de niveau remet l'onglet sur les UE : rester sur « Enseignants »
+    // ferait perdre le contexte de ce qu'on vient d'ouvrir.
+    if (oldWidget.program.code != widget.program.code ||
+        oldWidget.program.program != widget.program.program) {
+      _selectedTab = 0;
     }
   }
 
@@ -305,40 +421,27 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ----- En-tête : nom, statut, id, boutons éditer/supprimer -----
-        Row(
+        // ----- En-tête : niveau, filière, code -----
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    program.name,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      StatusBadge(
-                        label: program.isActive ? 'ACTIF' : 'INACTIF',
-                        backgroundColor: program.isActive ? const Color(0xFFDFF5E4) : const Color(0xFFFFE0E9),
-                      ),
-                      const SizedBox(width: 8),
-                      Text('• ID: ${program.id}', style: AppTextStyles.body),
-                    ],
-                  ),
-                ],
-              ),
+            Text(
+              '${program.program} — ${program.name}',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
             ),
-            _SquareIconButton(icon: Icons.edit_outlined, onTap: () {}),
-            const SizedBox(width: 10),
-            _SquareIconButton(icon: Icons.delete_outline, onTap: () {}, isDanger: true),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const StatusBadge(label: 'NIVEAU', backgroundColor: Color(0xFFDFF5E4)),
+                const SizedBox(width: 8),
+                Text('• Code : ${program.code}', style: AppTextStyles.body),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 28),
 
-        // ----- Détails du programme + statistiques rapides -----
+        // ----- Fiche + chiffres du niveau -----
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -347,15 +450,17 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'DÉTAILS DU PROGRAMME',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.4),
-                  ),
+                  const _SectionLabel('DÉTAILS DU NIVEAU'),
                   const SizedBox(height: 14),
+                  _DetailRow(label: 'Filière', value: program.program),
+                  _DetailRow(label: 'Niveau', value: program.name),
                   _DetailRow(label: 'Code', value: program.code),
-                  _DetailRow(label: 'Niveau', value: program.niveau),
-                  _DetailRow(label: 'Durée', value: program.duree),
-                  _DetailRow(label: 'Responsable', value: program.responsable, isLink: true),
+                  _DetailRow(
+                    label: 'Enseignants',
+                    value: program.teachers.isEmpty
+                        ? '—'
+                        : '${program.teachers.length}',
+                  ),
                 ],
               ),
             ),
@@ -364,16 +469,23 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'STATISTIQUES RAPIDES',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.4),
-                  ),
+                  const _SectionLabel('STATISTIQUES'),
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      Expanded(child: _StatBox(label: 'Étudiants', value: program.studentsCount.toString())),
+                      Expanded(
+                        child: _StatBox(
+                          label: 'Étudiants inscrits',
+                          value: program.studentsCount.toString(),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _StatBox(label: 'Matières (UE)', value: program.ueCount.toString())),
+                      Expanded(
+                        child: _StatBox(
+                          label: 'Unités (UE)',
+                          value: program.ueCount.toString(),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -383,161 +495,174 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
         ),
         const SizedBox(height: 28),
 
-        // ----- Onglets -----
         SimpleTabBar(
           tabs: _tabs,
           selectedIndex: _selectedTab,
-          onTabSelected: (i) => setState(() => _selectedTab = i),
+          onTabSelected: (index) => setState(() => _selectedTab = index),
         ),
         const SizedBox(height: 20),
 
         if (_selectedTab == 0)
-          Column(
-            children: [
-              for (final semester in program.semesters) _buildSemesterCard(semester),
-            ],
-          )
-        else
-          Container(
-            padding: const EdgeInsets.all(40),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.cardWhite,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.inputBorder),
-            ),
-            child: Text(
-              '${_tabs[_selectedTab]} — contenu à venir',
-              style: const TextStyle(color: AppColors.textMuted),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// Une carte de semestre : en-tête toujours visible (avec compteurs),
-  /// et tableau des modules affiché seulement si des modules sont fournis
-  /// ou si l'utilisateur a cliqué pour déplier ce semestre.
-  Widget _buildSemesterCard(CurriculumSemester semester) {
-    final hasModulesData = semester.modules.isNotEmpty;
-    final isExpanded = _expandedSemesters.contains(semester.label);
-    final showModules = hasModulesData || isExpanded;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InkWell(
-            onTap: hasModulesData
-                ? null
-                : () => setState(() => _expandedSemesters.add(semester.label)),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: showModules
-                  ? const BoxDecoration(
-                      color: AppColors.inputFill,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                    )
-                  : null,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(semester.label, style: AppTextStyles.h2),
-                  Text(
-                    '${semester.totalModules} Modules • ${semester.totalEcts} ECTS',
-                    style: AppTextStyles.body,
+          program.modules.isEmpty
+              ? const _Panel(
+                  child: Text(
+                    'Aucune UE enregistrée pour ce niveau.',
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                   ),
-                ],
-              ),
-            ),
-          ),
-          if (showModules && hasModulesData) _buildModulesTable(semester.modules),
-          if (!showModules)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text(
-                  'Cliquez pour voir les détails des modules du ${semester.label.toLowerCase()}',
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-                ),
-              ),
-            ),
-          if (showModules && !hasModulesData)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text(
-                  'Aucun module renseigné pour ce semestre pour le moment.',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-                ),
-              ),
-            ),
-        ],
-      ),
+                )
+              : _buildModulesTable(program.modules)
+        else
+          _buildTeachers(program.teachers),
+      ],
     );
   }
 
   Widget _buildModulesTable(List<CurriculumModule> modules) {
     const headerStyle = TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.4);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Row(
-            children: [
-              Expanded(flex: 3, child: Text('MODULE', style: headerStyle)),
-              Expanded(flex: 2, child: Text('TYPE', style: headerStyle)),
-              Expanded(child: Text('CRÉDITS', style: headerStyle, textAlign: TextAlign.right)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          for (final module in modules)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(module.name, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary)),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: StatusBadge(label: module.type, backgroundColor: module.typeColor),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      module.credits.toString(),
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                    ),
-                  ),
-                ],
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              children: [
+                Expanded(flex: 4, child: Text('MODULE', style: headerStyle)),
+                Expanded(flex: 2, child: Text('CODE', style: headerStyle)),
+                Expanded(flex: 2, child: Text('TYPE', style: headerStyle)),
+                Expanded(child: Text('CRÉDITS', style: headerStyle, textAlign: TextAlign.right)),
+              ],
             ),
-        ],
+            const SizedBox(height: 12),
+            for (final module in modules)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Text(module.name, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary)),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(module.code, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: StatusBadge(label: module.type, backgroundColor: module.typeColor),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        module.credits.toString(),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeachers(List<String> teachers) {
+    if (teachers.isEmpty) {
+      return const _Panel(
+        child: Text(
+          'Aucun enseignant renseigné sur les UE de ce niveau.',
+          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final teacher in teachers)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.inputFill,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: const Icon(Icons.person_outline, size: 17, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        teacher,
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  final String text;
+
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.4),
+      );
+}
+
+/// Carte neutre pour les messages d'état.
+class _Panel extends StatelessWidget {
+  final Widget child;
+
+  const _Panel({required this.child});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: AppColors.cardWhite,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: child,
+      );
+}
+
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final bool isLink;
 
-  const _DetailRow({required this.label, required this.value, this.isLink = false});
+  const _DetailRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -547,21 +672,9 @@ class _DetailRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTextStyles.body),
-          Row(
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: isLink ? AppColors.primaryBlue : AppColors.textPrimary,
-                ),
-              ),
-              if (isLink) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.open_in_new, size: 13, color: AppColors.primaryBlue),
-              ],
-            ],
+          Text(
+            value,
+            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
           ),
         ],
       ),
@@ -595,26 +708,44 @@ class _StatBox extends StatelessWidget {
   }
 }
 
-class _SquareIconButton extends StatelessWidget {
+/// État vide pleine page : icône, titre, explication.
+class _Message extends StatelessWidget {
   final IconData icon;
-  final VoidCallback onTap;
-  final bool isDanger;
+  final String title;
+  final String message;
 
-  const _SquareIconButton({required this.icon, required this.onTap, this.isDanger = false});
+  const _Message({required this.icon, required this.title, required this.message});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.inputBorder),
-          borderRadius: BorderRadius.circular(10),
+    return Center(
+      // `SingleChildScrollView` et non `Padding` : ce message occupe la hauteur
+      // restante d'un `Expanded`, et à ×1.3 son contenu (icône, titre,
+      // explication sur plusieurs lignes) réclame 401 px dans une fenêtre de
+      // 620 qui n'en laisse que 319. Le bloc défile plutôt que de déborder.
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 44, color: AppColors.textMuted),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.5),
+              ),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 18, color: isDanger ? AppColors.danger : AppColors.textSecondary),
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/simple_tab_bar.dart';
+import 'messaging_screen.dart';
 
 /// Page de détail d'un étudiant. Poussée par-dessus [MainShell] avec
 /// [Navigator.push] car elle n'est pas un item de la sidebar mais une
@@ -187,7 +188,15 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: ouvrir la messagerie / composer un message à l'étudiant
+                  // La messagerie s'adresse par pseudo, pas par identifiant
+                  // interne : on ouvre l'écran avec le nom de l'étudiant
+                  // pré-rempli dans la recherche de contact, à charge pour
+                  // l'administrateur de confirmer le bon interlocuteur.
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MessagingScreen(initialQuery: student.fullName),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.mail_outline, size: 16),
                 label: const Text('Envoyer un message'),
@@ -240,8 +249,12 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-/// Carte "Historique" : timeline verticale des événements du dossier,
-/// avec un sélecteur "Historique 1" (visuel uniquement pour l'instant).
+/// Carte "Historique" : timeline verticale des événements du dossier.
+///
+/// Aucune collection ne journalise aujourd'hui les événements de dossier :
+/// la liste est donc vide et la carte le dit, plutôt que d'afficher une
+/// chronologie inventée. Le sélecteur décoratif qui figurait ici a été
+/// retiré — il suggérait des historiques multiples qui n'existent pas.
 class _HistoryCard extends StatelessWidget {
   final List<StudentHistoryEvent> historique;
 
@@ -259,27 +272,14 @@ class _HistoryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Historique', style: AppTextStyles.h2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(border: Border.all(color: AppColors.inputBorder), borderRadius: BorderRadius.circular(8)),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Historique 1', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                    SizedBox(width: 6),
-                    Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textMuted),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          const Text('Historique', style: AppTextStyles.h2),
           const SizedBox(height: 16),
           if (historique.isEmpty)
-            const Text('Aucun événement récent', style: TextStyle(color: AppColors.textMuted, fontSize: 13))
+            const Text(
+              'Aucun événement de dossier enregistré. Cet historique se '
+              'remplira quand une collection de journalisation sera ajoutée.',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
+            )
           else
             for (final event in historique)
               Padding(

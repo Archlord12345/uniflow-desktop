@@ -33,6 +33,14 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Sorties de build des projets natifs : `/build/` ne couvre que la racine,
+# pas `android/build/` ni `linux/build/`, qui sont apparus avec la compilation
+# des greffons.
+android/build/
+linux/build/
+macos/build/
+windows/build/
+
 # Symbolication related
 app.*.symbols
 

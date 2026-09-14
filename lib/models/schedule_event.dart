@@ -38,119 +38,54 @@ class ScheduleEvent {
   });
 
   double get durationHours => endHour - startHour;
+}
 
-  /// Jeu de données factices reproduisant la maquette de la semaine du
-  /// 13 au 19 mai 2026.
-  static const List<ScheduleEvent> mockWeek = [
-    ScheduleEvent(
-      title: 'Algorithmique',
-      type: SessionType.cm,
-      dayIndex: 0,
-      startHour: 8,
-      endHour: 9.5,
-      salle: 'Salle A204',
-      enseignant: 'Pr. Leroy',
-      groupe: 'L2 — Groupe A',
-      description: 'Cours magistral — introduction aux algorithmes de tri.',
-    ),
-    ScheduleEvent(
-      title: 'Bases de données',
-      type: SessionType.td,
-      dayIndex: 0,
-      startHour: 10,
-      endHour: 11,
-      salle: 'Salle B101',
-      enseignant: 'Pr. Haddad',
-      groupe: 'L2 — Groupe A',
-      description: 'Travaux dirigés — modélisation entité-association.',
-    ),
-    ScheduleEvent(
-      title: 'Algorithmique',
-      type: SessionType.td,
-      dayIndex: 1,
-      startHour: 9,
-      endHour: 10.5,
-      salle: 'Salle A204',
-      enseignant: 'Pr. Leroy',
-      groupe: 'L2 — Groupe A',
-      description: 'Travaux dirigés — exercices sur les algorithmes de tri.',
-    ),
-    ScheduleEvent(
-      title: 'IA — Séminaire',
-      type: SessionType.seminaire,
-      dayIndex: 1,
-      startHour: 11,
-      endHour: 12,
-      salle: 'Salle S202',
-      enseignant: 'Pr. Karim Zerouali',
-      groupe: 'L2 — Groupe A',
-      description: 'Séminaire — introduction au machine learning.',
-    ),
-    ScheduleEvent(
-      title: 'Bases de données',
-      type: SessionType.td,
-      dayIndex: 2,
-      startHour: 11,
-      endHour: 12.5,
-      salle: 'Salle B101',
-      enseignant: 'Pr. Haddad',
-      groupe: 'L2 — Groupe A',
-      description: 'Travaux dirigés — requêtes SQL avancées.',
-    ),
-    ScheduleEvent(
-      title: 'Réseaux — TP',
-      type: SessionType.tp,
-      dayIndex: 3,
-      startHour: 12,
-      endHour: 13.5,
-      salle: 'Salle Réseau C',
-      enseignant: 'Pr. Amina Bouzid',
-      groupe: 'L2 — Groupe A',
-      description: 'Travaux pratiques — configuration réseau, apportez votre ordinateur portable.',
-    ),
-    ScheduleEvent(
-      title: 'Économie',
-      type: SessionType.cm,
-      dayIndex: 4,
-      startHour: 8,
-      endHour: 9.5,
-      salle: 'Salle EN5',
-      enseignant: 'Pr. Leroy',
-      groupe: 'L2 — Groupe A',
-      description: 'Travaux pratiques — apportez votre ordinateur portable.',
-    ),
-    ScheduleEvent(
-      title: 'Réseaux — TP',
-      type: SessionType.tp,
-      dayIndex: 4,
-      startHour: 11,
-      endHour: 12.5,
-      salle: 'Salle Réseau C',
-      enseignant: 'Pr. Amina Bouzid',
-      groupe: 'L2 — Groupe A',
-      description: 'Travaux pratiques — apportez votre ordinateur portable.',
-    ),
-    ScheduleEvent(
-      title: 'Algorithmique',
-      type: SessionType.cm,
-      dayIndex: 4,
-      startHour: 12.5,
-      endHour: 13.5,
-      salle: 'Salle A204',
-      enseignant: 'Pr. Leroy',
-      groupe: 'L2 — Groupe A',
-      description: 'Cours magistral — complexité algorithmique.',
-    ),
-    ScheduleEvent(
-      title: 'Philosophie — Séminaire',
-      type: SessionType.seminaire,
-      dayIndex: 5,
-      startHour: 8,
-      endHour: 9.5,
-      salle: 'Salle P207',
-      enseignant: 'Pr. Nadia Idrissi',
-      groupe: 'L2 — Groupe A',
-      description: 'Séminaire — éthique et technologie.',
-    ),
+/// L'emploi du temps d'une semaine donnée : les créneaux plaçables dans la
+/// grille, la date du lundi de la semaine affichée, et le nombre de créneaux
+/// lus en base mais impossibles à positionner.
+///
+/// [unplacedCount] n'est pas décoratif : `academic_schedules.dayOfWeek` et les
+/// horaires sont stockés sous forme de chaînes dont le format n'est pas
+/// contraint par la base. Un créneau dont le jour ou l'heure n'est pas
+/// reconnu est écarté de la grille et compté ici, pour que l'interface le
+/// signale au lieu de le placer à une position inventée.
+class ScheduleWeek {
+  final DateTime weekStart;
+  final List<ScheduleEvent> events;
+  final int unplacedCount;
+
+  const ScheduleWeek({
+    required this.weekStart,
+    required this.events,
+    this.unplacedCount = 0,
+  });
+
+  static const List<String> _dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
+  /// Nombre de colonnes de la grille (lundi → samedi).
+  static const int dayCount = 6;
+
+  static const List<String> _monthNames = [
+    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
   ];
+
+  /// Libellés des colonnes (« Lun 13 », « Mar 14 »…) pour la semaine affichée.
+  List<String> get dayLabels => [
+        for (int i = 0; i < _dayNames.length; i++)
+          '${_dayNames[i]} ${weekStart.add(Duration(days: i)).day}',
+      ];
+
+  /// Plage affichée dans la barre d'outils, ex. « 13 – 19 mai 2026 ».
+  String get rangeLabel {
+    final start = weekStart;
+    // `_dayNames.length` n'est pas évaluable à la compilation : `const Duration`
+    // était refusé ici (« Constant evaluation error »).
+    final end = weekStart.add(Duration(days: _dayNames.length - 1));
+    if (start.month == end.month) {
+      return '${start.day} – ${end.day} ${_monthNames[start.month - 1]} ${end.year}';
+    }
+    return '${start.day} ${_monthNames[start.month - 1]} – '
+        '${end.day} ${_monthNames[end.month - 1]} ${end.year}';
+  }
 }

@@ -47,11 +47,19 @@ class UniFlowLogo extends StatelessWidget {
   /// ("Plateforme de gestion académique intelligente")
   final bool showTagline;
 
+  /// Couleur du mot « UniFlow ».
+  ///
+  /// Par défaut la couleur de titre du thème, prévue pour un fond clair. Sur un
+  /// fond sombre (photo, dégradé de marque), il faut passer `Colors.white` :
+  /// sinon le texte se confond avec le fond.
+  final Color? textColor;
+
   const UniFlowLogo({
     super.key,
     this.iconSize = 40,
     this.fontSize = 26,
     this.showTagline = false,
+    this.textColor,
   });
 
   @override
@@ -65,12 +73,18 @@ class UniFlowLogo extends StatelessWidget {
           children: [
             UniFlowIcon(size: iconSize),
             const SizedBox(width: 10),
-            Text(
-              'UniFlow',
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
+            // `Flexible` : sans lui, `maxLines`/`ellipsis` sont sans effet, le
+            // `Text` réclamant sa largeur naturelle quoi qu'il arrive.
+            Flexible(
+              child: Text(
+                'UniFlow',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w800,
+                  color: textColor ?? AppColors.textPrimary,
+                ),
               ),
             ),
           ],

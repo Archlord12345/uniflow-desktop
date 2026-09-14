@@ -1,157 +1,89 @@
 import 'package:flutter/material.dart';
+import 'appwrite_models.dart';
 
 /// Modèle représentant une Unité d'Enseignement (UE), pour la page
-/// "Gestion des UE". Données statiques pour l'instant (voir
-/// [TeachingUnit.mockList]), à remplacer par un appel API plus tard.
+/// "Gestion des UE".
+///
+/// Les UE proviennent de la collection `academic_courses` d'Appwrite et leurs
+/// effectifs de `academic_enrollments`. Les champs que la base ne stocke pas
+/// — semestre, capacité d'accueil, statut — restent vides : l'interface
+/// affiche un tiret au lieu d'une valeur inventée.
 class TeachingUnit {
+  /// Identifiant du document `academic_courses`.
+  final String id;
+
   final String code;         // ex: "INF301"
   final String intitule;     // ex: "Intelligence Artificielle"
-  final String semestre;     // ex: "S5"
-  final String departement;  // ex: "Informatique"
+  final String semestre;     // absent de la base -> ''
+  final String departement;  // `program` du cours
   final String niveau;       // ex: "L3"
-  final String type;         // "Cours Magistral" | "Travaux Pratiques"
-  final Color typeColor;
-  final String enseignant;
+  final String type;         // ex: "Cours Magistral" -> '' si non renseigné
+  final String enseignant;   // `teacherName` du cours
   final int credits;
   final int heures;
-  final int inscrits;
-  final int placesTotal;
-  final String statut;       // "Active" | "Planifiée" | "Archivée"
-  final Color statutColor;
+  final int inscrits;        // nombre d'entrées `academic_enrollments`
+  final int placesTotal;     // absent de la base -> 0, donc taux inconnu
+  final String statut;       // absent de la base -> ''
 
   const TeachingUnit({
+    required this.id,
     required this.code,
     required this.intitule,
     required this.semestre,
     required this.departement,
     required this.niveau,
     required this.type,
-    required this.typeColor,
     required this.enseignant,
     required this.credits,
     required this.heures,
     required this.inscrits,
     required this.placesTotal,
     required this.statut,
-    required this.statutColor,
   });
 
-  /// Taux de remplissage en pourcentage (ex: 85/100 -> 85)
-  int get tauxRemplissage => placesTotal == 0 ? 0 : ((inscrits / placesTotal) * 100).round();
+  /// Construit une UE depuis un document `academic_courses`.
+  ///
+  /// [inscrits] est compté séparément dans `academic_enrollments` : la
+  /// collection ne porte pas de total d'inscrits.
+  factory TeachingUnit.fromCourse(AcademicCourse course, {int inscrits = 0}) {
+    final type = (course.type ?? '').trim();
+    return TeachingUnit(
+      id: course.id,
+      code: course.code,
+      intitule: course.name,
+      semestre: '',
+      departement: course.program,
+      niveau: directoryLevelLabel(course.level),
+      type: type,
+      enseignant: (course.teacherName ?? '').trim(),
+      credits: course.credits ?? 0,
+      heures: course.hours ?? 0,
+      inscrits: inscrits,
+      placesTotal: 0,
+      statut: '',
+    );
+  }
 
-  /// Jeu de données factices reproduisant la maquette "Gestion des UE".
-  static const List<TeachingUnit> mockList = [
-    TeachingUnit(
-      code: 'INF301',
-      intitule: 'Intelligence Artificielle',
-      semestre: 'S5',
-      departement: 'Informatique',
-      niveau: 'L3',
-      type: 'Cours Magistral',
-      typeColor: Color(0xFFE4DEFF),
-      enseignant: 'Pr. Martin Dupont',
-      credits: 6,
-      heures: 48,
-      inscrits: 85,
-      placesTotal: 100,
-      statut: 'Active',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    TeachingUnit(
-      code: 'INF302',
-      intitule: 'Bases de Données Avancées',
-      semestre: 'S5',
-      departement: 'Informatique',
-      niveau: 'L3',
-      type: 'Cours Magistral',
-      typeColor: Color(0xFFE4DEFF),
-      enseignant: 'Dr. Sophie Kamga',
-      credits: 5,
-      heures: 42,
-      inscrits: 78,
-      placesTotal: 80,
-      statut: 'Active',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    TeachingUnit(
-      code: 'INF201',
-      intitule: 'Structures de Données',
-      semestre: 'S3',
-      departement: 'Informatique',
-      niveau: 'L2',
-      type: 'Cours Magistral',
-      typeColor: Color(0xFFE4DEFF),
-      enseignant: 'Dr. Marie Ngo Bisse',
-      credits: 6,
-      heures: 48,
-      inscrits: 120,
-      placesTotal: 120,
-      statut: 'Active',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    TeachingUnit(
-      code: 'MAT401',
-      intitule: 'Analyse Numérique',
-      semestre: 'S7',
-      departement: 'Mathématiques',
-      niveau: 'M1',
-      type: 'Cours Magistral',
-      typeColor: Color(0xFFE4DEFF),
-      enseignant: 'Pr. Jean Mbida',
-      credits: 7,
-      heures: 54,
-      inscrits: 42,
-      placesTotal: 50,
-      statut: 'Active',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    TeachingUnit(
-      code: 'INF101',
-      intitule: 'Introduction à la Programmation',
-      semestre: 'S1',
-      departement: 'Informatique',
-      niveau: 'L1',
-      type: 'Cours Magistral',
-      typeColor: Color(0xFFE4DEFF),
-      enseignant: 'Dr. Alice Fouda',
-      credits: 6,
-      heures: 60,
-      inscrits: 0,
-      placesTotal: 150,
-      statut: 'Planifiée',
-      statutColor: Color(0xFFFFE9CC),
-    ),
-    TeachingUnit(
-      code: 'INF205',
-      intitule: 'Réseaux Informatiques',
-      semestre: 'S4',
-      departement: 'Informatique',
-      niveau: 'L2',
-      type: 'Travaux Pratiques',
-      typeColor: Color(0xFFF1E4FF),
-      enseignant: 'Dr. Marie Ngo Bisse',
-      credits: 5,
-      heures: 45,
-      inscrits: 95,
-      placesTotal: 100,
-      statut: 'Active',
-      statutColor: Color(0xFFDFF5E4),
-    ),
-    TeachingUnit(
-      code: 'ECO301',
-      intitule: 'Économétrie Avancée',
-      semestre: 'S6',
-      departement: 'Économie',
-      niveau: 'L3',
-      type: 'Cours Magistral',
-      typeColor: Color(0xFFE4DEFF),
-      enseignant: 'Pr. Paul Essomba',
-      credits: 6,
-      heures: 48,
-      inscrits: 68,
-      placesTotal: 80,
-      statut: 'Archivée',
-      statutColor: Color(0xFFE7E9F0),
-    ),
-  ];
+  /// Couleur du badge de type, dérivée du libellé stocké en base.
+  Color get typeColor {
+    switch (type.toLowerCase()) {
+      case 'cours magistral':
+        return const Color(0xFFE4DEFF);
+      case 'travaux pratiques':
+      case 'tp':
+        return const Color(0xFFF1E4FF);
+      case 'travaux dirigés':
+      case 'td':
+        return const Color(0xFFDCEBFF);
+      default:
+        return const Color(0xFFE7E9F0);
+    }
+  }
+
+  /// Taux de remplissage en pourcentage (ex: 85/100 -> 85).
+  ///
+  /// Renvoie `null` quand la capacité d'accueil n'est pas stockée : mieux vaut
+  /// ne rien afficher qu'un « 0 % » qui laisserait croire à une UE vide.
+  int? get tauxRemplissage =>
+      placesTotal <= 0 ? null : ((inscrits / placesTotal) * 100).round();
 }

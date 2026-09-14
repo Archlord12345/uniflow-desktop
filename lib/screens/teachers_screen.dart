@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/teacher.dart';
-import '../widgets/app_breadcrumb.dart';
+import '../providers/directory_provider.dart';
+import '../widgets/app_page_bar.dart';
+import '../widgets/data_state_view.dart';
 import '../widgets/user_avatar.dart';
 import '../widgets/status_badge.dart';
 import 'teacher_detail_screen.dart';
 
-/// Page "Enseignants" : recherche, filtres, tableau paginé des enseignants.
-/// Même structure que [StudentsScreen] pour rester cohérent visuellement.
+/// Page "Enseignants" : recherche, tableau des enseignants.
+///
+/// Les lignes proviennent de la collection `academic_directory` d'Appwrite,
+/// jointe aux profils `users` (pseudo, photo) ; elles étaient auparavant codées
+/// en dur. Même structure que [StudentsScreen] pour rester cohérent.
 ///
 /// Ce widget n'a pas de Scaffold/sidebar propre : il est affiché à
 /// l'intérieur de [MainShell].
-class TeachersScreen extends StatefulWidget {
+class TeachersScreen extends ConsumerStatefulWidget {
   const TeachersScreen({super.key});
 
   @override
-  State<TeachersScreen> createState() => _TeachersScreenState();
+  ConsumerState<TeachersScreen> createState() => _TeachersScreenState();
 }
 
-class _TeachersScreenState extends State<TeachersScreen> {
+class _TeachersScreenState extends ConsumerState<TeachersScreen> {
   final _searchController = TextEditingController();
-  static const int totalTeachers = 312;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
@@ -28,9 +39,19 @@ class _TeachersScreenState extends State<TeachersScreen> {
     super.dispose();
   }
 
+  List<Teacher> _filtered(List<Teacher> teachers) {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return teachers;
+    return teachers.where((teacher) {
+      return teacher.fullName.toLowerCase().contains(query) ||
+          teacher.email.toLowerCase().contains(query) ||
+          teacher.departement.toLowerCase().contains(query);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final teachers = Teacher.mockList;
+    final teachersAsync = ref.watch(teachersProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -50,13 +71,15 @@ class _TeachersScreenState extends State<TeachersScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.inputBorder),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildTableHeader(),
-                      ...teachers.map((t) => _TeacherRow(teacher: t)),
-                      _buildPagination(),
-                    ],
+                  child: teachersAsync.when(
+                    loading: () => const DataLoadingView(
+                      label: 'Chargement de l\'annuaire académique…',
+                    ),
+                    error: (error, _) => DataErrorView(
+                      error: error,
+                      onRetry: () => ref.invalidate(directoryProvider),
+                    ),
+                    data: (teachers) => _buildTable(_filtered(teachers)),
                   ),
                 ),
               ],
@@ -67,40 +90,51 @@ class _TeachersScreenState extends State<TeachersScreen> {
     );
   }
 
+  Widget _buildTable(List<Teacher> teachers) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildTableHeader(),
+        if (teachers.isEmpty)
+          DataEmptyView(
+            icon: Icons.school_outlined,
+            message: _searchController.text.trim().isEmpty
+                ? 'Aucun enseignant dans l\'annuaire académique.'
+                : 'Aucun enseignant ne correspond à « ${_searchController.text.trim()} ».',
+          )
+        else
+          ...teachers.map((teacher) => _TeacherRow(teacher: teacher)),
+        _buildFooter(teachers),
+      ],
+    );
+  }
+
   Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-      decoration: const BoxDecoration(
-        color: AppColors.cardWhite,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder)),
-      ),
-      child: Row(
-        children: [
-          const Expanded(child: AppBreadcrumb(items: ['Accueil', 'Enseignants'])),
-          OutlinedButton.icon(
-            onPressed: () {
-              // TODO: ouvrir le panneau de filtres avancés
-            },
-            icon: const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
-            label: const Text('Filtres avancés'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textSecondary,
-              side: const BorderSide(color: AppColors.inputBorder),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
+    return AppPageBar(
+      breadcrumb: const ['Accueil', 'Enseignants'],
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () {
+            // TODO: ouvrir le panneau de filtres avancés
+          },
+          icon: const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
+          label: const Text('Filtres avancés'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textSecondary,
+            side: const BorderSide(color: AppColors.inputBorder),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          const SizedBox(width: 12),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: ouvrir le formulaire de création d'enseignant
-            },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Ajouter enseignant'),
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
-          ),
-        ],
-      ),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            // TODO: ouvrir le formulaire de création d'enseignant
+          },
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Ajouter enseignant'),
+          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
+        ),
+      ],
     );
   }
 
@@ -128,9 +162,8 @@ class _TeachersScreenState extends State<TeachersScreen> {
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: const Row(
         children: [
-          SizedBox(width: 70, child: Text('ID', style: style)),
           Expanded(flex: 3, child: Text('NOM COMPLET', style: style)),
-          Expanded(flex: 3, child: Text('EMAIL', style: style)),
+          Expanded(flex: 3, child: Text('PSEUDO / EMAIL', style: style)),
           Expanded(flex: 2, child: Text('DÉPARTEMENT', style: style)),
           Expanded(flex: 2, child: Text('STATUT', style: style)),
           SizedBox(width: 90, child: Text('ACTIONS', style: style)),
@@ -139,32 +172,24 @@ class _TeachersScreenState extends State<TeachersScreen> {
     );
   }
 
-  Widget _buildPagination() {
+  /// Pied de tableau : le décompte réel remplace la pagination factice.
+  Widget _buildFooter(List<Teacher> teachers) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Affichage de 1 à ${Teacher.mockList.length} sur $totalTeachers enseignants',
+            teachers.length <= 1
+                ? '${teachers.length} enseignant'
+                : '${teachers.length} enseignants',
             style: AppTextStyles.body.copyWith(fontSize: 13),
           ),
-          Row(
-            children: [
-              const _PageArrow(icon: Icons.chevron_left),
-              const SizedBox(width: 6),
-              const _PageButton(label: '1', isActive: true),
-              const SizedBox(width: 6),
-              const _PageButton(label: '2'),
-              const SizedBox(width: 6),
-              const _PageButton(label: '3'),
-              const SizedBox(width: 6),
-              const Text('...', style: TextStyle(color: AppColors.textMuted)),
-              const SizedBox(width: 6),
-              const _PageButton(label: '32'),
-              const SizedBox(width: 6),
-              const _PageArrow(icon: Icons.chevron_right),
-            ],
+          const Spacer(),
+          IconButton(
+            onPressed: () => ref.invalidate(directoryProvider),
+            icon: const Icon(Icons.refresh, size: 18),
+            color: AppColors.textSecondary,
+            tooltip: 'Recharger depuis Appwrite',
           ),
         ],
       ),
@@ -179,21 +204,29 @@ class _TeacherRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Le pseudo est le référent affiché ; l'email ne sert que de repli.
+    final handle = (teacher.username ?? '').isNotEmpty
+        ? '@${teacher.username}'
+        : (teacher.email.isNotEmpty ? teacher.email : '—');
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
-          SizedBox(width: 70, child: Text(teacher.id, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
           Expanded(
             flex: 3,
             child: Row(
               children: [
-                InitialsAvatar(initials: teacher.initials, backgroundColor: teacher.avatarColor),
+                InitialsAvatar(
+                  initials: teacher.initials,
+                  backgroundColor: teacher.avatarColor,
+                  avatarFileId: teacher.avatarFileId,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Pr. ${teacher.fullName}',
+                    teacher.fullName.isEmpty ? '—' : 'Pr. ${teacher.fullName}',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -201,8 +234,20 @@ class _TeacherRow extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(flex: 3, child: Text(teacher.email, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis)),
-          Expanded(flex: 2, child: Text(teacher.departement, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+            flex: 3,
+            child: Text(
+              handle,
+              style: TextStyle(
+                fontSize: 13,
+                color: teacher.username != null && teacher.username!.isNotEmpty
+                    ? AppColors.primaryBlue
+                    : AppColors.textSecondary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(flex: 2, child: Text(teacher.departement.isEmpty ? '—' : teacher.departement, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
           Expanded(
             flex: 2,
             child: Align(alignment: Alignment.centerLeft, child: StatusBadge(label: teacher.statut, backgroundColor: teacher.statutColor)),
@@ -216,6 +261,7 @@ class _TeacherRow extends StatelessWidget {
                   color: AppColors.primaryBlue,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  tooltip: 'Voir la fiche',
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => TeacherDetailScreen(teacher: teacher)),
@@ -227,6 +273,7 @@ class _TeacherRow extends StatelessWidget {
                   color: const Color(0xFFF5A623),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  tooltip: 'Modifier',
                   onPressed: () {
                     // TODO: ouvrir le formulaire d'édition
                   },
@@ -236,45 +283,6 @@ class _TeacherRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _PageButton extends StatelessWidget {
-  final String label;
-  final bool isActive;
-
-  const _PageButton({required this.label, this.isActive = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.primaryBlue : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        border: isActive ? null : Border.all(color: AppColors.inputBorder),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.textSecondary)),
-    );
-  }
-}
-
-class _PageArrow extends StatelessWidget {
-  final IconData icon;
-
-  const _PageArrow({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.inputBorder)),
-      child: Icon(icon, size: 18, color: AppColors.textMuted),
     );
   }
 }
