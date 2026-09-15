@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
+import 'uniflow_logo.dart';
 import 'user_avatar.dart';
 
 /// Représente chaque item du menu de la sidebar : icône, libellé.
@@ -61,26 +62,20 @@ class AppSidebar extends ConsumerWidget {
       child: Column(
         children: [
           // ----- En-tête : logo -----
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 24, 20, 18),
             child: Row(
               children: [
-                SizedBox(
-                  width: 34,
-                  height: 34,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(9),
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
+                // `UniFlowIcon` plutôt qu'une copie locale de l'image : la
+                // copie locale reprenait le logotype horizontal dans un carré
+                // de 34 px avec `BoxFit.cover`, donc le même rognage — le mot
+                // « UniFlow » n'y apparaissait jamais.
+                UniFlowIcon(size: 34),
+                SizedBox(width: 10),
                 // `Expanded` + ellipse : sans cela, un libellé ou un jour de
                 // police plus large que prévu déborde de la sidebar, dont la
                 // largeur est pourtant fixe.
-                const Expanded(
+                Expanded(
                   child: Text(
                     'UniFlow',
                     maxLines: 1,

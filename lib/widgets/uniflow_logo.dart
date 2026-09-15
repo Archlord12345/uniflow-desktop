@@ -5,7 +5,16 @@ import '../theme/app_theme.dart';
 /// Widget séparé de [UniFlowLogo] pour pouvoir l'utiliser seule
 /// (ex: petite icône dans la sidebar une fois repliée, favicon web, etc.)
 class UniFlowIcon extends StatelessWidget {
-  static const String _logoAssetPath = 'assets/images/logo.png';
+  /// Écusson carré de la marque, détouré (fond transparent).
+  ///
+  /// `assets/images/logo.png` — le logotype horizontal, 1711×531 — était
+  /// affiché ici dans un carré de `size` avec `BoxFit.cover` : l'image était
+  /// mise à l'échelle sur la hauteur puis rognée sur la largeur, et le mot
+  /// « UniFlow » disparaissait, ne laissant qu'une tranche centrale de
+  /// l'écusson. Le web documente le même piège
+  /// (`uniflow-we/src/lib/brandAssets.ts`) : le logo horizontal n'est pas
+  /// adapté aux formats carrés.
+  static const String _logoAssetPath = 'assets/brand/uniflow_marque.png';
 
   /// Taille du carré contenant l'icône (largeur = hauteur)
   final double size;
@@ -14,24 +23,27 @@ class UniFlowIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(size * 0.28);
-
-    return Container(
+    // Plus de conteneur décoré, ni dégradé ni coins arrondis.
+    //
+    // Le dégradé partait de `primaryBlue` #1E3A8A — exactement le bleu de
+    // l'écusson : la toque et la jambe gauche de la marque s'y confondaient
+    // avec le fond. Il n'avait de sens qu'avec l'ancien logotype opaque, dont
+    // il fallait masquer le fond blanc. Une plaque blanche serait tout aussi
+    // fautive : sur la sidebar sombre, « un carré blanc plein fait une tuile
+    // blanche », le défaut que `tools/generer-icones-uniflow.py` documente
+    // déjà pour les icônes de lanceur.
+    //
+    // La marque est détourée : elle se compose directement sur le fond de
+    // l'écran, marine (#151E32) comme voile de connexion, où le rendu vérifié
+    // la laisse lisible.
+    return Image.asset(
+      _logoAssetPath,
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        gradient: AppColors.logoGradient,
-        borderRadius: radius,
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Image.asset(
-          _logoAssetPath,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-        ),
-      ),
+      // `contain` : la marque est carrée, elle remplit donc le carré sans être
+      // rognée. Si l'écusson venait à être remplacé par une image non carrée,
+      // elle serait réduite au lieu d'être tronquée — `cover`, lui, rogne.
+      fit: BoxFit.contain,
     );
   }
 }

@@ -30,6 +30,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/logo.png
+    # Logos de marque détourés (fond transparent) : l'écusson carré pour les
+    # icônes, le logotype horizontal pour les surfaces larges et claires.
+    - assets/brand/
     - assets/images/login.jpg
     - .env

@@ -1,6 +1,6 @@
 # 🖥️ UniFlow Desktop — Tour de Contrôle Académique & IoT
 
-![UniFlow Logo](assets/images/logo.png)
+![UniFlow Logo](assets/brand/uniflow_logo_horizontal.png)
 
 UniFlow Desktop est la station de travail centralisée conçue pour l'administration universitaire, les chefs de départements et les équipes de sécurité du campus. Construite avec **Flutter**, elle offre une expérience bureau riche, optimisée pour la gestion de données complexes et le monitoring en temps réel.
 
