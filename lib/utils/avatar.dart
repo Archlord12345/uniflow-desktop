@@ -6,10 +6,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Elle est écrite ici plutôt qu'importée du service Appwrite afin que les
 /// widgets de présentation puissent l'utiliser sans dépendre du client Appwrite
 /// ni de `flutter_dotenv` déjà chargé.
-const String avatarBucketId = 'uniflow_avatars';
+/// Identifiant du bucket des photos de profil.
+///
+/// C'est bien l'**identifiant** et non le nom : le bucket s'appelle
+/// « uniflow_avatars » mais a été créé sous `6aa81b840031e6a34dc3`, et
+/// Appwrite résout les URL par identifiant. Utiliser le nom renvoyait un 404
+/// à chaque lecture de photo.
+const String avatarBucketId = '6aa81b840031e6a34dc3';
 
 /// Bucket des photos de profil. Surchargeable par `.env` pour ne pas figer un
-/// nom dans le code si le bucket est renommé côté serveur.
+/// identifiant dans le code si le bucket est recréé côté serveur.
 String get _avatarBucket =>
     dotenv.maybeGet('APPWRITE_AVATAR_BUCKET_ID') ?? avatarBucketId;
 
