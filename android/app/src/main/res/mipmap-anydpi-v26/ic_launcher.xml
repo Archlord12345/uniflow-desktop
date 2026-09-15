@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icône adaptative : un fond uni et une couche avant que le lanceur
+     redimensionne et masque (cercle, goutte, carré arrondi...). La couche
+     avant est générée avec l'écusson à 60 %, dans la zone sûre de 66dp/108dp :
+     au-delà, le lanceur le rogne. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

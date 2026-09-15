@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Couleur de marque UniFlow, relevée dans uniflow-we. -->
+    <color name="ic_launcher_background">#1e3a8a</color>
+</resources>
