@@ -21,6 +21,9 @@ dependencies:
   # visioconférence embarqué. Déjà présent en dépendance transitive ; déclaré
   # explicitement puisqu'on l'importe directement.
   crypto: ^3.0.7
+  # Ouverture des liens GitHub et mailto: depuis la page Équipe. Déjà présent
+  # sur le mobile ; le desktop l'ignorait, ses liens n'étaient pas cliquables.
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

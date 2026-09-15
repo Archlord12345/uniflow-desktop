@@ -1431,48 +1431,10 @@ class SentinelleManagementScreen extends StatelessWidget {
   }
 }
 
-class TeamsScreen extends StatelessWidget {
-  const TeamsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _ManagementPage(
-      title: 'Équipe KERNEL FORGE',
-      subtitle: 'Les créateurs de la plateforme UniFlow',
-      stats: const [],
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        children: const [
-          _TeamMemberCard(name: 'NGHOMSI RAVEL', role: 'Lead Architect'),
-          _TeamMemberCard(name: 'Aliyatou Rachid', role: 'Frontend Web/Desktop'),
-          _TeamMemberCard(name: 'Mandeng Judith', role: 'Mobile Developer'),
-          _TeamMemberCard(name: 'Meli William', role: 'Backend Developer'),
-        ],
-      ),
-    );
-  }
-}
-
-class _TeamMemberCard extends StatelessWidget {
-  final String name, role;
-  const _TeamMemberCard({required this.name, required this.role});
-  @override Widget build(BuildContext context) => Container(
-    width: 280,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.inputBorder)),
-    child: Column(
-      children: [
-        const CircleAvatar(radius: 30, backgroundColor: AppColors.inputFill, child: Icon(Icons.person, size: 30)),
-        const SizedBox(height: 12),
-        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        Text(role, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-        const SizedBox(height: 12),
-        const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.link, size: 16), SizedBox(width: 8), Icon(Icons.mail_outline, size: 16)]),
-      ],
-    ),
-  );
-}
+// La page « Équipe KERNEL FORGE » vivait ici avec quatre membres figés, contre
+// neuf sur le web. Elle est désormais dans `teams_screen.dart` et lit la
+// collection `team_members` du serveur, comme le web et le mobile — une seule
+// liste pour les trois clients.
 
 class StructureManagementScreen extends StatelessWidget {
   const StructureManagementScreen({super.key});

@@ -19,6 +19,7 @@ import 'package:uniflow/models/schedule_event.dart';
 import 'package:uniflow/models/student.dart';
 import 'package:uniflow/models/teacher.dart';
 import 'package:uniflow/models/teaching_unit.dart';
+import 'package:uniflow/models/team_member.dart';
 import 'package:uniflow/services/conference/conference_models.dart';
 import 'package:uniflow/providers/analytics_provider.dart';
 import 'package:uniflow/providers/auth_provider.dart';
@@ -30,6 +31,7 @@ import 'package:uniflow/repositories/academic_repository.dart';
 import 'package:uniflow/services/appwrite_service.dart';
 import 'package:uniflow/providers/schedule_provider.dart';
 import 'package:uniflow/repositories/messaging_repository.dart';
+import 'package:uniflow/repositories/team_repository.dart';
 import 'package:uniflow/screens/dashboard_screen.dart';
 import 'package:uniflow/theme/app_theme.dart';
 
@@ -54,6 +56,55 @@ UniFlowUser testUser() => UniFlowUser(
       username: 'ravel',
     );
 
+/// Équipe de test, avec les cas qui cassent une mise en page : un nom très
+/// long, un membre sans photo, un membre sans pastille ni pseudo GitHub, et un
+/// membre de chaque équipe pour que les quatre tuiles de statistiques et les
+/// filtres aient tous quelque chose à afficher.
+List<TeamMember> equipeDeTest() => [
+      TeamMember(
+        id: 'ravel',
+        slug: 'ravel',
+        name: 'NGHOMSI FEUKOUO RAVEL',
+        github: 'Archlord12345',
+        email: 'ravelnghomsi@gmail.com',
+        team: 'Leadership',
+        subTeam: 'Architecture & Direction',
+        role: 'Chef de projet & Architecte',
+        badge: 'Lead Architect',
+        accent: 'blue',
+        avatarFileId: '',
+        displayOrder: 0,
+      ),
+      TeamMember(
+        id: 'aliya',
+        slug: 'aliya',
+        name: 'Aliyatou Rachid Oumou Tourab',
+        github: 'aliya-nadi',
+        email: 'oumou.aliyatou@facsciences-uy1.cm',
+        team: 'Frontend',
+        subTeam: 'Frontend Desktop & Web',
+        role: 'Frontend Developer',
+        badge: 'Web Desktop',
+        accent: 'purple',
+        avatarFileId: '',
+        displayOrder: 1,
+      ),
+      TeamMember(
+        id: 'sans-rien',
+        slug: 'sans-rien',
+        name: 'Membre Sans Photo Ni Pseudo',
+        github: '',
+        email: '',
+        team: 'Backend',
+        subTeam: '',
+        role: 'Backend Developer',
+        badge: '',
+        accent: 'inconnue',
+        avatarFileId: '',
+        displayOrder: 2,
+      ),
+    ];
+
 List<Override> _overrides() => [
       currentUserProvider.overrideWith((ref) => testUser()),
       sessionCheckProvider.overrideWith((ref) async {}),
@@ -63,6 +114,9 @@ List<Override> _overrides() => [
       teachingUnitsProvider.overrideWith((ref) async => <TeachingUnit>[]),
       classroomsProvider.overrideWith((ref) async => <Classroom>[]),
       programTreeProvider.overrideWith((ref) async => <FacultyNode>[]),
+      // La page Équipe lit la collection `team_members` : sans cette
+      // neutralisation, le test de mise en page lancerait un appel réseau.
+      teamMembersProvider.overrideWith((ref) async => equipeDeTest()),
       scheduleWeekProvider.overrideWith(
         (ref) async => ScheduleWeek(weekStart: DateTime(2026, 9, 14), events: const []),
       ),

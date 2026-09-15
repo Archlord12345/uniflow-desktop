@@ -19,6 +19,7 @@ import 'package:uniflow/screens/dashboard_screen.dart';
 import 'package:uniflow/screens/login_screen.dart';
 import 'package:uniflow/screens/main_shell.dart';
 import 'package:uniflow/screens/management_screens.dart';
+import 'package:uniflow/screens/teams_screen.dart';
 import 'package:uniflow/screens/messaging_screen.dart';
 import 'package:uniflow/screens/programs_screen.dart';
 import 'package:uniflow/screens/schedule_screen.dart';

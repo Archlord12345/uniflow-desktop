@@ -9,6 +9,7 @@ import 'teaching_units_screen.dart';
 import 'classrooms_screen.dart';
 import 'schedule_screen.dart';
 import 'management_screens.dart';
+import 'teams_screen.dart';
 import 'academic_management_screens.dart';
 import 'messaging_screen.dart';
 

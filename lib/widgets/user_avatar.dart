@@ -2,6 +2,70 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 
+/// Avatar neutre affichant la photo, ou une silhouette grise sans aucun texte.
+///
+/// Distinct d'[InitialsAvatar] à dessein. Les initiales ont leur place dans un
+/// tableau où chaque ligne doit rester identifiable ; sur la page Équipe, le
+/// propriétaire a demandé qu'**aucune écriture** ne figure sur la photo — des
+/// initiales y donnent l'impression d'une image qui n'a pas chargé. Quand il
+/// n'y a pas de photo, cet avatar montre donc une silhouette, jamais un texte.
+class SilhouetteAvatar extends StatelessWidget {
+  final String? avatarFileId;
+  final double size;
+
+  /// Coins arrondis. `null` donne un cercle ; les cartes de l'équipe passent un
+  /// rayon plus doux, comme le `rounded-2xl` de la page web.
+  final BorderRadius? borderRadius;
+
+  final Color background;
+  final Color foreground;
+
+  const SilhouetteAvatar({
+    super.key,
+    this.avatarFileId,
+    this.size = 56,
+    this.borderRadius,
+    this.background = AppColors.inputFill,
+    this.foreground = AppColors.textMuted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = borderRadius ?? BorderRadius.circular(size / 2);
+
+    Widget silhouette() => Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: background, borderRadius: radius),
+          alignment: Alignment.center,
+          child: Icon(Icons.person_outline, size: size * 0.5, color: foreground),
+        );
+
+    final url = avatarUrl(avatarFileId);
+    if (url == null) return silhouette();
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: Image.network(
+        url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        // Une photo retirée du bucket ou un réseau coupé ramène à la
+        // silhouette, jamais à un trou ni à des initiales.
+        errorBuilder: (_, __, ___) => silhouette(),
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(color: background, borderRadius: radius),
+              ),
+      ),
+    );
+  }
+}
+
 /// Avatar rond affichant la photo de profil du compte, ou ses initiales sur un
 /// fond coloré en l'absence de photo.
 /// Utilisé pour les étudiants dans le tableau, et pour l'utilisateur
