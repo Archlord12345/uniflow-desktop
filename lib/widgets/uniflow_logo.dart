@@ -34,8 +34,9 @@ class UniFlowIcon extends StatelessWidget {
     // déjà pour les icônes de lanceur.
     //
     // La marque est détourée : elle se compose directement sur le fond de
-    // l'écran, marine (#151E32) comme voile de connexion, où le rendu vérifié
-    // la laisse lisible.
+    // l'écran. Vérifié sur les deux fonds où elle apparaît — le marine de la
+    // sidebar (#151E32) et le voile bleu→teal de la connexion — elle y reste
+    // lisible.
     return Image.asset(
       _logoAssetPath,
       width: size,
