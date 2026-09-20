@@ -6,6 +6,7 @@ import '../models/program_tree.dart';
 import '../models/reference_models.dart';
 import '../repositories/academic_repository.dart';
 import '../repositories/reference_repository.dart';
+import 'auth_provider.dart';
 
 /// Arborescence des programmes : université > filière > niveau.
 ///
@@ -15,6 +16,9 @@ import '../repositories/reference_repository.dart';
 /// `academic_courses` et `academic_enrollments`. Les cours dont la filière
 /// n'est pas au référentiel apparaissent quand même : rien n'est perdu.
 final programTreeProvider = FutureProvider<List<FacultyNode>>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   final repository = ref.watch(academicRepositoryProvider);
   final courses = await repository.getCourses();
   final enrollments = await repository.getEnrollmentCounts();

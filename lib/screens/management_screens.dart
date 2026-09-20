@@ -19,8 +19,7 @@ import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/preferences_provider.dart';
 import '../widgets/motion.dart';
-import '../repositories/auth_repository.dart';
-import 'login_screen.dart';
+import 'session_flow.dart';
 
 
 
@@ -936,17 +935,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                       ],
                       const SizedBox(height: 26),
-                      ElevatedButton(
-                        onPressed: () async {
-                          await ref.read(authRepositoryProvider).logout();
-                          ref.read(currentUserProvider.notifier).state = null;
-                          if (!context.mounted) return;
-                          // Sans cette navigation, l'utilisateur resterait sur
-                          // le shell avec un profil vide après déconnexion.
-                          Navigator.of(context).pushReplacement(softRoute(const LoginScreen()));
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text('Se déconnecter', style: TextStyle(color: Colors.white)),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () => signOutToLogin(context, ref),
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                            icon: const Icon(Icons.logout_rounded, size: 18),
+                            label: const Text('Se déconnecter'),
+                          ),
+                          if (currentUser != null)
+                            OutlinedButton.icon(
+                              key: const Key('delete-account-open'),
+                              onPressed: () => showDeleteAccountFlow(context, ref),
+                              style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+                              icon: const Icon(Icons.delete_forever_outlined, size: 18),
+                              label: const Text('Supprimer mon compte'),
+                            ),
+                        ],
                       ),
                     ],
                   ),

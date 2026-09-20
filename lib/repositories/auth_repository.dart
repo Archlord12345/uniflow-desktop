@@ -107,6 +107,25 @@ class AuthRepository {
     await _account.deleteSession(sessionId: 'current');
   }
 
+  /// Vérifie le mot de passe du compte connecté en rouvrant une session.
+  ///
+  /// Lève `AppwriteException(401)` si le mot de passe est faux. Appwrite ne
+  /// permet pas de vérifier un mot de passe autrement ; la session courante
+  /// est remplacée par une session équivalente, sans effet visible.
+  Future<void> verifyPassword(String email, String password) async {
+    try {
+      await _account.deleteSession(sessionId: 'current');
+    } catch (_) {}
+    await _account.createEmailPasswordSession(email: email.trim(), password: password);
+  }
+
+  /// Demande au serveur la suppression du compte connecté (service
+  /// `/account`, action `delete-self`). La Function répond `{ ok: true }` ;
+  /// tout autre corps est traduit en [ApiException] par la passerelle.
+  Future<void> deleteOwnAccount() async {
+    await _api.call(ApiPaths.account, const {'action': 'delete-self'});
+  }
+
   /// Compte connecté, ou `null` s'il n'y a pas de session.
   ///
   /// Le profil `users` est lu **en plus** du compte, jamais à sa place : un

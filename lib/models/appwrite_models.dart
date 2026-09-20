@@ -475,6 +475,7 @@ class UniFlowUser {
     String? avatarFileId,
     String? program,
     String? level,
+    bool? isSuperAdmin,
   }) {
     return UniFlowUser(
       id: id,
@@ -489,7 +490,7 @@ class UniFlowUser {
       username: username ?? this.username,
       avatarFileId: avatarFileId ?? this.avatarFileId,
       labels: labels,
-      isSuperAdmin: isSuperAdmin,
+      isSuperAdmin: isSuperAdmin ?? this.isSuperAdmin,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/uniflow_api.dart';
+import '../providers/auth_provider.dart';
 
 /// Un message dans un fil de discussion.
 ///
@@ -199,5 +200,8 @@ final messagingRepositoryProvider = Provider<MessagingRepository>((ref) {
 
 /// Liste des conversations, rechargée à la demande.
 final conversationsProvider = FutureProvider<List<Conversation>>((ref) {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.watch(messagingRepositoryProvider).getConversations();
 });

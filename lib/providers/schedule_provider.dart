@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/appwrite_models.dart';
 import '../models/schedule_event.dart';
 import '../repositories/academic_repository.dart';
+import 'auth_provider.dart';
 
 /// Décalage en semaines par rapport à la semaine courante : 0 = cette semaine,
 /// -1 = la précédente, 1 = la suivante. Les créneaux de `academic_schedules`
@@ -16,6 +17,9 @@ final weekOffsetProvider = StateProvider<int>((ref) => 0);
 /// l'intitulé, l'enseignant et le niveau — une seule requête par collection,
 /// pas une par créneau.
 final scheduleWeekProvider = FutureProvider<ScheduleWeek>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   final repository = ref.watch(academicRepositoryProvider);
   final offset = ref.watch(weekOffsetProvider);
 

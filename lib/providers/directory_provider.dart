@@ -14,11 +14,17 @@ import 'auth_provider.dart';
 /// C'est la source unique des écrans « Étudiants » et « Enseignants » : ils
 /// affichaient auparavant des listes codées en dur.
 final directoryProvider = FutureProvider<List<AcademicDirectoryEntry>>((ref) {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.watch(academicRepositoryProvider).getDirectory();
 });
 
 /// Inscriptions actives étudiant → cours, partagées par l'appel et les notes.
 final enrollmentsProvider = FutureProvider<List<AcademicEnrollment>>((ref) {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.watch(academicRepositoryProvider).getEnrollments();
 });
 
@@ -81,6 +87,9 @@ final teachingUnitsProvider = FutureProvider<List<TeachingUnit>>((ref) async {
 /// occupées ou non), enrichi des créneaux d'emploi du temps ; les salles qui
 /// n'apparaissent que dans un emploi du temps sont conservées.
 final classroomsProvider = FutureProvider<List<Classroom>>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   final scheduled = await ref.watch(academicRepositoryProvider).getClassrooms();
   final reference = await ref.watch(academicReferenceProvider.future);
   if (reference.classrooms.isEmpty) return scheduled;
@@ -113,6 +122,9 @@ final classroomsProvider = FutureProvider<List<Classroom>>((ref) async {
 /// filières de l'UY1 vont être injectées et doivent apparaître sans mise à
 /// jour de l'application.
 final programOptionsProvider = FutureProvider<ProgramOptions>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   final courses = await ref.watch(academicRepositoryProvider).getCourses();
   return ProgramOptions.fromCourses(courses);
 });

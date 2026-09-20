@@ -908,6 +908,9 @@ class LibraryItem {
 }
 
 final libraryProvider = FutureProvider<List<LibraryItem>>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   final service = ref.watch(appwriteServiceProvider);
   final response = await service.databases.listDocuments(
     databaseId: service.databaseId,

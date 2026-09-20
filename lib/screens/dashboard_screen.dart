@@ -12,22 +12,34 @@ import '../utils/avatar.dart';
 import '../models/appwrite_models.dart';
 
 final dashboardStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.read(academicRepositoryProvider).getGlobalStats();
 });
 
 /// Inscriptions des 6 derniers mois, comptées depuis `academic_enrollments`.
 final dashboardEnrollmentsProvider = FutureProvider<List<MonthlyCount>>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.read(academicRepositoryProvider).getEnrollmentsByMonth();
 });
 
 /// Répartition des présences. `null` = pas de données exploitables, ce que la
 /// carte distingue explicitement d'un taux nul.
 final dashboardAttendanceProvider = FutureProvider<AttendanceBreakdown?>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.read(academicRepositoryProvider).getAttendanceBreakdown();
 });
 
 /// Derniers documents créés, toutes collections confondues.
 final dashboardActivityProvider = FutureProvider<List<ActivityEntry>>((ref) async {
+  // Recalculé à chaque changement de compte : les caches du compte précédent
+  // survivaient à la déconnexion.
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.read(academicRepositoryProvider).getRecentActivity();
 });
 

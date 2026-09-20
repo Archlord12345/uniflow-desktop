@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_destination.dart';
 import '../providers/auth_provider.dart';
 import '../providers/preferences_provider.dart';
+import '../screens/session_flow.dart';
 import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
@@ -227,6 +228,16 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
                 ],
               ),
             ),
+            if (user != null)
+              Padding(
+                padding: EdgeInsets.fromLTRB(collapsed ? 0 : 12, 4, collapsed ? 0 : 12, 12),
+                child: collapsed
+                    ? Center(child: SignOutButton(compact: true, color: Colors.white.withValues(alpha: 0.7)))
+                    : Align(
+                        alignment: Alignment.centerLeft,
+                        child: SignOutButton(color: Colors.white.withValues(alpha: 0.7)),
+                      ),
+              ),
           ],
         ),
       ),
