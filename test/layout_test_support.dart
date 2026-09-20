@@ -27,7 +27,10 @@ import 'package:uniflow/providers/conference_provider.dart';
 import 'package:uniflow/providers/directory_provider.dart';
 import 'package:uniflow/providers/appwrite_provider.dart';
 import 'package:uniflow/providers/program_provider.dart';
+import 'package:uniflow/models/reference_models.dart';
 import 'package:uniflow/repositories/academic_repository.dart';
+import 'package:uniflow/repositories/personal_repository.dart';
+import 'package:uniflow/repositories/reference_repository.dart';
 import 'package:uniflow/services/appwrite_service.dart';
 import 'package:uniflow/services/uniflow_api.dart';
 import 'package:uniflow/providers/schedule_provider.dart';
@@ -129,7 +132,29 @@ List<Override> _overrides() => [
       dashboardEnrollmentsProvider.overrideWith((ref) async => <MonthlyCount>[]),
       dashboardAttendanceProvider.overrideWith((ref) async => null),
       dashboardActivityProvider.overrideWith((ref) async => <ActivityEntry>[]),
+      personalSubjectsProvider.overrideWith((ref) async => <PersonalSubject>[]),
+      // Référentiel avec une cascade complète : l'inscription doit être mesurée
+      // avec ses quatre listes déroulantes, pas avec la saisie libre de secours.
+      academicReferenceProvider.overrideWith((ref) async => referentielDeTest()),
     ];
+
+AcademicReference referentielDeTest() => const AcademicReference(
+      universities: [University(id: 'u', code: 'UY1', name: 'Université de test', shortName: 'UT')],
+      faculties: [Faculty(id: 'f', universityCode: 'UY1', code: 'FS', name: 'Faculté de test')],
+      programs: [
+        AcademicProgram(
+          id: 'p',
+          universityCode: 'UY1',
+          facultyCode: 'FS',
+          code: 'TEST',
+          name: 'Filière de test',
+          levels: ['L1', 'L2', 'L3'],
+        ),
+      ],
+      classrooms: [
+        ClassroomRef(id: 'c', universityCode: 'UY1', code: 'A101', name: 'Salle de test', capacity: 40),
+      ],
+    );
 
 /// Dépôt académique simulé.
 ///

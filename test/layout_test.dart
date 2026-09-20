@@ -16,7 +16,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:uniflow/screens/academic_management_screens.dart';
 import 'package:uniflow/screens/classrooms_screen.dart';
 import 'package:uniflow/screens/dashboard_screen.dart';
+import 'package:uniflow/models/user_role.dart';
 import 'package:uniflow/screens/login_screen.dart';
+import 'package:uniflow/screens/personal_workspace_screen.dart';
+import 'package:uniflow/screens/register_screen.dart';
 import 'package:uniflow/screens/main_shell.dart';
 import 'package:uniflow/screens/management_screens.dart';
 import 'package:uniflow/screens/teams_screen.dart';
@@ -48,6 +51,9 @@ void main() {
   /// Les écrans testés, avec leur nom pour le message d'échec.
   final screens = <String, Widget>{
     'Connexion': const LoginScreen(),
+    'Inscription': const RegisterScreen(),
+    'Inscription indépendante': const RegisterScreen(initialType: AccountType.personal),
+    'Espace personnel': const PersonalWorkspaceScreen(),
     'Coquille': const MainShell(),
     'Tableau de bord': const DashboardScreen(),
     'Étudiants': const StudentsScreen(),
