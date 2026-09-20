@@ -6,6 +6,7 @@ import '../models/student.dart';
 import '../models/teacher.dart';
 import '../models/teaching_unit.dart';
 import '../repositories/academic_repository.dart';
+import '../repositories/reference_repository.dart';
 import 'auth_provider.dart';
 
 /// Annuaire académique Appwrite, joint aux profils `users` (pseudo, photo).
@@ -76,8 +77,35 @@ final teachingUnitsProvider = FutureProvider<List<TeachingUnit>>((ref) async {
 });
 
 /// Salles déduites de l'emploi du temps (aucune collection `classrooms`).
-final classroomsProvider = FutureProvider<List<Classroom>>((ref) {
-  return ref.watch(academicRepositoryProvider).getClassrooms();
+/// Salles : le référentiel `classrooms` d'abord (toutes les salles déclarées,
+/// occupées ou non), enrichi des créneaux d'emploi du temps ; les salles qui
+/// n'apparaissent que dans un emploi du temps sont conservées.
+final classroomsProvider = FutureProvider<List<Classroom>>((ref) async {
+  final scheduled = await ref.watch(academicRepositoryProvider).getClassrooms();
+  final reference = await ref.watch(academicReferenceProvider.future);
+  if (reference.classrooms.isEmpty) return scheduled;
+  final byName = {for (final room in scheduled) room.nom.toLowerCase(): room};
+  final merged = <Classroom>[];
+  final seen = <String>{};
+  for (final room in reference.classrooms.where((r) => r.active)) {
+    final usage = byName[room.code.toLowerCase()] ?? byName[room.name.toLowerCase()];
+    seen.add(room.code.toLowerCase());
+    if (usage != null) seen.add(usage.nom.toLowerCase());
+    merged.add(Classroom(
+      nom: room.displayName,
+      creneaux: usage?.creneaux ?? 0,
+      cours: usage?.cours ?? 0,
+      type: room.kind,
+      capacite: room.capacity,
+      batiment: room.building,
+      referenceId: room.id,
+    ));
+  }
+  for (final room in scheduled) {
+    if (!seen.contains(room.nom.toLowerCase())) merged.add(room);
+  }
+  merged.sort((a, b) => a.nom.toLowerCase().compareTo(b.nom.toLowerCase()));
+  return merged;
 });
 
 /// Filières et niveaux réellement présents en base, pour les sélecteurs de

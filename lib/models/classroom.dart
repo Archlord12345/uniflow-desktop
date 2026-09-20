@@ -1,12 +1,12 @@
-/// Modèle représentant une salle, pour la page "Salles" (Gestion des Salles).
+/// Modèle d'une salle pour la page « Salles ».
 ///
-/// Appwrite ne possède pas de collection `classrooms` : le nom de la salle est
-/// un simple champ texte sur `academic_schedules` et `academic_courses`. Les
-/// salles listées ici sont donc les valeurs distinctes réellement planifiées,
-/// agrégées avec leur nombre de créneaux — et non un catalogue de salles
-/// (capacité, bâtiment, statut) que la base ne contient pas.
+/// Deux sources se rejoignent ici : le référentiel `classrooms` (catalogue
+/// déclaré par l'administration : code, nature, capacité, bâtiment — ajouté
+/// au schéma le 2026-09-20) et l'emploi du temps, dont le champ texte
+/// `classroom` donne l'occupation réelle. Une salle planifiée mais absente du
+/// catalogue reste visible, sans capacité ni bâtiment.
 class Classroom {
-  /// Libellé de la salle tel qu'il est stocké dans l'emploi du temps.
+  /// Libellé affiché (code, ou « code · nom » quand la salle est au catalogue).
   final String nom;
 
   /// Nombre de créneaux d'emploi du temps qui s'y tiennent.
@@ -15,13 +15,27 @@ class Classroom {
   /// Nombre d'UE distinctes qui y sont planifiées.
   final int cours;
 
-  /// Type de créneau, quand tous ceux de la salle partagent le même.
+  /// Nature (« AMPHI », « SALLE », « LABO »…) ou type de créneau dominant.
   final String type;
+
+  /// Capacité déclarée au catalogue, 0 si inconnue.
+  final int capacite;
+
+  /// Bâtiment déclaré au catalogue.
+  final String batiment;
+
+  /// Identifiant du document `classrooms`, vide si la salle n'y est pas.
+  final String referenceId;
 
   const Classroom({
     required this.nom,
     required this.creneaux,
     required this.cours,
     this.type = '',
+    this.capacite = 0,
+    this.batiment = '',
+    this.referenceId = '',
   });
+
+  bool get isCatalogued => referenceId.isNotEmpty;
 }

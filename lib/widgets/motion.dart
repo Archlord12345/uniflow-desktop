@@ -13,6 +13,12 @@ import '../theme/app_theme.dart';
 /// Durée de référence d'une transition d'écran.
 const Duration kMotionMedium = Duration(milliseconds: 280);
 
+/// Réglage « réduire les animations » (Paramètres) : les cascades sautent
+/// directement à leur état final. Un drapeau global plutôt qu'un provider,
+/// pour que les widgets d'animation restent utilisables hors `ProviderScope`
+/// (dialogues, superpositions).
+final ValueNotifier<bool> motionReduced = ValueNotifier<bool>(false);
+
 /// Apparition d'un enfant : fondu + glissement vers le haut, différé selon
 /// [index] pour former une cascade. Utilisé sur les lignes de tableau, les
 /// cartes de statistiques, les membres de l'équipe.
@@ -54,6 +60,10 @@ class _CascadeInState extends State<CascadeIn>
   @override
   void initState() {
     super.initState();
+    if (motionReduced.value) {
+      _controller.value = 1;
+      return;
+    }
     final delay = widget.step * widget.index.clamp(0, 12);
     Future<void>.delayed(delay, () {
       if (mounted) _controller.forward();

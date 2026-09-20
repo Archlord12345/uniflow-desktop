@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/app_destination.dart';
 import '../providers/auth_provider.dart';
+import '../providers/preferences_provider.dart';
 import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
@@ -63,8 +64,11 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
     final role = ref.watch(currentRoleProvider);
     final accountType = ref.watch(currentAccountTypeProvider);
     final grouped = groupedDestinations(role: role, accountType: accountType);
+    // Repli : imposé par l'appelant, sinon par la préférence « barre
+    // compacte », sinon par la largeur de fenêtre.
     final collapsed = widget.collapsed ??
-        MediaQuery.sizeOf(context).width < kSidebarCollapseBreakpoint;
+        (ref.watch(preferencesProvider).compactSidebar ||
+            MediaQuery.sizeOf(context).width < kSidebarCollapseBreakpoint);
     final width = collapsed ? AppSidebar.railWidth : AppSidebar.width;
 
     // Index global de chaque ligne, pour décaler les entrées en cascade.

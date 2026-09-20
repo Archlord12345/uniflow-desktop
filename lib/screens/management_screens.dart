@@ -1,3 +1,4 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +15,10 @@ import '../widgets/app_top_bar.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/user_avatar.dart';
+import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/preferences_provider.dart';
+import '../widgets/motion.dart';
 import '../repositories/auth_repository.dart';
 import 'login_screen.dart';
 
@@ -696,9 +700,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       await ref.uploadAvatar(picked.path, user);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Photo de profil mise à jour.')),
-      );
+      showFeedback(context, message: 'Photo de profil mise à jour.');
     } catch (error) {
       if (mounted) setState(() => _photoError = error.toString());
     } finally {
@@ -727,9 +729,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _changePassword(BuildContext context) async {
+    final current = TextEditingController();
+    final next = TextEditingController();
+    final confirm = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Changer le mot de passe'),
+        content: SizedBox(
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: current, obscureText: true, autofocus: true, decoration: const InputDecoration(labelText: 'Mot de passe actuel')),
+              const SizedBox(height: 12),
+              TextField(controller: next, obscureText: true, decoration: const InputDecoration(labelText: 'Nouveau mot de passe (8 min.)')),
+              const SizedBox(height: 12),
+              TextField(controller: confirm, obscureText: true, decoration: const InputDecoration(labelText: 'Confirmer')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Changer')),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    if (next.text.length < 8 || next.text != confirm.text) {
+      showFeedback(context, message: 'Nouveau mot de passe invalide ou différent de la confirmation.', success: false);
+      return;
+    }
+    try {
+      await ref.read(appwriteServiceProvider).account.updatePassword(password: next.text, oldPassword: current.text);
+      if (context.mounted) showFeedback(context, message: 'Mot de passe changé.');
+    } on AppwriteException catch (e) {
+      if (context.mounted) {
+        showFeedback(
+          context,
+          message: 'Changement refusé.',
+          detail: e.code == 401 ? 'Le mot de passe actuel est incorrect.' : e.message,
+          success: false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
+    final prefs = ref.watch(preferencesProvider);
     final hasPhoto = currentUser?.avatarFileId != null &&
         currentUser!.avatarFileId!.isNotEmpty;
 
@@ -738,16 +788,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       subtitle: 'Configurez votre espace UniFlow',
       stats: const [],
       child: _ResponsivePanels(
-        left: _Panel(
-          title: 'Préférences générales',
-                  child: Column(
-                    children: const [
-                      _SettingRow(title: 'Notifications système', subtitle: 'Recevoir les alertes importantes', value: true),
-                      _SettingRow(title: 'Mode hors connexion', subtitle: 'Conserver une copie locale des données', value: true),
-                      _SettingRow(title: 'Synchronisation automatique', subtitle: 'Mettre à jour les données après reconnexion', value: true),
-                    ],
+        left: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _Panel(
+              title: 'Préférences du poste',
+              child: Column(
+                children: [
+                  _SettingRow(
+                    title: 'Bandeaux de notification',
+                    subtitle: 'Afficher un bandeau à l\'arrivée d\'une notification',
+                    value: prefs.notificationBanners,
+                    onChanged: ref.read(preferencesProvider.notifier).setNotificationBanners,
                   ),
-                ),
+                  _SettingRow(
+                    title: 'Rester connecté',
+                    subtitle: 'Conserver la session d\'une ouverture à l\'autre',
+                    value: prefs.keepSession,
+                    onChanged: ref.read(preferencesProvider.notifier).setKeepSession,
+                  ),
+                  _SettingRow(
+                    title: 'Réduire les animations',
+                    subtitle: 'Cascades et transitions désactivées',
+                    value: prefs.reduceMotion,
+                    onChanged: ref.read(preferencesProvider.notifier).setReduceMotion,
+                  ),
+                  _SettingRow(
+                    title: 'Barre latérale compacte',
+                    subtitle: 'Icônes seules au démarrage',
+                    value: prefs.compactSidebar,
+                    onChanged: ref.read(preferencesProvider.notifier).setCompactSidebar,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            _Panel(
+              title: 'Sécurité',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Changez votre mot de passe ; la session reste ouverte.', style: AppTextStyles.body),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: currentUser == null ? null : () => _changePassword(context),
+                    icon: const Icon(Icons.lock_reset_outlined, size: 18),
+                    label: const Text('Changer le mot de passe'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         right: _Panel(
           title: 'Profil utilisateur',
                   child: Column(
@@ -851,9 +943,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           if (!context.mounted) return;
                           // Sans cette navigation, l'utilisateur resterait sur
                           // le shell avec un profil vide après déconnexion.
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          );
+                          Navigator.of(context).pushReplacement(softRoute(const LoginScreen()));
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                         child: const Text('Se déconnecter', style: TextStyle(color: Colors.white)),
@@ -916,7 +1006,27 @@ class _PhotoAvatar extends StatelessWidget {
     );
   }
 }
-class _SettingRow extends StatelessWidget { final String title, subtitle; final bool value; const _SettingRow({required this.title, required this.subtitle, required this.value}); @override Widget build(BuildContext context) => SwitchListTile(contentPadding: EdgeInsets.zero, title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: Text(subtitle), value: value, onChanged: null); }
+class _SettingRow extends StatelessWidget {
+  final String title, subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  const _SettingRow({required this.title, required this.subtitle, required this.value, required this.onChanged});
+  // Le `Material` transparent évite l'assertion « ListTile background color
+  // or ink splashes may be invisible » : le panneau parent est un `Container`
+  // coloré, et le test de mise en page échouait sur les dix variantes Réglages.
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
+        child: SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: Text(subtitle),
+          value: value,
+          activeThumbColor: AppColors.primaryBlue,
+          onChanged: onChanged,
+        ),
+      );
+}
 
 /// Charpente commune à toutes les pages de gestion : en-tête (titre,
 /// sous-titre, action optionnelle), rangée de métriques, puis contenu.

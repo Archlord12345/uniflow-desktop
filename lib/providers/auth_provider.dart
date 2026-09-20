@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/appwrite_models.dart';
 import '../models/user_role.dart';
@@ -10,6 +11,19 @@ final currentUserProvider = StateProvider<UniFlowUser?>((ref) => null);
 
 final sessionCheckProvider = FutureProvider<void>((ref) async {
   final authRepo = ref.read(authRepositoryProvider);
+  // Préférence « Rester connecté » désactivée : la session persistée par le
+  // SDK est fermée au lancement, l'utilisateur repasse par l'écran de
+  // connexion — c'est ce que l'interrupteur promet.
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('prefs.keepSession') == false) {
+      try {
+        await authRepo.logout();
+      } catch (_) {}
+      ref.read(currentUserProvider.notifier).state = null;
+      return;
+    }
+  } catch (_) {}
   final user = await authRepo.getCurrentUser();
   ref.read(currentUserProvider.notifier).state = user;
 });
