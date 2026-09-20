@@ -30,7 +30,7 @@ class TeamMember {
   /// [teamAccentStyle]. La base ne stocke jamais une couleur Flutter.
   final String accent;
 
-  /// Fichier de la photo dans le bucket `uniflow_avatars`, vide s'il n'y en a
+  /// Fichier de la photo dans le bucket `uniflow_assets`, vide s'il n'y en a
   /// pas encore.
   final String avatarFileId;
 

@@ -29,9 +29,6 @@ const Set<UserRole> _everyone = {
   UserRole.admin,
 };
 
-/// Ceux qui suivent un cursus.
-const Set<UserRole> _learners = {UserRole.student, UserRole.delegate};
-
 /// Les personnels : ils encadrent et évaluent.
 const Set<UserRole> _staff = {UserRole.teacher, UserRole.admin};
 

@@ -1,12 +1,6 @@
-import 'dart:convert';
-
-import 'package:appwrite/appwrite.dart';
-// `appwrite.dart` n'exporte pas les modèles : `Execution` vit dans `models.dart`.
-import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/appwrite_provider.dart';
-import '../services/appwrite_service.dart';
+import '../services/uniflow_api.dart';
 
 /// Un message dans un fil de discussion.
 ///
@@ -125,70 +119,21 @@ class Conversation {
   }
 }
 
-/// Erreur portant le message rédigé par la fonction Appwrite.
-///
-/// La fonction distingue déjà « pseudo introuvable », « conversation qui ne vous
-/// appartient pas » ou « accès refusé » : ces textes sont destinés à
-/// l'utilisateur et ne doivent pas être remplacés par un message générique.
-class MessagingException implements Exception {
-  final String message;
-  final String code;
-  MessagingException(this.message, {this.code = ''});
-  @override
-  String toString() => message;
-}
+/// Alias historique : les écrans attrapent `MessagingException`, et le
+/// message affiché vient toujours de la Function.
+typedef MessagingException = ApiException;
 
 class MessagingRepository {
-  final AppwriteService _service;
-  static const String functionId = 'messaging';
+  final UniFlowApi _api;
 
-  MessagingRepository(this._service);
+  MessagingRepository(this._api);
 
-  /// Exécute la fonction et renvoie la charge utile JSON.
-  ///
-  /// Le corps est analysé même lorsque le statut d'exécution n'est pas
-  /// `completed` : Appwrite marque l'exécution en échec dès que la fonction
-  /// répond avec un code 4xx, alors que le corps contient justement le message
-  /// explicite à montrer à l'utilisateur.
-  Future<Map<String, dynamic>> _invoke(Map<String, dynamic> payload) async {
-    final models.Execution execution;
-    try {
-      execution = await _service.functions.createExecution(
-        functionId: functionId,
-        body: jsonEncode(payload),
-        xasync: false,
-      );
-    } on AppwriteException catch (error) {
-      throw MessagingException(
-        error.code == 404
-            ? 'La fonction « messaging » n\'est pas déployée sur Appwrite.'
-            : 'Appwrite a refusé l\'appel (code ${error.code}).',
-        code: 'EXECUTION_FAILED',
-      );
-    }
-
-    Map<String, dynamic>? data;
-    try {
-      final decoded = jsonDecode(execution.responseBody);
-      if (decoded is Map<String, dynamic>) data = decoded;
-    } catch (_) {
-      data = null;
-    }
-
-    if (data == null) {
-      throw MessagingException(
-        'La messagerie a répondu de façon inattendue (${execution.status}).',
-        code: 'BAD_RESPONSE',
-      );
-    }
-    if (data['ok'] != true) {
-      throw MessagingException(
-        data['message'] ?? 'La messagerie a échoué.',
-        code: data['code'] ?? '',
-      );
-    }
-    return data;
-  }
+  /// Toutes les actions passent par le service `/messaging` de la Function
+  /// unique. L'ancien `functionId = 'messaging'` pointait sur une Function
+  /// supprimée lors de la fusion : chaque ouverture de la messagerie renvoyait
+  /// « fonction non déployée ».
+  Future<Map<String, dynamic>> _invoke(Map<String, dynamic> payload) =>
+      _api.call(ApiPaths.messaging, payload);
 
   Future<List<Conversation>> getConversations() async {
     final data = await _invoke({'action': 'list'});
@@ -249,8 +194,7 @@ class MessagingRepository {
 }
 
 final messagingRepositoryProvider = Provider<MessagingRepository>((ref) {
-  final service = ref.watch(appwriteServiceProvider);
-  return MessagingRepository(service);
+  return MessagingRepository(ref.watch(uniflowApiProvider));
 });
 
 /// Liste des conversations, rechargée à la demande.

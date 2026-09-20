@@ -115,32 +115,6 @@ class _MainShellState extends State<MainShell> {
         return const StatisticsScreen();
       case SidebarItem.settings:
         return const SettingsScreen();
-      default:
-        return _ComingSoonPlaceholder(label: _selected.label);
     }
-  }
-}
-
-/// Repli de sécurité pour une future entrée ajoutée à la sidebar.
-class _ComingSoonPlaceholder extends StatelessWidget {
-  final String label;
-
-  const _ComingSoonPlaceholder({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.construction_outlined, size: 40, color: AppColors.textMuted),
-          const SizedBox(height: 12),
-          Text(
-            'Page "$label" à venir',
-            style: const TextStyle(fontSize: 15, color: AppColors.textMuted),
-          ),
-        ],
-      ),
-    );
   }
 }

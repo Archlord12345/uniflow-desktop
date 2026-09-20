@@ -55,7 +55,7 @@ class Student {
   /// Pseudo unique, référent de la messagerie.
   final String? username;
 
-  /// Fichier de la photo de profil dans le bucket `uniflow_avatars`.
+  /// Fichier de la photo de profil dans le bucket `uniflow_assets`.
   final String? avatarFileId;
 
   const Student({

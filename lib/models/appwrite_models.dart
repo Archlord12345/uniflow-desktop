@@ -401,7 +401,7 @@ class UniFlowUser {
   /// Pseudo unique : c'est le référent de la messagerie.
   final String? username;
 
-  /// Fichier de la photo de profil dans le bucket Appwrite `uniflow_avatars`.
+  /// Fichier de la photo de profil dans le bucket Appwrite `uniflow_assets`.
   final String? avatarFileId;
 
   UniFlowUser({

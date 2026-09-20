@@ -10,12 +10,11 @@ import '../services/appwrite_service.dart';
 import '../utils/avatar.dart';
 
 /// Téléversement et retrait de la photo de profil dans le bucket Appwrite
-/// `uniflow_avatars`, puis enregistrement de l'identifiant du fichier sur le
-/// document `users` du compte.
+/// unique `uniflow_assets`, puis enregistrement de l'identifiant du fichier sur
+/// le document `users` du compte.
 ///
-/// Le bucket est distinct de `uniflow_assets` : il est lisible publiquement,
-/// car un avatar doit s'afficher dans les listes et les conversations sans
-/// exiger de session.
+/// Le bucket a `fileSecurity` activé : c'est la permission `read("any")` posée
+/// sur chaque fichier qui rend l'avatar lisible sans session, pas le bucket.
 class ProfilePhotoService {
   final AppwriteService _service;
   ProfilePhotoService(this._service);
@@ -57,8 +56,8 @@ class ProfilePhotoService {
     } on AppwriteException catch (error) {
       if (error.code == 404) {
         throw ProfilePhotoException(
-          'Le bucket « $_bucket » est introuvable sur Appwrite. '
-          'Lancez scripts/provision-appwrite-selfhosted.mjs pour le créer.',
+          'Le bucket « $_bucket » est introuvable sur Appwrite Cloud. '
+          'Vérifiez APPWRITE_AVATAR_BUCKET_ID dans le fichier .env.',
         );
       }
       throw ProfilePhotoException(_readable(error, 'le téléversement'));

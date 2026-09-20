@@ -2,8 +2,8 @@
 //
 // Le desktop n'est pas seulement redimensionnable : c'est la plateforme où
 // l'utilisateur redimensionne réellement la fenêtre, souvent jusqu'à une
-// largeur de téléphone. Chaque écran est donc peint à six largeurs, dont deux
-// très étroites, et le test échoue dès qu'un `Row` ou une `Column` ne rentre
+// largeur de téléphone. Chaque écran est donc peint à cinq largeurs, dont une
+// très étroite, et le test échoue dès qu'un `Row` ou une `Column` ne rentre
 // pas dans la place disponible.
 //
 // C'est ce test qui attrape les « A RenderFlex overflowed by N pixels » que
@@ -34,6 +34,7 @@ const List<Size> _sizes = [
   Size(420, 620), // fenêtre réduite au minimum
   Size(760, 640), // juste sous le point de bascule du login
   Size(1024, 720), // fenêtre par défaut
+  Size(1280, 800), // portable 13 pouces
   Size(1440, 900), // écran large
 ];
 

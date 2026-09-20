@@ -251,9 +251,9 @@ class _Card extends StatelessWidget {
 /// même si leurs libellés n'occupent pas le même nombre de lignes.
 class _StatGrid extends StatelessWidget {
   final List<Widget> cards;
-  final double gap;
+  static const double gap = 16;
 
-  const _StatGrid({required this.cards, this.gap = 16});
+  const _StatGrid({required this.cards});
 
   @override
   Widget build(BuildContext context) {
@@ -316,13 +316,12 @@ class _ResponsiveRow extends StatelessWidget {
   final double breakpoint;
   final Widget left;
   final Widget right;
-  final double gap;
+  static const double gap = 18;
 
   const _ResponsiveRow({
     required this.breakpoint,
     required this.left,
     required this.right,
-    this.gap = 18,
   });
 
   @override

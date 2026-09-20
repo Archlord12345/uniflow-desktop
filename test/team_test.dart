@@ -45,7 +45,7 @@ void main() {
         'role': 'Chef de projet & Architecte',
         'badge': 'Lead Architect',
         'accent': 'blue',
-        'avatarFileId': '6aa81b840031e6a34dc3',
+        'avatarFileId': 'photo-membre-0001',
         'displayOrder': 3,
       }));
 
@@ -56,7 +56,7 @@ void main() {
       expect(membre.subTeam, 'Architecture & Direction');
       expect(membre.badge, 'Lead Architect');
       expect(membre.accent, 'blue');
-      expect(membre.avatarFileId, '6aa81b840031e6a34dc3');
+      expect(membre.avatarFileId, 'photo-membre-0001');
       expect(membre.displayOrder, 3);
     });
 

@@ -29,6 +29,7 @@ import 'package:uniflow/providers/appwrite_provider.dart';
 import 'package:uniflow/providers/program_provider.dart';
 import 'package:uniflow/repositories/academic_repository.dart';
 import 'package:uniflow/services/appwrite_service.dart';
+import 'package:uniflow/services/uniflow_api.dart';
 import 'package:uniflow/providers/schedule_provider.dart';
 import 'package:uniflow/repositories/messaging_repository.dart';
 import 'package:uniflow/repositories/team_repository.dart';
@@ -164,7 +165,7 @@ class FakeAcademicRepository extends AcademicRepository {
 
 /// Messagerie simulée, pour la même raison.
 class FakeMessagingRepository extends MessagingRepository {
-  FakeMessagingRepository(super.service);
+  FakeMessagingRepository(super.api);
 
   @override
   Future<List<ChatContact>> searchContacts(String query) async => <ChatContact>[];
@@ -187,7 +188,7 @@ Widget host(Widget child) {
       ..._overrides(),
       appwriteServiceProvider.overrideWithValue(service),
       academicRepositoryProvider.overrideWithValue(FakeAcademicRepository(service)),
-      messagingRepositoryProvider.overrideWithValue(FakeMessagingRepository(service)),
+      messagingRepositoryProvider.overrideWithValue(FakeMessagingRepository(UniFlowApi(service))),
     ],
     child: MaterialApp(
       theme: AppTheme.lightTheme,

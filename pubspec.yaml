@@ -24,6 +24,20 @@ dependencies:
   # Ouverture des liens GitHub et mailto: depuis la page Équipe. Déjà présent
   # sur le mobile ; le desktop l'ignorait, ses liens n'étaient pas cliquables.
   url_launcher: ^6.3.2
+  # Dossier de données de l'application, pour l'instantané de session et les
+  # préférences : importé par `session_snapshot.dart` sans être déclaré,
+  # l'analyseur le signalait (`depend_on_referenced_packages`).
+  path_provider: ^2.1.5
+  # Préférences locales réelles de l'écran Paramètres (thème, notifications,
+  # dernier écran) : les interrupteurs étaient auparavant figés.
+  shared_preferences: ^2.5.3
+  # Client LiveKit : c'est lui qui rejoint la salle hébergée par le poste
+  # (flutter_webrtc est sa dépendance, prise en charge sur Linux, Windows,
+  # macOS et Android).
+  livekit_client: ^2.13.0
+  # QR code du lien de participation affiché à l'hôte, pour qu'un téléphone du
+  # réseau local rejoigne la salle sans recopier l'adresse.
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -37,4 +51,7 @@ flutter:
     # icônes, le logotype horizontal pour les surfaces larges et claires.
     - assets/brand/
     - assets/images/login.jpg
+    # Page web de participation à une visioconférence, servie par le poste hôte
+    # aux navigateurs du réseau local (bundle livekit-client inclus, Apache-2.0).
+    - assets/conference_web/
     - .env

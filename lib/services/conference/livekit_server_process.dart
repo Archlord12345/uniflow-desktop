@@ -133,7 +133,7 @@ class LiveKitServerProcess {
     process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
-        .listen((line) => _appendLog('$line'));
+        .listen(_appendLog);
     process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
