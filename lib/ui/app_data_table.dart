@@ -52,8 +52,9 @@ class AppDataTable<T> extends StatelessWidget {
       },
       child: child,
     );
-    if (column.width != null)
+    if (column.width != null) {
       return SizedBox(width: column.width, child: aligned);
+    }
     return Expanded(flex: column.flex, child: aligned);
   }
 

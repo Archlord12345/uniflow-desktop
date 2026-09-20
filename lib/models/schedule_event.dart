@@ -54,10 +54,19 @@ class ScheduleWeek {
   final List<ScheduleEvent> events;
   final int unplacedCount;
 
+  /// Périmètre affiché (« ICT4D · Licence 1 »), pour la barre d'outils.
+  final String scopeLabel;
+
+  /// Semestres disponibles dans le périmètre, pour le sélecteur. Un seul
+  /// semestre en base : le sélecteur n'a rien à proposer et se cache.
+  final List<String> semesters;
+
   const ScheduleWeek({
     required this.weekStart,
     required this.events,
     this.unplacedCount = 0,
+    this.scopeLabel = '',
+    this.semesters = const [],
   });
 
   static const List<String> _dayNames = [

@@ -24,8 +24,8 @@ class CardSkeleton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Shimmer(width: 140, height: 14),
                 Spacer(),
                 Shimmer(width: 60, height: 12),

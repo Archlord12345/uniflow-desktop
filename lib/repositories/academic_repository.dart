@@ -182,13 +182,29 @@ class AcademicRepository {
   }
 
   /// Séances d'une filière et d'un niveau, par l'index `schedule_program_level`
-  /// (schéma du 2026-09-20) : une grille se lit sans joindre les cours.
+  /// (schéma du 2026-09-20) : une grille se lit sans joindre les cours. Le
+  /// niveau est facultatif pour l'administration, qui peut parcourir une
+  /// filière entière.
   Future<List<AcademicSchedule>> getSchedulesFor(
-      {required String program, required String level}) async {
+      {required String program, String? level}) async {
     final documents = await listAll('academic_schedules', queries: [
       Query.equal('program', program),
-      Query.equal('level', level),
+      if (level != null && level.isNotEmpty) Query.equal('level', level),
     ]);
+    return documents.map((doc) => AcademicSchedule.fromDocument(doc)).toList();
+  }
+
+  /// Séances dont `teacherName` contient l'un des [nameFragments] (les noms du
+  /// compte, sans titre ni initiale) : la piste principale pour un enseignant,
+  /// complétée côté client par ses cours (`teacherId`). Plusieurs valeurs =
+  /// OU côté serveur.
+  Future<List<AcademicSchedule>> getSchedulesTaughtBy(
+      Iterable<String> nameFragments) async {
+    final needles =
+        nameFragments.map((n) => n.trim()).where((n) => n.isNotEmpty).toList();
+    if (needles.isEmpty) return const [];
+    final documents = await listAll('academic_schedules',
+        queries: [Query.contains('teacherName', needles)]);
     return documents.map((doc) => AcademicSchedule.fromDocument(doc)).toList();
   }
 

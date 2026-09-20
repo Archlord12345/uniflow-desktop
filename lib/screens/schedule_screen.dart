@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
+import '../models/appwrite_models.dart';
+import '../models/reference_models.dart';
 import '../models/schedule_event.dart';
+import '../models/schedule_scope.dart';
 import '../providers/schedule_provider.dart';
+import '../repositories/reference_repository.dart';
 import '../widgets/app_breadcrumb.dart';
 import '../widgets/status_badge.dart';
 
@@ -35,6 +39,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final weekAsync = ref.watch(scheduleWeekProvider);
+    final scope = ref.watch(scheduleScopeProvider);
     // `valueOrNull` conserve la semaine précédente pendant un rechargement :
     // la barre d'outils et la légende ne clignotent pas.
     final week = weekAsync.valueOrNull;
@@ -43,12 +48,14 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildTopBar(),
-        _buildToolbar(week),
+        _buildToolbar(week, scope),
         if (week != null && week.unplacedCount > 0) _buildUnplacedBanner(week),
         _buildLegend(),
         Expanded(
           child: weekAsync.when(
             data: (data) {
+              final notice = _scopeNotice(scope, data);
+              if (notice != null) return notice;
               final selected = _findSelected(data.events);
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,8 +128,120 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     );
   }
 
+  /// Message qui remplace la grille quand il n'y a rien à y mettre — et qui
+  /// dit pourquoi, plutôt qu'une grille vide.
+  Widget? _scopeNotice(ScheduleScope scope, ScheduleWeek week) {
+    if (scope.incomplete) {
+      return const _ScopeNotice(
+        icon: Icons.school_outlined,
+        title: 'Filière ou niveau manquant sur votre profil',
+        message:
+            'L\'emploi du temps ne montre que les séances de votre filière et de '
+            'votre niveau. Votre compte n\'en porte pas encore : demandez à '
+            'l\'administration de votre université de compléter votre '
+            'rattachement.',
+      );
+    }
+    if (scope.needsSelection) {
+      return const _ScopeNotice(
+        icon: Icons.filter_alt_outlined,
+        title: 'Choisissez une filière',
+        message:
+            'Sélectionnez une filière, puis un niveau, dans la barre d\'outils '
+            'pour afficher sa grille hebdomadaire.',
+      );
+    }
+    if (scope.kind == ScheduleScopeKind.personal) {
+      return const _ScopeNotice(
+        icon: Icons.person_outline,
+        title: 'Espace personnel',
+        message:
+            'Les emplois du temps universitaires sont réservés aux comptes '
+            'rattachés à une université. Vos créneaux personnels se gèrent '
+            'depuis votre espace.',
+      );
+    }
+    if (week.events.isEmpty) {
+      return _ScopeNotice(
+        icon: Icons.event_busy_outlined,
+        title: 'Aucune séance publiée',
+        message: scope.kind == ScheduleScopeKind.teacher
+            ? 'Aucune séance ne vous est attribuée pour l\'instant.'
+            : 'Aucune séance n\'est encore publiée pour ${scope.label}'
+                '${scope.semester.isEmpty ? '' : ' (${scope.semester})'}.',
+      );
+    }
+    return null;
+  }
+
+  /// Filtres de la barre d'outils selon le périmètre : un étudiant voit sa
+  /// filière et son niveau verrouillés (rien d'autre n'est sélectionnable),
+  /// un enseignant ses séances, l'administration de vrais sélecteurs.
+  List<Widget> _buildScopeControls(ScheduleWeek? week, ScheduleScope scope) {
+    final selection = ref.watch(scheduleSelectionProvider);
+    final controls = <Widget>[];
+
+    switch (scope.kind) {
+      case ScheduleScopeKind.learner:
+      case ScheduleScopeKind.teacher:
+      case ScheduleScopeKind.personal:
+        controls.add(_LockedScopeChip(label: scope.label));
+      case ScheduleScopeKind.selectable:
+        final reference = ref.watch(academicReferenceProvider).valueOrNull;
+        final programs = reference?.programs ?? const <AcademicProgram>[];
+        final selectedProgram = programs
+            .where((p) => p.code.toUpperCase() == scope.program.toUpperCase())
+            .firstOrNull;
+        final levels = selectedProgram?.levels.isNotEmpty == true
+            ? selectedProgram!.levels
+            : const ['L1', 'L2', 'L3', 'M1', 'M2'];
+        controls.add(_ScopeDropdown(
+          label: 'Programme',
+          value: scope.program,
+          valueLabel: selectedProgram == null
+              ? scope.program
+              : '${selectedProgram.code} — ${selectedProgram.name}',
+          items: [
+            for (final program in programs)
+              _ScopeChoice(program.code, '${program.code} — ${program.name}'),
+          ],
+          onChanged: (value) => ref
+              .read(scheduleSelectionProvider.notifier)
+              .state = selection.copyWith(program: value, level: ''),
+        ));
+        controls.add(_ScopeDropdown(
+          label: 'Niveau',
+          value: scope.level,
+          valueLabel:
+              scope.level.isEmpty ? '' : directoryLevelLabel(scope.level),
+          enabled: scope.program.isNotEmpty,
+          items: [
+            for (final level in levels)
+              _ScopeChoice(level, directoryLevelLabel(level)),
+          ],
+          onChanged: (value) => ref
+              .read(scheduleSelectionProvider.notifier)
+              .state = selection.copyWith(level: value),
+        ));
+    }
+
+    final semesters = week?.semesters ?? const <String>[];
+    if (semesters.length > 1 || scope.semester.isNotEmpty) {
+      controls.add(_ScopeDropdown(
+        label: 'Semestre',
+        value: scope.semester,
+        valueLabel: scope.semester,
+        items: [for (final s in semesters) _ScopeChoice(s, s)],
+        onChanged: (value) => ref
+            .read(scheduleSelectionProvider.notifier)
+            .state = selection.copyWith(semester: value),
+      ));
+    }
+    return controls;
+  }
+
   /// Barre d'outils : navigation de semaine, filtres, boutons d'export.
-  Widget _buildToolbar(ScheduleWeek? week) {
+  Widget _buildToolbar(ScheduleWeek? week, ScheduleScope scope) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
       decoration: const BoxDecoration(
@@ -186,9 +305,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       ),
                   ],
                 ),
-                const _FilterDropdown(label: 'Programme'),
-                const _FilterDropdown(label: 'Niveau'),
-                const _FilterDropdown(label: 'Semestre'),
+                ..._buildScopeControls(week, scope),
                 _ViewToggle(),
               ],
             ),
@@ -233,16 +350,19 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                         borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: générer automatiquement l'emploi du temps
-                  },
-                  icon: const Icon(Icons.auto_awesome, size: 16),
-                  label: const Text('Auto-générer'),
-                  style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 13)),
-                ),
+                // La génération concerne l'administration ; un étudiant ne
+                // fait que consulter sa grille.
+                if (scope.kind == ScheduleScopeKind.selectable)
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // TODO: générer automatiquement l'emploi du temps
+                    },
+                    icon: const Icon(Icons.auto_awesome, size: 16),
+                    label: const Text('Auto-générer'),
+                    style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 13)),
+                  ),
               ],
             ),
           ),
@@ -710,34 +830,189 @@ class _RoundIconButton extends StatelessWidget {
   }
 }
 
-class _FilterDropdown extends StatelessWidget {
+class _ScopeChoice {
+  final String value;
   final String label;
+  const _ScopeChoice(this.value, this.label);
+}
 
-  const _FilterDropdown({required this.label});
+/// Sélecteur de la barre d'outils. [value] vide = rien de choisi, le libellé
+/// affiché est alors [label] (« Programme », « Niveau »…).
+class _ScopeDropdown extends StatelessWidget {
+  final String label;
+  final String value;
+  final String valueLabel;
+  final List<_ScopeChoice> items;
+  final ValueChanged<String> onChanged;
+  final bool enabled;
+
+  const _ScopeDropdown({
+    required this.label,
+    required this.value,
+    required this.valueLabel,
+    required this.items,
+    required this.onChanged,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-          border: Border.all(color: AppColors.inputBorder),
-          borderRadius: BorderRadius.circular(8)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
+    final hasValue = value.isNotEmpty;
+    return PopupMenuButton<String>(
+      enabled: enabled && items.isNotEmpty,
+      tooltip: label,
+      onSelected: onChanged,
+      itemBuilder: (context) => [
+        for (final item in items)
+          PopupMenuItem<String>(
+            value: item.value,
             child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              item.label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight:
+                    item.value == value ? FontWeight.w700 : FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-          const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down,
-              size: 16, color: AppColors.textMuted),
-        ],
+      ],
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 260),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color:
+              hasValue ? AppColors.primaryBlue.withValues(alpha: 0.06) : null,
+          border: Border.all(
+              color: hasValue ? AppColors.primaryBlue : AppColors.inputBorder),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                hasValue ? valueLabel : label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
+                  color: !enabled
+                      ? AppColors.textMuted
+                      : hasValue
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down,
+                size: 16,
+                color: hasValue ? AppColors.primaryBlue : AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Périmètre imposé par le compte (« ICT4D · Licence 1 ») : affiché, jamais
+/// modifiable — c'est la garantie qu'un étudiant ne voit que sa grille.
+class _LockedScopeChip extends StatelessWidget {
+  final String label;
+
+  const _LockedScopeChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Périmètre de votre compte',
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 260),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlue.withValues(alpha: 0.06),
+          border: Border.all(color: AppColors.primaryBlue),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline,
+                size: 14, color: AppColors.primaryBlue),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryBlue),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Panneau qui remplace la grille quand il n'y a rien à montrer.
+class _ScopeNotice extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
+  const _ScopeNotice(
+      {required this.icon, required this.title, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    // Défilant : dans une petite fenêtre avec un texte agrandi, le message
+    // dépasse la hauteur laissée sous la barre d'outils et la légende.
+    return Center(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, size: 26, color: AppColors.primaryBlue),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 13.5,
+                      height: 1.5,
+                      color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

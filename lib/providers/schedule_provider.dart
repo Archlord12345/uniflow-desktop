@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/appwrite_models.dart';
 import '../models/schedule_event.dart';
+import '../models/schedule_scope.dart';
 import '../repositories/academic_repository.dart';
 import 'auth_provider.dart';
 
@@ -10,25 +11,58 @@ import 'auth_provider.dart';
 /// sont hebdomadaires et se répètent, seule la date des colonnes change.
 final weekOffsetProvider = StateProvider<int>((ref) => 0);
 
+/// Choix de la barre d'outils (filière, niveau, semestre). Remis à zéro au
+/// changement de compte : la sélection d'une administration ne doit pas
+/// survivre à la connexion d'un étudiant.
+final scheduleSelectionProvider = StateProvider<ScheduleSelection>((ref) {
+  ref.watch(currentUserProvider.select((u) => u?.id));
+  return const ScheduleSelection();
+});
+
+/// Périmètre de lecture : filière + niveau du profil pour un étudiant ou un
+/// délégué (verrouillés), ses séances pour un enseignant, la sélection de la
+/// barre d'outils pour l'administration et la plateforme.
+final scheduleScopeProvider = Provider<ScheduleScope>((ref) {
+  return scheduleScopeFor(
+    ref.watch(currentUserProvider),
+    ref.watch(scheduleSelectionProvider),
+  );
+});
+
 /// Emploi du temps de la semaine affichée, reconstruit depuis Appwrite.
 ///
 /// Aucune donnée n'est simulée : les créneaux viennent de `academic_schedules`
-/// et sont joints en mémoire aux cours de `academic_courses` pour récupérer
-/// l'intitulé, l'enseignant et le niveau — une seule requête par collection,
+/// **filtrés côté serveur sur le périmètre** (index `schedule_program_level`),
+/// puis joints en mémoire aux cours de `academic_courses` pour les séances
+/// anciennes sans intitulé dénormalisé — une seule requête par collection,
 /// pas une par créneau.
 final scheduleWeekProvider = FutureProvider<ScheduleWeek>((ref) async {
   // Recalculé à chaque changement de compte : les caches du compte précédent
   // survivaient à la déconnexion.
-  ref.watch(currentUserProvider.select((u) => u?.id));
+  final user = ref.watch(currentUserProvider);
   final repository = ref.watch(academicRepositoryProvider);
   final offset = ref.watch(weekOffsetProvider);
-
-  final schedules = await repository.getSchedules();
-  final courses = await repository.getCourses();
-  final coursesById = {for (final course in courses) course.id: course};
-  final coursesByCode = {for (final course in courses) course.code: course};
+  final scope = ref.watch(scheduleScopeProvider);
 
   final weekStart = _mondayOf(DateTime.now()).add(Duration(days: 7 * offset));
+
+  if (scope.empty) {
+    return ScheduleWeek(
+        weekStart: weekStart, events: const [], scopeLabel: scope.label);
+  }
+
+  final loaded = await _loadScopedSchedules(repository, scope, user);
+  final coursesById = {for (final course in loaded.courses) course.id: course};
+  final coursesByCode = {
+    for (final course in loaded.courses) course.code: course
+  };
+
+  final semesters = semestersOf(loaded.schedules);
+  final schedules = scope.semester.isEmpty
+      ? loaded.schedules
+      : loaded.schedules
+          .where((s) => s.semester.trim().toUpperCase() == scope.semester)
+          .toList();
 
   final events = <ScheduleEvent>[];
   var unplaced = 0;
@@ -52,18 +86,24 @@ final scheduleWeekProvider = FutureProvider<ScheduleWeek>((ref) async {
     final course =
         coursesById[schedule.courseId] ?? coursesByCode[schedule.courseCode];
 
+    // Les champs dénormalisés de la séance priment : ils décrivent ce créneau
+    // précis (groupe, enseignant du TD…), le cours n'est qu'un repli.
+    final title = schedule.courseName.isNotEmpty
+        ? schedule.courseName
+        : course?.name.isNotEmpty == true
+            ? course!.name
+            : (schedule.courseCode.isEmpty ? 'Cours' : schedule.courseCode);
+
     events.add(
       ScheduleEvent(
-        title: course?.name.isNotEmpty == true
-            ? course!.name
-            : (schedule.courseCode.isEmpty ? 'Cours' : schedule.courseCode),
+        title: title,
         type: _sessionType(schedule.type ?? course?.type),
         dayIndex: dayIndex,
         startHour: startHour,
         endHour: endHour,
         salle: schedule.classroom,
-        enseignant: _teacherLabel(course),
-        groupe: _groupLabel(course),
+        enseignant: _teacherLabel(schedule, course),
+        groupe: _groupLabel(schedule, course),
         description: course?.description ?? '',
       ),
     );
@@ -73,8 +113,72 @@ final scheduleWeekProvider = FutureProvider<ScheduleWeek>((ref) async {
     weekStart: weekStart,
     events: events,
     unplacedCount: unplaced,
+    scopeLabel: scope.label,
+    semesters: semesters,
   );
 });
+
+class _ScopedSchedules {
+  final List<AcademicSchedule> schedules;
+  final List<AcademicCourse> courses;
+  const _ScopedSchedules(this.schedules, this.courses);
+}
+
+/// Charge séances et cours du périmètre, et rien d'autre.
+Future<_ScopedSchedules> _loadScopedSchedules(
+  AcademicRepository repository,
+  ScheduleScope scope,
+  UniFlowUser? user,
+) async {
+  switch (scope.kind) {
+    case ScheduleScopeKind.learner:
+      final courses = await repository.getCoursesFor(
+          program: scope.program, level: scope.level);
+      final schedules = await repository.getSchedulesFor(
+          program: scope.program, level: scope.level);
+      // Ceinture et bretelles : le filtre serveur est la règle, ce second
+      // passage écarte tout document qui ne porterait pas le bon périmètre.
+      return _ScopedSchedules(
+        schedulesWithin(schedules,
+            program: scope.program,
+            level: scope.level,
+            coursesById: {for (final c in courses) c.id: c}),
+        courses,
+      );
+
+    case ScheduleScopeKind.selectable:
+      final courses = await repository.getCoursesFor(
+          program: scope.program,
+          level: scope.level.isEmpty ? null : scope.level);
+      final schedules = await repository.getSchedulesFor(
+          program: scope.program,
+          level: scope.level.isEmpty ? null : scope.level);
+      return _ScopedSchedules(schedules, courses);
+
+    case ScheduleScopeKind.teacher:
+      if (user == null) return const _ScopedSchedules([], []);
+      final courses = await repository.getCourses();
+      final coursesById = {for (final c in courses) c.id: c};
+      final byName =
+          await repository.getSchedulesTaughtBy(nameTokens(user.name));
+      final ownCourseIds = courses
+          .where((c) => c.teacherId != null && c.teacherId == user.id)
+          .map((c) => c.id);
+      final byCourse = await repository.getSchedulesForCourses(ownCourseIds);
+      final merged = <String, AcademicSchedule>{
+        for (final s in byName) s.id: s,
+        for (final s in byCourse) s.id: s,
+      };
+      return _ScopedSchedules(
+        schedulesTaughtBy(merged.values,
+            teacher: user, coursesById: coursesById),
+        courses,
+      );
+
+    case ScheduleScopeKind.personal:
+      return const _ScopedSchedules([], []);
+  }
+}
 
 /// Lundi de la semaine contenant [date], à minuit.
 DateTime _mondayOf(DateTime date) {
@@ -178,18 +282,23 @@ SessionType _sessionType(String? raw) {
   }
 }
 
-String _teacherLabel(AcademicCourse? course) {
+String _teacherLabel(AcademicSchedule schedule, AcademicCourse? course) {
+  final own = schedule.teacherName.trim();
+  if (own.isNotEmpty) return own;
   final name = course?.teacherName?.trim();
   return (name == null || name.isEmpty) ? '—' : name;
 }
 
-/// « Licence 2 · Informatique » : le niveau et la filière du cours, tels que
-/// stockés. Un champ absent est simplement omis.
-String _groupLabel(AcademicCourse? course) {
-  if (course == null) return '—';
+/// « Licence 2 · Informatique · Groupe A » : le niveau et la filière de la
+/// séance (ou du cours, à défaut) et son groupe. Un champ absent est omis.
+String _groupLabel(AcademicSchedule schedule, AcademicCourse? course) {
+  final level = schedule.level.isNotEmpty ? schedule.level : course?.level;
+  final program =
+      schedule.program.isNotEmpty ? schedule.program : course?.program;
   final parts = <String>[
-    if (course.level.isNotEmpty) directoryLevelLabel(course.level),
-    if (course.program.isNotEmpty) course.program,
+    if (level != null && level.isNotEmpty) directoryLevelLabel(level),
+    if (program != null && program.isNotEmpty) program,
+    if (schedule.group.trim().isNotEmpty) schedule.group.trim(),
   ];
   return parts.isEmpty ? '—' : parts.join(' · ');
 }
