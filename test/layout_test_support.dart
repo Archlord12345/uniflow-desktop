@@ -29,7 +29,10 @@ import 'package:uniflow/providers/appwrite_provider.dart';
 import 'package:uniflow/providers/program_provider.dart';
 import 'package:uniflow/models/reference_models.dart';
 import 'package:uniflow/repositories/academic_repository.dart';
+import 'package:uniflow/repositories/management_repository.dart';
 import 'package:uniflow/repositories/personal_repository.dart';
+import 'package:uniflow/screens/academic_management_screens.dart';
+import 'package:uniflow/screens/notifications_screen.dart';
 import 'package:uniflow/repositories/reference_repository.dart';
 import 'package:uniflow/services/appwrite_service.dart';
 import 'package:uniflow/services/uniflow_api.dart';
@@ -133,6 +136,12 @@ List<Override> _overrides() => [
       dashboardAttendanceProvider.overrideWith((ref) async => null),
       dashboardActivityProvider.overrideWith((ref) async => <ActivityEntry>[]),
       personalSubjectsProvider.overrideWith((ref) async => <PersonalSubject>[]),
+      scopedCoursesProvider.overrideWith((ref) async => <AcademicCourse>[]),
+      enrollmentsProvider.overrideWith((ref) async => <AcademicEnrollment>[]),
+      notificationsProvider.overrideWith((ref) async => <AppNotification>[]),
+      libraryProvider.overrideWith((ref) async => <LibraryItem>[]),
+      programOptionsProvider.overrideWith((ref) async => ProgramOptions.fromCourses(const [])),
+      managedAccountsProvider.overrideWith((ref, filter) async => <ManagedAccount>[]),
       // Référentiel avec une cascade complète : l'inscription doit être mesurée
       // avec ses quatre listes déroulantes, pas avec la saisie libre de secours.
       academicReferenceProvider.overrideWith((ref) async => referentielDeTest()),

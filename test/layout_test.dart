@@ -17,7 +17,10 @@ import 'package:uniflow/screens/academic_management_screens.dart';
 import 'package:uniflow/screens/classrooms_screen.dart';
 import 'package:uniflow/screens/dashboard_screen.dart';
 import 'package:uniflow/models/user_role.dart';
+import 'package:uniflow/screens/accounts_screen.dart';
+import 'package:uniflow/screens/attendance_screen.dart';
 import 'package:uniflow/screens/login_screen.dart';
+import 'package:uniflow/screens/notifications_screen.dart';
 import 'package:uniflow/screens/personal_workspace_screen.dart';
 import 'package:uniflow/screens/register_screen.dart';
 import 'package:uniflow/screens/main_shell.dart';
@@ -73,6 +76,8 @@ void main() {
     'Paiements': const PaymentsManagementScreen(),
     'Statistiques': const StatisticsScreen(),
     'Réglages': const SettingsScreen(),
+    'Comptes': const AccountsScreen(),
+    'Notifications': const NotificationsScreen(),
   };
 
   for (final entry in screens.entries) {

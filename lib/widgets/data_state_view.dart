@@ -43,7 +43,10 @@ class DataEmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    // Défilant : posé directement dans un `Expanded` d'une fenêtre basse
+    // (620 px avec une barre de filtres au-dessus), le bloc dépassait de
+    // 68 px vers le bas.
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -69,12 +72,13 @@ class DataErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off_outlined, size: 42, color: AppColors.danger),
+          const Icon(Icons.cloud_off_outlined,
+              size: 42, color: AppColors.danger),
           const SizedBox(height: 12),
           const Text(
             'Lecture Appwrite impossible',

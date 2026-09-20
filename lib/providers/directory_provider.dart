@@ -16,6 +16,11 @@ final directoryProvider = FutureProvider<List<AcademicDirectoryEntry>>((ref) {
   return ref.watch(academicRepositoryProvider).getDirectory();
 });
 
+/// Inscriptions actives étudiant → cours, partagées par l'appel et les notes.
+final enrollmentsProvider = FutureProvider<List<AcademicEnrollment>>((ref) {
+  return ref.watch(academicRepositoryProvider).getEnrollments();
+});
+
 /// Étudiants et délégués **dans le périmètre** de l'utilisateur connecté.
 ///
 /// L'administration voit tout ; un enseignant voit les inscrits à ses cours ;

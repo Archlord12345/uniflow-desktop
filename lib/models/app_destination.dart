@@ -56,6 +56,13 @@ enum AppDestination {
     {UserRole.student, UserRole.teacher},
     personalOnly: true,
   ),
+  notifications(
+    'notifications',
+    'Notifications',
+    Icons.notifications_outlined,
+    NavSection.pilotage,
+    _everyone,
+  ),
 
   // --- Scolarité --------------------------------------------------------
   // « Étudiants » et « Enseignants » sont des écrans d'administration au sens
@@ -102,6 +109,7 @@ enum AppDestination {
     Icons.meeting_room_outlined,
     NavSection.scolarite,
     _everyone,
+    universityOnly: true,
   ),
   schedule(
     'emploi-du-temps',
@@ -168,6 +176,15 @@ enum AppDestination {
   ),
 
   // --- Administration ---------------------------------------------------
+  // Création et gestion des comptes universitaires : réservée à
+  // l'administration (`/admin-directory` refait la vérification côté serveur).
+  accounts(
+    'comptes',
+    'Comptes',
+    Icons.manage_accounts_outlined,
+    NavSection.administration,
+    {UserRole.admin},
+  ),
   statistics(
     'statistiques',
     'Statistiques',

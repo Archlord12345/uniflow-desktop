@@ -9,10 +9,13 @@ import '../widgets/app_sidebar.dart';
 import '../widgets/motion.dart';
 import 'academic_management_screens.dart';
 import 'access_denied_screen.dart';
+import 'accounts_screen.dart';
+import 'attendance_screen.dart';
 import 'classrooms_screen.dart';
 import 'dashboard_screen.dart';
 import 'management_screens.dart';
 import 'messaging_screen.dart';
+import 'notifications_screen.dart';
 import 'personal_workspace_screen.dart';
 import 'programs_screen.dart';
 import 'schedule_screen.dart';
@@ -88,6 +91,8 @@ class MainShell extends ConsumerWidget {
         return const DashboardScreen();
       case AppDestination.personalWorkspace:
         return const PersonalWorkspaceScreen();
+      case AppDestination.notifications:
+        return const NotificationsScreen();
       case AppDestination.students:
         return const StudentsScreen();
       case AppDestination.programs:
@@ -120,6 +125,8 @@ class MainShell extends ConsumerWidget {
         return const MessagingScreen();
       case AppDestination.payments:
         return const PaymentsManagementScreen();
+      case AppDestination.accounts:
+        return const AccountsScreen();
       case AppDestination.statistics:
         return const StatisticsScreen();
       case AppDestination.settings:

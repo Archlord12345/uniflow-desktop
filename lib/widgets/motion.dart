@@ -71,7 +71,8 @@ class _CascadeInState extends State<CascadeIn>
     return FadeTransition(
       opacity: _curve,
       child: SlideTransition(
-        position: Tween<Offset>(begin: widget.offset, end: Offset.zero).animate(_curve),
+        position: Tween<Offset>(begin: widget.offset, end: Offset.zero)
+            .animate(_curve),
         child: widget.child,
       ),
     );
@@ -149,33 +150,39 @@ class TableSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Shimmer(height: 16, width: 180),
-          const SizedBox(height: 18),
-          for (var i = 0; i < rows; i++) ...[
-            Row(
-              children: [
-                const Shimmer.circle(size: 30),
-                const SizedBox(width: 12),
-                Expanded(flex: 3, child: Shimmer(height: 12, width: 120 + (i % 3) * 40)),
-                const SizedBox(width: 16),
-                const Expanded(flex: 2, child: Shimmer(height: 12)),
-                const SizedBox(width: 16),
-                const Expanded(child: Shimmer(height: 12)),
-              ],
-            ),
-            if (i < rows - 1) const SizedBox(height: 16),
+    // Défilant pour la même raison que `DataEmptyView` : un squelette de six
+    // lignes ne tient pas dans un `Expanded` de fenêtre basse.
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.cardWhite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Shimmer(height: 16, width: 180),
+            const SizedBox(height: 18),
+            for (var i = 0; i < rows; i++) ...[
+              Row(
+                children: [
+                  const Shimmer.circle(size: 30),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      flex: 3,
+                      child: Shimmer(height: 12, width: 120 + (i % 3) * 40)),
+                  const SizedBox(width: 16),
+                  const Expanded(flex: 2, child: Shimmer(height: 12)),
+                  const SizedBox(width: 16),
+                  const Expanded(child: Shimmer(height: 12)),
+                ],
+              ),
+              if (i < rows - 1) const SizedBox(height: 16),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -188,33 +195,35 @@ class CardGridSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: [
-        for (var i = 0; i < count; i++)
-          Container(
-            width: 260,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: AppColors.cardWhite,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.inputBorder),
+    return SingleChildScrollView(
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        children: [
+          for (var i = 0; i < count; i++)
+            Container(
+              width: 260,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.cardWhite,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Shimmer.circle(size: 44),
+                  SizedBox(height: 14),
+                  Shimmer(height: 14, width: 160),
+                  SizedBox(height: 8),
+                  Shimmer(height: 11, width: 110),
+                  SizedBox(height: 14),
+                  Shimmer(height: 11),
+                ],
+              ),
             ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Shimmer.circle(size: 44),
-                SizedBox(height: 14),
-                Shimmer(height: 14, width: 160),
-                SizedBox(height: 8),
-                Shimmer(height: 11, width: 110),
-                SizedBox(height: 14),
-                Shimmer(height: 11),
-              ],
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -248,7 +257,8 @@ class _AnimatedCheckState extends State<AnimatedCheck>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final scale = Curves.elasticOut.transform(_controller.value.clamp(0.0, 1.0));
+        final scale =
+            Curves.elasticOut.transform(_controller.value.clamp(0.0, 1.0));
         return Transform.scale(
           scale: 0.6 + 0.4 * scale,
           child: CustomPaint(
@@ -308,7 +318,8 @@ class _CheckPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CheckPainter old) => old.progress != progress || old.color != color;
+  bool shouldRepaint(_CheckPainter old) =>
+      old.progress != progress || old.color != color;
 }
 
 /// Croix qui tremble : le retour d'échec.
@@ -340,7 +351,8 @@ class _AnimatedCrossState extends State<AnimatedCross>
       builder: (context, child) {
         final t = _controller.value;
         // Secousse latérale amortie, après l'apparition.
-        final shake = t < 0.4 ? 0.0 : (1 - t) * 8 * ((t * 40).floor().isEven ? 1 : -1);
+        final shake =
+            t < 0.4 ? 0.0 : (1 - t) * 8 * ((t * 40).floor().isEven ? 1 : -1);
         return Transform.translate(
           offset: Offset(shake, 0),
           child: Opacity(
@@ -357,7 +369,8 @@ class _AnimatedCrossState extends State<AnimatedCross>
           color: AppColors.danger.withValues(alpha: 0.12),
           border: Border.all(color: AppColors.danger, width: 3),
         ),
-        child: Icon(Icons.close_rounded, color: AppColors.danger, size: widget.size * 0.55),
+        child: Icon(Icons.close_rounded,
+            color: AppColors.danger, size: widget.size * 0.55),
       ),
     );
   }
@@ -436,13 +449,15 @@ class _FeedbackToastState extends State<_FeedbackToast>
   @override
   Widget build(BuildContext context) {
     final color = widget.success ? AppColors.teal : AppColors.danger;
-    final curve = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
+    final curve =
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
     return Positioned(
       top: 24,
       right: 24,
       child: SafeArea(
         child: SlideTransition(
-          position: Tween<Offset>(begin: const Offset(1.2, 0), end: Offset.zero).animate(curve),
+          position: Tween<Offset>(begin: const Offset(1.2, 0), end: Offset.zero)
+              .animate(curve),
           child: FadeTransition(
             opacity: _controller,
             child: Material(
@@ -485,13 +500,15 @@ class _FeedbackToastState extends State<_FeedbackToast>
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          if (widget.detail != null && widget.detail!.isNotEmpty) ...[
+                          if (widget.detail != null &&
+                              widget.detail!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
                               widget.detail!,
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textSecondary),
                             ),
                           ],
                         ],
@@ -541,7 +558,11 @@ class ResultView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CascadeIn(index: 0, child: success ? const AnimatedCheck(size: 88) : const AnimatedCross(size: 88)),
+              CascadeIn(
+                  index: 0,
+                  child: success
+                      ? const AnimatedCheck(size: 88)
+                      : const AnimatedCross(size: 88)),
               const SizedBox(height: 24),
               CascadeIn(
                 index: 2,
@@ -554,7 +575,8 @@ class ResultView extends StatelessWidget {
               const SizedBox(height: 10),
               CascadeIn(
                 index: 3,
-                child: Text(message, textAlign: TextAlign.center, style: AppTextStyles.body),
+                child: Text(message,
+                    textAlign: TextAlign.center, style: AppTextStyles.body),
               ),
               if (actionLabel != null || secondaryLabel != null) ...[
                 const SizedBox(height: 26),
@@ -566,9 +588,12 @@ class ResultView extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     children: [
                       if (secondaryLabel != null)
-                        OutlinedButton(onPressed: onSecondary, child: Text(secondaryLabel!)),
+                        OutlinedButton(
+                            onPressed: onSecondary,
+                            child: Text(secondaryLabel!)),
                       if (actionLabel != null)
-                        FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+                        FilledButton(
+                            onPressed: onAction, child: Text(actionLabel!)),
                     ],
                   ),
                 ),
@@ -587,7 +612,8 @@ Widget pageTransition(Widget child, Animation<double> animation) {
   return FadeTransition(
     opacity: curve,
     child: SlideTransition(
-      position: Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero).animate(curve),
+      position: Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero)
+          .animate(curve),
       child: child,
     ),
   );
@@ -598,5 +624,6 @@ PageRoute<T> softRoute<T>(Widget page) => PageRouteBuilder<T>(
       transitionDuration: kMotionMedium,
       reverseTransitionDuration: kMotionMedium,
       pageBuilder: (_, __, ___) => page,
-      transitionsBuilder: (_, animation, __, child) => pageTransition(child, animation),
+      transitionsBuilder: (_, animation, __, child) =>
+          pageTransition(child, animation),
     );
