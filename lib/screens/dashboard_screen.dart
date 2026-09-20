@@ -106,10 +106,10 @@ class DashboardScreen extends ConsumerWidget {
                 // ----- Graphique des inscriptions + graphique en anneau -----
                 // Côte à côte quand la fenêtre est assez large, empilés sinon :
                 // deux graphiques dans une fenêtre étroite deviennent illisibles.
-                _ResponsiveRow(
+                const _ResponsiveRow(
                   breakpoint: 900,
-                  left: const _EnrollmentChartCard(),
-                  right: const _AttendanceDonutCard(),
+                  left: _EnrollmentChartCard(),
+                  right: _AttendanceDonutCard(),
                 ),
                 const SizedBox(height: 18),
 
@@ -146,11 +146,11 @@ class DashboardScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.inputBorder),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.search, size: 18, color: AppColors.textMuted),
-                const SizedBox(width: 10),
-                const Expanded(
+                Icon(Icons.search, size: 18, color: AppColors.textMuted),
+                SizedBox(width: 10),
+                Expanded(
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher globalement...',
@@ -297,7 +297,7 @@ class _StatGrid extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (var i = 0; i < columns; i++) ...[
-                    if (i > 0) SizedBox(width: gap),
+                    if (i > 0) const SizedBox(width: gap),
                     // Une rangée incomplète est complétée par des cases vides :
                     // les cartes présentes gardent ainsi la même largeur que
                     // sur une rangée pleine.
@@ -316,7 +316,7 @@ class _StatGrid extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < rows.length; i++) ...[
-              if (i > 0) SizedBox(height: gap),
+              if (i > 0) const SizedBox(height: gap),
               rows[i],
             ],
           ],
@@ -349,7 +349,7 @@ class _ResponsiveRow extends StatelessWidget {
         if (constraints.maxWidth < breakpoint) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [left, SizedBox(height: gap), right],
+            children: [left, const SizedBox(height: gap), right],
           );
         }
         return IntrinsicHeight(
@@ -357,7 +357,7 @@ class _ResponsiveRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(child: left),
-              SizedBox(width: gap),
+              const SizedBox(width: gap),
               Expanded(child: right),
             ],
           ),
@@ -486,7 +486,7 @@ class _EnrollmentLineChart extends StatelessWidget {
             drawVerticalLine: false,
             horizontalInterval: interval,
             getDrawingHorizontalLine: (value) =>
-                FlLine(color: AppColors.inputBorder, strokeWidth: 1),
+                const FlLine(color: AppColors.inputBorder, strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -500,8 +500,9 @@ class _EnrollmentLineChart extends StatelessWidget {
                 reservedSize: 26,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  if (index < 0 || index >= months.length)
+                  if (index < 0 || index >= months.length) {
                     return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(months[index].label,

@@ -3,6 +3,7 @@
 /// Ce ne sont pas des documents Appwrite mais des résultats de calcul : ils
 /// vivent donc à part de `appwrite_models.dart`, qui décrit le schéma des
 /// collections.
+library;
 
 /// Nombre d'inscriptions enregistrées sur un mois donné.
 class MonthlyCount {

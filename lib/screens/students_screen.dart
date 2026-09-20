@@ -203,9 +203,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final filters = <Widget>[
-          SizedBox(width: 160, child: _FilterDropdown(label: 'Programme')),
-          SizedBox(width: 160, child: _FilterDropdown(label: 'Niveau')),
-          SizedBox(width: 160, child: _FilterDropdown(label: 'Statut')),
+          const SizedBox(
+              width: 160, child: _FilterDropdown(label: 'Programme')),
+          const SizedBox(width: 160, child: _FilterDropdown(label: 'Niveau')),
+          const SizedBox(width: 160, child: _FilterDropdown(label: 'Statut')),
           exportButton,
         ];
 

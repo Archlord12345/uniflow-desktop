@@ -158,8 +158,9 @@ class ProgramOptions {
     final levels = <String>{};
     final byProgram = <String, Set<String>>{};
     for (final course in courses) {
-      if (course.university.trim().isNotEmpty)
+      if (course.university.trim().isNotEmpty) {
         universities.add(course.university.trim());
+      }
       if (course.program.trim().isNotEmpty) programs.add(course.program.trim());
       if (course.level.trim().isNotEmpty) levels.add(course.level.trim());
       if (course.program.trim().isNotEmpty && course.level.trim().isNotEmpty) {

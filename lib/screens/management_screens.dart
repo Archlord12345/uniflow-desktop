@@ -90,7 +90,7 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
               onEnableInternet: _enableInternetMode,
             )
           else
-            _InfoPanel(
+            const _InfoPanel(
               icon: Icons.videocam_outlined,
               title: 'Aucune réunion en cours',
               message: 'Démarrez une réunion pour que ce poste en devienne le '
@@ -802,8 +802,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           .read(appwriteServiceProvider)
           .account
           .updatePassword(password: next.text, oldPassword: current.text);
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context, message: 'Mot de passe changé.');
+      }
     } on AppwriteException catch (e) {
       if (context.mounted) {
         showFeedback(
@@ -878,7 +879,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Changez votre mot de passe ; la session reste ouverte.',
+                  const Text(
+                      'Changez votre mot de passe ; la session reste ouverte.',
                       style: AppTextStyles.body),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
@@ -1386,11 +1388,11 @@ class SentinelleManagementScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 18),
-          Expanded(
+          const Expanded(
             child: _Panel(
               title: 'Journal d\'événements Sentinelle',
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text(
                   'Aucun événement enregistré. Le journal se remplira avec les '
                   'remontées des kiosques Sentinelle.',
@@ -1413,11 +1415,11 @@ class SentinelleManagementScreen extends StatelessWidget {
 class StructureManagementScreen extends StatelessWidget {
   const StructureManagementScreen({super.key});
   @override
-  Widget build(BuildContext context) => _ManagementPage(
+  Widget build(BuildContext context) => const _ManagementPage(
         title: 'Structure Académique',
         subtitle: 'Gérez les facultés, départements et niveaux',
-        stats: const [],
-        child: const _InfoPanel(
+        stats: [],
+        child: _InfoPanel(
           icon: Icons.account_tree_outlined,
           title: 'Structure non configurée',
           message: 'Les facultés, départements et niveaux ne sont pas encore '
@@ -1430,13 +1432,13 @@ class StructureManagementScreen extends StatelessWidget {
 class PaymentsManagementScreen extends StatelessWidget {
   const PaymentsManagementScreen({super.key});
   @override
-  Widget build(BuildContext context) => _ManagementPage(
+  Widget build(BuildContext context) => const _ManagementPage(
         title: 'Gestion des Paiements',
         subtitle: 'Suivi des abonnements et frais de scolarité',
         // Pas de recettes affichées : aucun flux de paiement n'alimente
         // l'application, un montant en dur donnerait une fausse vue des finances.
-        stats: const [],
-        child: const _InfoPanel(
+        stats: [],
+        child: _InfoPanel(
           icon: Icons.account_balance_wallet_outlined,
           title: 'Aucun paiement enregistré',
           message:

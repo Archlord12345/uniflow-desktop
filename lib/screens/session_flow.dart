@@ -147,8 +147,8 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
-        children: const [
+      title: const Row(
+        children: [
           Icon(Icons.warning_amber_rounded, color: Colors.red),
           SizedBox(width: 10),
           Expanded(child: Text('Supprimer mon compte')),

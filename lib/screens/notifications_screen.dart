@@ -89,9 +89,10 @@ class NotificationsScreen extends ConsumerWidget {
       await ref.read(notificationsApiProvider).markRead(n.id, read: !n.isRead);
       ref.invalidate(notificationsProvider);
     } catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context,
             message: 'Mise à jour impossible.', detail: '$e', success: false);
+      }
     }
   }
 
@@ -100,12 +101,14 @@ class NotificationsScreen extends ConsumerWidget {
     try {
       await ref.read(notificationsApiProvider).delete(n.id);
       ref.invalidate(notificationsProvider);
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context, message: 'Notification supprimée.');
+      }
     } catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context,
             message: 'Suppression impossible.', detail: '$e', success: false);
+      }
     }
   }
 
@@ -117,12 +120,14 @@ class NotificationsScreen extends ConsumerWidget {
       await Future.wait(
           [for (final n in items.where((n) => !n.isRead)) api.markRead(n.id)]);
       ref.invalidate(notificationsProvider);
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context, message: 'Toutes les notifications sont lues.');
+      }
     } catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context,
             message: 'Mise à jour incomplète.', detail: '$e', success: false);
+      }
     }
   }
 }

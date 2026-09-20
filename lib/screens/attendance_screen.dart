@@ -324,8 +324,9 @@ class _SessionDetail extends ConsumerWidget {
                       builder: (_) => _RollDialog(
                           courseId: session.courseId, date: session.date),
                     );
-                    if (saved == true)
+                    if (saved == true) {
                       ref.invalidate(_recordsProvider(session.id));
+                    }
                   },
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Corriger l\'appel'),
@@ -423,11 +424,12 @@ class _SessionDetail extends ConsumerWidget {
           context: context, builder: (_) => _QrDialog(qr: qr));
       ref.invalidate(_recordsProvider(session.id));
     } on ApiException catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context,
             message: 'QR refusé par le serveur.',
             detail: e.message,
             success: false);
+      }
     }
   }
 }
@@ -633,11 +635,12 @@ class _QrDialogState extends ConsumerState<_QrDialog> {
                 await ref.read(attendanceApiProvider).revoke(widget.qr.token);
                 if (mounted) setState(() => _revoked = true);
               } on ApiException catch (e) {
-                if (mounted)
+                if (context.mounted) {
                   showFeedback(context,
                       message: 'Révocation refusée.',
                       detail: e.message,
                       success: false);
+                }
               }
             },
             child: const Text('Révoquer',

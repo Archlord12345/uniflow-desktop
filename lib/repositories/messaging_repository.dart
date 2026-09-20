@@ -168,7 +168,7 @@ class MessagingRepository {
     });
     final conversation = data['conversation'];
     if (conversation is! Map) {
-      throw MessagingException('Conversation illisible.');
+      throw const MessagingException('Conversation illisible.');
     }
     return Conversation.fromJson(Map<String, dynamic>.from(conversation));
   }
@@ -190,7 +190,7 @@ class MessagingRepository {
     });
     final conversation = data['conversation'];
     if (conversation is! Map) {
-      throw MessagingException(
+      throw const MessagingException(
           'Message envoyé, mais la conversation est illisible.');
     }
     return Conversation.fromJson(Map<String, dynamic>.from(conversation));

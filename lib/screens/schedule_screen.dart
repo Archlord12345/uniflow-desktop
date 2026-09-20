@@ -319,7 +319,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               // En-tête des jours
               Row(
                 children: [
-                  SizedBox(width: _hourColumnWidth),
+                  const SizedBox(width: _hourColumnWidth),
                   for (final day in week.dayLabels)
                     SizedBox(
                       width: dayColumnWidth,
@@ -376,7 +376,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                     Positioned.fill(
                       child: Row(
                         children: [
-                          SizedBox(width: _hourColumnWidth),
+                          const SizedBox(width: _hourColumnWidth),
                           for (int i = 0; i < ScheduleWeek.dayCount; i++)
                             Container(
                               width: dayColumnWidth,

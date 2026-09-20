@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -148,8 +156,9 @@ class AcademicRepository {
       if (room.isEmpty) continue;
       final aggregate = byRoom.putIfAbsent(room, () => _RoomAggregate());
       aggregate.creneaux++;
-      if (schedule.courseId.isNotEmpty)
+      if (schedule.courseId.isNotEmpty) {
         aggregate.courseIds.add(schedule.courseId);
+      }
       final type = (schedule.type ?? '').trim();
       if (type.isNotEmpty) aggregate.types.add(type);
     }

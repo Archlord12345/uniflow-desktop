@@ -186,11 +186,12 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       if (mounted) showFeedback(context, message: 'Salle retirée.');
       _refresh();
     } on AppwriteException catch (e) {
-      if (mounted)
+      if (mounted) {
         showFeedback(context,
             message: 'Suppression refusée.',
             detail: _permissionHint(e),
             success: false);
+      }
     }
   }
 

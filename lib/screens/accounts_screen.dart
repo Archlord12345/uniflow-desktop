@@ -171,13 +171,15 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
       if (mounted) showFeedback(context, message: 'Compte supprimé.');
       _refresh();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         showFeedback(context,
             message: 'Suppression refusée.', detail: e.message, success: false);
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         showFeedback(context,
             message: 'Suppression impossible.', detail: '$e', success: false);
+      }
     }
   }
 }

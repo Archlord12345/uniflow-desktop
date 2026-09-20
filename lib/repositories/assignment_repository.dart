@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'package:appwrite/appwrite.dart';
 // Les modèles de réponse (`DocumentList`, `File`) ne sont pas ré-exportés par
 // `appwrite.dart` : ils vivent dans `models.dart`.

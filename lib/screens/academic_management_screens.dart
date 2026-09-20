@@ -1,3 +1,11 @@
+// `Databases.*Document` est marqué déprécié par le SDK Dart 26 au profit de
+// `TablesDB.*Row` (Appwrite 1.8). Le schéma du projet est encore déclaré en
+// collections/documents (`uniflow-we/scripts/appwrite-schema.mjs`) et la
+// migration vers TablesDB se fera pour les trois clients en même temps ; on
+// ignore la dépréciation ici, fichier par fichier, sans assouplir l'analyse
+// globale.
+// ignore_for_file: deprecated_member_use
+
 import 'package:appwrite/appwrite.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -939,10 +947,11 @@ class _GradeGrid extends ConsumerWidget {
         final value = int.tryParse(score.text.trim());
         final maxValue = int.tryParse(max.text.trim()) ?? 20;
         if (value == null || value < 0 || value > maxValue) {
-          if (context.mounted)
+          if (context.mounted) {
             showFeedback(context,
                 message: 'Note invalide (entier entre 0 et $maxValue).',
                 success: false);
+          }
           return;
         }
         await api.upsert(
@@ -953,17 +962,19 @@ class _GradeGrid extends ConsumerWidget {
           maxScore: maxValue,
           coefficient: int.tryParse(coefficient.text.trim()) ?? 1,
         );
-        if (context.mounted)
+        if (context.mounted) {
           showFeedback(context,
               message: 'Note enregistrée pour ${student.name}.');
+        }
       }
       ref.invalidate(_rosterProvider(roster.courseId));
     } on ApiException catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context,
             message: 'Refusé par le serveur.',
             detail: e.message,
             success: false);
+      }
     }
   }
 }
@@ -1308,14 +1319,16 @@ class LibraryManagementScreen extends ConsumerWidget {
         ],
       );
       ref.invalidate(libraryProvider);
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context, message: 'Ressource publiée.', detail: file.name);
+      }
     } on AppwriteException catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         showFeedback(context,
             message: 'Téléversement refusé.',
             detail: e.message,
             success: false);
+      }
     }
   }
 

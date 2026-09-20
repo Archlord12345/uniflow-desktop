@@ -2,6 +2,7 @@
 ///
 /// Ces valeurs ne sont pas stockées : elles sont recalculées à chaque
 /// affichage pour rester cohérentes avec les notes saisies.
+library;
 
 /// Une UE et sa moyenne sur 20.
 class CourseAverage {

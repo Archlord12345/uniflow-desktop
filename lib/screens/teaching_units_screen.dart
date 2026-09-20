@@ -45,8 +45,9 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
     final query = _searchController.text.trim().toLowerCase();
     return units.where((unit) {
       if (_niveau != null && unit.niveau != _niveau) return false;
-      if (_departement != null && unit.departement != _departement)
+      if (_departement != null && unit.departement != _departement) {
         return false;
+      }
       if (query.isEmpty) return true;
       return unit.intitule.toLowerCase().contains(query) ||
           unit.code.toLowerCase().contains(query) ||

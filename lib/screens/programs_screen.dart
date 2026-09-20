@@ -57,8 +57,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           title: 'Programmes & Facultés',
           subtitle: 'Hiérarchie des universités, filières et niveaux',
           actions: [
-            TopBarIconButton(icon: Icons.search),
-            TopBarIconButton(
+            const TopBarIconButton(icon: Icons.search),
+            const TopBarIconButton(
                 icon: Icons.notifications_none_rounded, showDot: true),
             ElevatedButton.icon(
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
