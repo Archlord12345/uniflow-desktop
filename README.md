@@ -68,6 +68,11 @@ curl -sSL https://get.livekit.io | bash        # Linux / macOS
   Si le build échoue ensuite sur `file INSTALL cannot copy ... /usr/local/uniflow_app`,
   le `CMakeCache.txt` est périmé : `flutter clean` puis relancer.
 
+- **Linux : `libpulse-dev`** (le plugin `flutter_webrtc` lie PulseAudio). Si le
+  build échoue sur `libwebrtc directory does not exist after extraction` ou
+  `'libwebrtc.h' file not found`, l'archive libwebrtc du cache pub est
+  tronquée : voir `docs/depannage.md`.
+
 ## Installation et lancement
 
 ```bash
@@ -132,4 +137,6 @@ uniflow-desktop/
 
 - `docs/ADR-001-architecture-desktop.md` — décision d'architecture (couches, shell, contrat de chargement).
 - `docs/README-LIVRAISON.md` — première livraison et correspondance avec le cahier des charges.
+- `docs/integration-continue.md` — le workflow GitHub Actions (`ci.yml`) : qualité → builds Linux / Windows / Android → release.
+- `docs/depannage.md` — symptômes connus et réparations (archive libwebrtc tronquée, webkit2gtk, verrou Flutter…).
 - À la racine de l'espace de travail : `ETAT-DU-PROJET.md` et `TRAVAUX-RESTANTS.md`.
