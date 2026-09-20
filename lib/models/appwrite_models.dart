@@ -1,5 +1,6 @@
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter/material.dart';
+import 'user_role.dart';
 
 /// "L1" -> "Licence 1" : la base stocke le code, l'interface affiche le nom.
 String directoryLevelLabel(String level) {
@@ -118,6 +119,32 @@ class AcademicSchedule {
       endTime: doc.data['endTime'] ?? '',
       classroom: doc.data['classroom'] ?? '',
       type: doc.data['type'],
+    );
+  }
+}
+
+/// Une inscription d'un étudiant à un cours.
+class AcademicEnrollment {
+  final String id;
+  final String studentId;
+  final String courseId;
+  final String status;
+
+  const AcademicEnrollment({
+    required this.id,
+    required this.studentId,
+    required this.courseId,
+    this.status = 'ACTIVE',
+  });
+
+  bool get isActive => status.toUpperCase() != 'INACTIVE';
+
+  factory AcademicEnrollment.fromDocument(models.Document doc) {
+    return AcademicEnrollment(
+      id: doc.$id,
+      studentId: (doc.data['studentId'] ?? '').toString(),
+      courseId: (doc.data['courseId'] ?? '').toString(),
+      status: (doc.data['status'] ?? 'ACTIVE').toString(),
     );
   }
 }
@@ -392,7 +419,12 @@ class UniFlowUser {
   final String email;
   final String name;
   final String accountType; // 'UNIVERSITY' | 'PERSONAL'
-  final String role; // 'STUDENT' | 'DELEGATE' | 'TEACHER' | 'ADMIN'
+
+  /// Rôle affiché (`STUDENT` | `DELEGATE` | `TEACHER` | `ADMIN`), **déjà
+  /// résolu** depuis les labels Appwrite par [UserRole.fromLabels] : c'est la
+  /// valeur que toute l'interface lit. Le champ `users.role` du document ne
+  /// sert que de repli quand le compte n'a aucun label.
+  final String role;
   final String? university;
   final String? program;
   final String? level;
@@ -403,6 +435,15 @@ class UniFlowUser {
 
   /// Fichier de la photo de profil dans le bucket Appwrite `uniflow_assets`.
   final String? avatarFileId;
+
+  /// Labels Appwrite bruts du compte (`account.get().labels`), conservés pour
+  /// le diagnostic dans Paramètres : quand un rôle paraît faux, c'est ici
+  /// qu'on voit ce que le serveur a réellement posé.
+  final List<String> labels;
+
+  /// Administrateur de la plateforme (label `superadmin`). Seul lui peut créer
+  /// d'autres comptes `ADMIN`.
+  final bool isSuperAdmin;
 
   UniFlowUser({
     required this.id,
@@ -416,9 +457,25 @@ class UniFlowUser {
     this.country,
     this.username,
     this.avatarFileId,
+    this.labels = const [],
+    this.isSuperAdmin = false,
   });
 
-  UniFlowUser copyWith({String? name, String? username, String? avatarFileId}) {
+  /// Rôle typé, pour les gardes de navigation et les périmètres.
+  UserRole get userRole => parseUserRole(role);
+
+  /// Type de compte typé.
+  AccountType get accountKind => parseAccountType(accountType);
+
+  bool get isPersonal => accountKind == AccountType.personal;
+
+  UniFlowUser copyWith({
+    String? name,
+    String? username,
+    String? avatarFileId,
+    String? program,
+    String? level,
+  }) {
     return UniFlowUser(
       id: id,
       email: email,
@@ -426,11 +483,13 @@ class UniFlowUser {
       accountType: accountType,
       role: role,
       university: university,
-      program: program,
-      level: level,
+      program: program ?? this.program,
+      level: level ?? this.level,
       country: country,
       username: username ?? this.username,
       avatarFileId: avatarFileId ?? this.avatarFileId,
+      labels: labels,
+      isSuperAdmin: isSuperAdmin,
     );
   }
 }

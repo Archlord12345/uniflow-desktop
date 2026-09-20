@@ -1,3 +1,4 @@
+import '../models/app_destination.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/teacher.dart';
@@ -21,7 +22,7 @@ class TeacherDetailScreen extends StatelessWidget {
       body: Row(
         children: [
           AppSidebar(
-            selected: SidebarItem.teachers,
+            selected: AppDestination.teachers,
             onSelect: (item) => Navigator.of(context).pop(),
           ),
           Expanded(

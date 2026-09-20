@@ -803,7 +803,7 @@ class _PublicUrlDialogState extends State<_PublicUrlDialog> {
 
 // L'écran « Communications » statique (annonces codées en dur) a été remplacé
 // par la messagerie réelle : voir lib/screens/messaging_screen.dart, branchée
-// sur SidebarItem.communications dans main_shell.dart.
+// sur AppDestination.messaging dans main_shell.dart.
 
 
 /// Statistiques académiques, calculées depuis les notes réellement saisies.

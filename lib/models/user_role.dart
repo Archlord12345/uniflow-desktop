@@ -75,7 +75,59 @@ enum UserRole {
 
   /// Rôles qui suivent un cursus (et ont donc des notes et des devoirs).
   bool get isLearning => this == UserRole.student || this == UserRole.delegate;
+
+  /// Valeur telle que le serveur l'écrit (`users.role`, labels).
+  String get wireValue => name.toUpperCase();
+
+  /// Résout le rôle depuis les **labels Appwrite** du compte (`account.get()`
+  /// → `labels`), qui sont la source de vérité commune aux trois clients.
+  ///
+  /// Contrat vérifié en base le 2026-09-20 : un label porte le nom du rôle tel
+  /// quel — `ADMIN`, `TEACHER`, `DELEGATE` — parce qu'Appwrite refuse en 400
+  /// tout caractère autre que lettres et chiffres (`role:ADMIN` était rejeté).
+  /// L'absence de label de rôle vaut `STUDENT`. Le champ `users.role` n'est
+  /// qu'un miroir d'affichage : il ne sert de repli que si la liste des labels
+  /// est vide (compte créé avant la pose des labels).
+  ///
+  /// Insensible à la casse ; les labels inconnus (`superadmin`, futurs labels
+  /// de fonctionnalité) sont ignorés. Si plusieurs labels de rôle coexistent,
+  /// le plus privilégié gagne : c'est ce que le web fait aussi, et c'est
+  /// l'intention évidente d'un compte qui porte `ADMIN` et `TEACHER`.
+  static UserRole fromLabels(List<String> labels, {String? fallbackRole}) {
+    UserRole? resolved;
+    var sawRoleLabel = false;
+    for (final raw in labels) {
+      final label = raw.trim().toUpperCase();
+      // Tolérance pour d'anciens clients qui auraient écrit « role:X ».
+      final value = label.startsWith('ROLE:') ? label.substring(5) : label;
+      final role = _labelRoles[value];
+      if (role == null) continue;
+      sawRoleLabel = true;
+      if (resolved == null || role.index > resolved.index) resolved = role;
+    }
+    if (resolved != null) return resolved;
+    if (!sawRoleLabel && labels.isEmpty && fallbackRole != null) {
+      return parseUserRole(fallbackRole);
+    }
+    return UserRole.student;
+  }
+
+  /// Le compte est-il l'administrateur de la plateforme ?
+  ///
+  /// `superadmin` est un label distinct du rôle : seul ce compte crée d'autres
+  /// comptes `ADMIN`. Un `ADMIN` d'université ne l'a pas.
+  static bool hasSuperAdminLabel(List<String> labels) =>
+      labels.any((label) => label.trim().toLowerCase() == 'superadmin');
 }
+
+/// Labels de rôle reconnus. `STUDENT` est accepté même si le serveur ne le
+/// pose jamais : le refuser transformerait un label explicite en repli.
+const Map<String, UserRole> _labelRoles = {
+  'ADMIN': UserRole.admin,
+  'TEACHER': UserRole.teacher,
+  'DELEGATE': UserRole.delegate,
+  'STUDENT': UserRole.student,
+};
 
 /// Alias acceptés par [parseUserRole].
 ///

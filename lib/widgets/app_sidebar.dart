@@ -1,196 +1,349 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/app_destination.dart';
 import '../providers/auth_provider.dart';
+import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 import 'uniflow_logo.dart';
 import 'user_avatar.dart';
 
-/// Représente chaque item du menu de la sidebar : icône, libellé.
-/// Enum plutôt que Strings pour éviter les fautes de frappe et bénéficier
-/// de l'autocomplétion / du switch exhaustif dans MainShell.
-enum SidebarItem {
-  dashboard(Icons.grid_view_rounded, 'Dashboard'),
-  students(Icons.people_alt_outlined, 'Étudiants'),
-  teachers(Icons.school_outlined, 'Enseignants'),
-  programs(Icons.menu_book_outlined, 'Programmes'),
-  ue(Icons.dashboard_outlined, 'UE (Unités)'),
-  classrooms(Icons.meeting_room_outlined, 'Salles'),
-  structure(Icons.account_tree_outlined, 'Structure'),
-  schedule(Icons.calendar_today_outlined, 'Emploi du temps'),
-  attendance(Icons.event_available_outlined, 'Présences'),
-  assignments(Icons.task_outlined, 'Devoirs'),
-  grades(Icons.grade_outlined, 'Notes'),
-  library(Icons.library_books_outlined, 'Bibliothèque'),
-  conferences(Icons.videocam_outlined, 'Conférences'),
-  sentinelle(Icons.security_outlined, 'Sentinelle IoT'),
-  teams(Icons.groups_outlined, 'Équipe'),
-  communications(Icons.chat_bubble_outline, 'Communications'),
-  payments(Icons.payments_outlined, 'Paiements'),
-  statistics(Icons.bar_chart_outlined, 'Statistiques'),
-  settings(Icons.settings_outlined, 'Paramètres');
+/// Largeur de fenêtre sous laquelle la barre se replie en rail d'icônes.
+///
+/// 900 px : en dessous, une barre de 250 px laisserait moins de 650 px au
+/// contenu, et les tableaux (étudiants, emploi du temps) débordaient déjà.
+const double kSidebarCollapseBreakpoint = 900;
 
-  final IconData icon;
-  final String label;
-  const SidebarItem(this.icon, this.label);
-}
+/// Barre latérale : construite depuis [AppDestination] et la garde de
+/// navigation, donc **un utilisateur ne voit que les écrans que son rôle et
+/// son type de compte ouvrent**. L'ancienne liste figée (`SidebarItem`)
+/// affichait les dix-neuf entrées à tout le monde, un étudiant voyait
+/// « Paiements » et « Sentinelle IoT ».
+///
+/// Elle est animée : repli en rail d'icônes sous [kSidebarCollapseBreakpoint],
+/// et entrée en cascade des lignes au premier affichage.
+class AppSidebar extends ConsumerStatefulWidget {
+  final AppDestination selected;
+  final ValueChanged<AppDestination> onSelect;
 
-/// Sidebar fixe (fond bleu nuit) affichée à gauche sur toutes les pages
-/// internes de l'application. Contrairement à la version précédente, le
-/// profil de l'utilisateur connecté est affiché en HAUT (sous le logo),
-/// pas en bas — fidèle à la maquette "UniFlow Desktop Partie 1".
-class AppSidebar extends ConsumerWidget {
-  final SidebarItem selected;
-  final ValueChanged<SidebarItem> onSelect;
+  /// Force le mode replié (rail), indépendamment de la largeur.
+  final bool? collapsed;
 
   const AppSidebar({
     super.key,
     required this.selected,
     required this.onSelect,
+    this.collapsed,
   });
 
   static const double width = 250;
+  static const double railWidth = 72;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppSidebar> createState() => _AppSidebarState();
+}
+
+class _AppSidebarState extends ConsumerState<AppSidebar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _entrance = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  )..forward();
+
+  @override
+  void dispose() {
+    _entrance.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    return Container(
+    final role = ref.watch(currentRoleProvider);
+    final accountType = ref.watch(currentAccountTypeProvider);
+    final grouped = groupedDestinations(role: role, accountType: accountType);
+    final collapsed = widget.collapsed ??
+        MediaQuery.sizeOf(context).width < kSidebarCollapseBreakpoint;
+    final width = collapsed ? AppSidebar.railWidth : AppSidebar.width;
+
+    // Index global de chaque ligne, pour décaler les entrées en cascade.
+    var lineIndex = 0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
       width: width,
-      // Fond en dégradé (bleu nuit → presque noir) plutôt qu'aplat : c'est ce
-      // qui donne à la sidebar du web sa profondeur.
       decoration: const BoxDecoration(gradient: AppColors.sidebarGradient),
-      child: Column(
-        children: [
-          // ----- En-tête : logo -----
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 24, 20, 18),
-            child: Row(
-              children: [
-                // `UniFlowIcon` plutôt qu'une copie locale de l'image : la
-                // copie locale reprenait le logotype horizontal dans un carré
-                // de 34 px avec `BoxFit.cover`, donc le même rognage — le mot
-                // « UniFlow » n'y apparaissait jamais.
-                UniFlowIcon(size: 34),
-                SizedBox(width: 10),
-                // `Expanded` + ellipse : sans cela, un libellé ou un jour de
-                // police plus large que prévu déborde de la sidebar, dont la
-                // largeur est pourtant fixe.
-                Expanded(
-                  child: Text(
-                    'UniFlow',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w800,
+      child: ClipRect(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ----- En-tête : logo -----
+            Padding(
+              padding: EdgeInsets.fromLTRB(collapsed ? 0 : 20, 24, collapsed ? 0 : 20, 18),
+              child: Row(
+                mainAxisAlignment:
+                    collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                children: [
+                  const UniFlowIcon(size: 34),
+                  if (!collapsed) ...[
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'UniFlow',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // ----- Profil -----
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: collapsed ? 0 : 20),
+              child: Row(
+                mainAxisAlignment:
+                    collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                children: [
+                  Tooltip(
+                    message: user == null
+                        ? 'Hors ligne'
+                        : '${user.name} · ${role.label}'
+                            '${user.isSuperAdmin ? ' · superadmin' : ''}',
+                    child: InitialsAvatar(
+                      initials: user == null ? '?' : initialsOf(user.name),
+                      avatarFileId: user?.avatarFileId,
+                      backgroundColor: const Color(0xFF2A3352),
+                      textColor: Colors.white,
+                      size: 40,
                     ),
                   ),
-                ),
-              ],
+                  if (!collapsed) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            user == null ? 'Utilisateur' : user.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          // Le pseudo prime : c'est le référent de la messagerie.
+                          if (user?.username != null && user!.username!.isNotEmpty)
+                            Text(
+                              '@${user.username}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.45),
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          const SizedBox(height: 4),
+                          _RoleBadge(
+                            label: user == null
+                                ? 'Hors ligne'
+                                : (user.isSuperAdmin
+                                    ? 'Superadmin'
+                                    : (user.isPersonal
+                                        ? 'Compte personnel'
+                                        : role.badge)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 18),
+            Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+            const SizedBox(height: 6),
 
-          // ----- Profil de l'utilisateur connecté (en haut de la sidebar) -----
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                InitialsAvatar(
-                  initials: user == null ? '?' : initialsOf(user.name),
-                  avatarFileId: user?.avatarFileId,
-                  backgroundColor: const Color(0xFF2A3352),
-                  textColor: Colors.white,
-                  size: 40,
+            // ----- Menu par sections -----
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: collapsed ? 10 : 12,
+                  vertical: 8,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Bonjour,',
-                        style: TextStyle(color: Colors.white, fontSize: 12.5, height: 1.1),
+                children: [
+                  for (final entry in grouped.entries) ...[
+                    if (!collapsed)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 12, 6),
+                        child: Text(
+                          entry.key.label.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.38),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                        child: Divider(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          height: 1,
+                        ),
                       ),
-                      Text(
-                        user == null ? 'Utilisateur' : '${user.name} !',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w700),
+                    for (final destination in entry.value)
+                      _Cascade(
+                        controller: _entrance,
+                        index: lineIndex++,
+                        child: _SidebarTile(
+                          destination: destination,
+                          collapsed: collapsed,
+                          isActive: destination == widget.selected,
+                          onTap: () => widget.onSelect(destination),
+                        ),
                       ),
-                      // Le pseudo prime sur le rôle : c'est le référent de la
-                      // messagerie, donc ce que les autres utilisateurs
-                      // reconnaissent.
-                      Text(
-                        user == null
-                            ? 'Hors ligne'
-                            : (user.username == null || user.username!.isEmpty
-                                ? user.role
-                                : '@${user.username}'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                  ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
-          const SizedBox(height: 8),
-
-          // ----- Liste des items de menu -----
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              children: SidebarItem.values
-                  .map((item) => _SidebarTile(
-                        item: item,
-                        isActive: item == selected,
-                        onTap: () => onSelect(item),
-                      ))
-                  .toList(),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Une ligne cliquable du menu de la sidebar.
-///
-/// L'état actif est signalé par un fond bleu plein **et** une barre d'accent
-/// verticale à gauche : sur un fond bleu nuit, la seule différence de teinte
-/// se lit mal, la barre donne un repère net.
-class _SidebarTile extends StatelessWidget {
-  final SidebarItem item;
-  final bool isActive;
-  final VoidCallback onTap;
+/// Pastille de rôle sous le nom : le propriétaire veut que chacun sache avec
+/// quel rôle il est connecté, donc ce qu'il voit et pourquoi.
+class _RoleBadge extends StatelessWidget {
+  final String label;
+  const _RoleBadge({required this.label});
 
-  const _SidebarTile({
-    required this.item,
-    required this.isActive,
-    required this.onTap,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.teal.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.45)),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: AppColors.tealLight,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+}
+
+/// Entrée en cascade : chaque ligne apparaît un peu après la précédente, en
+/// glissant depuis la gauche. Le décalage est plafonné pour que la vingtième
+/// ligne n'attende pas une seconde.
+class _Cascade extends StatelessWidget {
+  final AnimationController controller;
+  final int index;
+  final Widget child;
+
+  const _Cascade({
+    required this.controller,
+    required this.index,
+    required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
+    final start = (index * 0.045).clamp(0.0, 0.6);
+    final curve = CurvedAnimation(
+      parent: controller,
+      curve: Interval(start, (start + 0.4).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+    );
+    return FadeTransition(
+      opacity: curve,
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(-0.12, 0), end: Offset.zero)
+            .animate(curve),
+        child: child,
+      ),
+    );
+  }
+}
+
+/// Une ligne cliquable du menu.
+///
+/// L'état actif est signalé par un fond bleu plein **et** une barre d'accent
+/// verticale à gauche : sur un fond bleu nuit, la seule différence de teinte
+/// se lit mal, la barre donne un repère net.
+class _SidebarTile extends StatefulWidget {
+  final AppDestination destination;
+  final bool isActive;
+  final bool collapsed;
+  final VoidCallback onTap;
+
+  const _SidebarTile({
+    required this.destination,
+    required this.isActive,
+    required this.collapsed,
+    required this.onTap,
+  });
+
+  @override
+  State<_SidebarTile> createState() => _SidebarTileState();
+}
+
+class _SidebarTileState extends State<_SidebarTile> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = widget.isActive;
+    final collapsed = widget.collapsed;
+    final highlighted = isActive || _hovered;
+
+    final tile = MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
           borderRadius: BorderRadius.circular(10),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.symmetric(
+              horizontal: collapsed ? 0 : 12,
+              vertical: 11,
+            ),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.sidebarActive : Colors.transparent,
+              color: isActive
+                  ? AppColors.sidebarActive
+                  : (_hovered
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.transparent),
               borderRadius: BorderRadius.circular(10),
               boxShadow: isActive
                   ? [
@@ -203,43 +356,61 @@ class _SidebarTile extends StatelessWidget {
                   : null,
             ),
             child: Row(
+              mainAxisAlignment:
+                  collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
               children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 3,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.white : Colors.transparent,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Icon(
-                  item.icon,
-                  size: 19,
-                  color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.6),
-                ),
-                const SizedBox(width: 12),
-                // `Expanded` + ellipse : la sidebar a une largeur fixe, un
-                // libellé qui ne rentre pas doit se tronquer proprement au
-                // lieu de faire déborder la ligne.
-                Expanded(
-                  child: Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.75),
+                if (!collapsed) ...[
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    width: 3,
+                    height: isActive ? 18 : 6,
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                ],
+                Icon(
+                  widget.destination.icon,
+                  size: 19,
+                  color: highlighted
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.6),
                 ),
+                if (!collapsed) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.destination.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        color: highlighted
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         ),
       ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: collapsed
+          ? Tooltip(
+              message: widget.destination.label,
+              preferBelow: false,
+              child: tile,
+            )
+          : tile,
     );
   }
 }

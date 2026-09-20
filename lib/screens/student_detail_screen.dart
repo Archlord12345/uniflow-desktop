@@ -1,3 +1,4 @@
+import '../models/app_destination.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/student.dart';
@@ -32,7 +33,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       body: Row(
         children: [
           AppSidebar(
-            selected: SidebarItem.students,
+            selected: AppDestination.students,
             onSelect: (item) => Navigator.of(context).pop(),
           ),
           Expanded(

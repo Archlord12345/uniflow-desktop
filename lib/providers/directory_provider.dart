@@ -6,6 +6,7 @@ import '../models/student.dart';
 import '../models/teacher.dart';
 import '../models/teaching_unit.dart';
 import '../repositories/academic_repository.dart';
+import 'auth_provider.dart';
 
 /// Annuaire académique Appwrite, joint aux profils `users` (pseudo, photo).
 ///
@@ -15,28 +16,51 @@ final directoryProvider = FutureProvider<List<AcademicDirectoryEntry>>((ref) {
   return ref.watch(academicRepositoryProvider).getDirectory();
 });
 
-/// Étudiants et délégués, vus par l'administration.
+/// Étudiants et délégués **dans le périmètre** de l'utilisateur connecté.
+///
+/// L'administration voit tout ; un enseignant voit les inscrits à ses cours ;
+/// un délégué sa promotion. Le filtre est appliqué ici, à la source, pour que
+/// l'écran, la recherche et l'export lisent la même liste — le propriétaire a
+/// demandé que « chaque utilisateur ne voie que ceux qui le concernent ».
 final studentsProvider = FutureProvider<List<Student>>((ref) async {
   final directory = await ref.watch(directoryProvider.future);
-  return directory
+  final scope = await ref.watch(visibilityScopeProvider.future);
+  final all = directory
       .where((entry) => entry.role == 'STUDENT' || entry.role == 'DELEGATE')
-      .map(Student.fromDirectory)
       .toList();
+  final visible = scope.filterStudents<AcademicDirectoryEntry>(
+    all,
+    (e) => e.userId,
+    programOf: (e) => e.program,
+    levelOf: (e) => e.level,
+  );
+  return visible.map(Student.fromDirectory).toList();
 });
 
 final teachersProvider = FutureProvider<List<Teacher>>((ref) async {
   final directory = await ref.watch(directoryProvider.future);
-  return directory
-      .where((entry) => entry.role == 'TEACHER')
+  final scope = await ref.watch(visibilityScopeProvider.future);
+  final all = directory.where((entry) => entry.role == 'TEACHER').toList();
+  return scope
+      .filterTeachers<AcademicDirectoryEntry>(all, (e) => e.userId)
       .map(Teacher.fromDirectory)
       .toList();
+});
+
+/// Cours dans le périmètre : tous pour l'administration, les siens pour un
+/// enseignant, ceux de sa promotion pour un apprenant.
+final scopedCoursesProvider = FutureProvider<List<AcademicCourse>>((ref) async {
+  final courses = await ref.watch(academicRepositoryProvider).getCourses();
+  final scope = await ref.watch(visibilityScopeProvider.future);
+  if (scope.seesEveryone) return courses;
+  return courses.where((c) => scope.myCourseIds.contains(c.id)).toList();
 });
 
 /// Unités d'enseignement, lues dans `academic_courses` et complétées du nombre
 /// d'inscriptions de `academic_enrollments`.
 final teachingUnitsProvider = FutureProvider<List<TeachingUnit>>((ref) async {
   final repository = ref.watch(academicRepositoryProvider);
-  final courses = await repository.getCourses();
+  final courses = await ref.watch(scopedCoursesProvider.future);
   final enrollments = await repository.getEnrollmentCounts();
   return courses
       .map((course) => TeachingUnit.fromCourse(
@@ -50,3 +74,65 @@ final teachingUnitsProvider = FutureProvider<List<TeachingUnit>>((ref) async {
 final classroomsProvider = FutureProvider<List<Classroom>>((ref) {
   return ref.watch(academicRepositoryProvider).getClassrooms();
 });
+
+/// Filières et niveaux réellement présents en base, pour les sélecteurs de
+/// l'administration. Rien n'est codé en dur sur « ICT4D » ou « L1 » : d'autres
+/// filières de l'UY1 vont être injectées et doivent apparaître sans mise à
+/// jour de l'application.
+final programOptionsProvider = FutureProvider<ProgramOptions>((ref) async {
+  final courses = await ref.watch(academicRepositoryProvider).getCourses();
+  return ProgramOptions.fromCourses(courses);
+});
+
+class ProgramOptions {
+  final List<String> universities;
+  final List<String> programs;
+  final List<String> levels;
+
+  /// Niveaux disponibles par filière.
+  final Map<String, List<String>> levelsByProgram;
+
+  const ProgramOptions({
+    required this.universities,
+    required this.programs,
+    required this.levels,
+    required this.levelsByProgram,
+  });
+
+  static const List<String> _levelOrder = ['L1', 'L2', 'L3', 'M1', 'M2', 'D'];
+
+  static int _levelRank(String level) {
+    final index = _levelOrder.indexOf(level.toUpperCase());
+    return index < 0 ? _levelOrder.length : index;
+  }
+
+  factory ProgramOptions.fromCourses(List<AcademicCourse> courses) {
+    final universities = <String>{};
+    final programs = <String>{};
+    final levels = <String>{};
+    final byProgram = <String, Set<String>>{};
+    for (final course in courses) {
+      if (course.university.trim().isNotEmpty) universities.add(course.university.trim());
+      if (course.program.trim().isNotEmpty) programs.add(course.program.trim());
+      if (course.level.trim().isNotEmpty) levels.add(course.level.trim());
+      if (course.program.trim().isNotEmpty && course.level.trim().isNotEmpty) {
+        byProgram.putIfAbsent(course.program.trim(), () => {}).add(course.level.trim());
+      }
+    }
+    List<String> sortedLevels(Iterable<String> values) {
+      final list = values.toList();
+      list.sort((a, b) => _levelRank(a).compareTo(_levelRank(b)));
+      return list;
+    }
+    return ProgramOptions(
+      universities: universities.toList()..sort(),
+      programs: programs.toList()..sort(),
+      levels: sortedLevels(levels),
+      levelsByProgram: {
+        for (final entry in byProgram.entries) entry.key: sortedLevels(entry.value),
+      },
+    );
+  }
+
+  bool get isEmpty => programs.isEmpty;
+}

@@ -60,23 +60,33 @@ class AcademicRepository {
     }).toList();
   }
 
-  /// Nombre d'inscriptions par cours, compté depuis `academic_enrollments`.
+  /// Inscriptions actives `étudiant → cours` (`academic_enrollments`).
   ///
-  /// Une erreur de lecture (collection absente ou permissions) renvoie une
-  /// table vide : les UE s'affichent alors sans effectif plutôt que de faire
-  /// échouer tout l'écran.
+  /// C'est cette collection qui dit quels étudiants un enseignant encadre :
+  /// le périmètre de visibilité en dépend. Elle existe désormais sur le Cloud
+  /// (elle répondait 404 sur l'ancien serveur).
+  Future<List<AcademicEnrollment>> getEnrollments() async {
+    final response = await _service.databases.listDocuments(
+      databaseId: _service.databaseId,
+      collectionId: 'academic_enrollments',
+      queries: [Query.limit(2000)],
+    );
+    return response.documents
+        .map(AcademicEnrollment.fromDocument)
+        .where((e) => e.isActive)
+        .toList();
+  }
+
+  /// Nombre d'inscriptions par cours.
+  ///
+  /// Une erreur de lecture (permissions) renvoie une table vide : les UE
+  /// s'affichent alors sans effectif plutôt que de faire échouer tout l'écran.
   Future<Map<String, int>> getEnrollmentCounts() async {
     try {
-      final response = await _service.databases.listDocuments(
-        databaseId: _service.databaseId,
-        collectionId: 'academic_enrollments',
-        queries: [Query.limit(1000)],
-      );
       final counts = <String, int>{};
-      for (final doc in response.documents) {
-        final courseId = (doc.data['courseId'] ?? '').toString();
-        if (courseId.isEmpty) continue;
-        counts[courseId] = (counts[courseId] ?? 0) + 1;
+      for (final enrollment in await getEnrollments()) {
+        if (enrollment.courseId.isEmpty) continue;
+        counts[enrollment.courseId] = (counts[enrollment.courseId] ?? 0) + 1;
       }
       return counts;
     } catch (_) {

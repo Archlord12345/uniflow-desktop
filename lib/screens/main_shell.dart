@@ -1,70 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/app_destination.dart';
+import '../providers/auth_provider.dart';
+import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_sidebar.dart';
+import '../widgets/motion.dart';
+import 'academic_management_screens.dart';
+import 'access_denied_screen.dart';
+import 'classrooms_screen.dart';
 import 'dashboard_screen.dart';
-import 'students_screen.dart';
+import 'management_screens.dart';
+import 'messaging_screen.dart';
+import 'personal_workspace_screen.dart';
 import 'programs_screen.dart';
+import 'schedule_screen.dart';
+import 'students_screen.dart';
 import 'teachers_screen.dart';
 import 'teaching_units_screen.dart';
-import 'classrooms_screen.dart';
-import 'schedule_screen.dart';
-import 'management_screens.dart';
 import 'teams_screen.dart';
-import 'academic_management_screens.dart';
-import 'messaging_screen.dart';
 
-/// Coquille principale de l'application une fois connecté : affiche la
-/// sidebar fixe à gauche (jamais reconstruite lors du changement de page)
-/// et la page active à droite.
+/// Destination courante de la coquille, partagée pour que n'importe quel écran
+/// (une fiche, un bouton « voir mes devoirs ») puisse demander une navigation
+/// sans tenir la coquille par la main.
+final currentDestinationProvider = StateProvider<AppDestination?>((ref) => null);
+
+/// Coquille principale une fois connecté : barre latérale à gauche (repliée en
+/// rail sur une fenêtre étroite), écran actif à droite.
 ///
-/// Utiliser un shell unique évite de dupliquer la sidebar dans chaque écran
-/// et permet de garder son état (ex: item sélectionné) au même endroit.
-class MainShell extends StatefulWidget {
+/// **Toute** destination passe par la garde [canAccess] : si l'écran demandé
+/// est refusé au couple (rôle, type de compte), c'est l'écran « accès refusé »
+/// qui s'affiche, jamais l'écran lui-même. La barre latérale ne propose que
+/// les écrans autorisés, mais la coquille ne s'y fie pas : une destination
+/// peut venir d'ailleurs.
+class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentRoleProvider);
+    final accountType = ref.watch(currentAccountTypeProvider);
+    final home = homeDestination(role: role, accountType: accountType);
+    final selected = ref.watch(currentDestinationProvider) ?? home;
+    final allowed = canAccess(selected, role: role, accountType: accountType);
 
-class _MainShellState extends State<MainShell> {
-  // Page actuellement affichée ; le dashboard est la page d'accueil par défaut.
-  SidebarItem _selected = SidebarItem.dashboard;
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Row(
         children: [
           AppSidebar(
-            selected: _selected,
-            onSelect: (item) => setState(() => _selected = item),
+            selected: selected,
+            onSelect: (destination) =>
+                ref.read(currentDestinationProvider.notifier).state = destination,
           ),
-          // Expanded : la zone de contenu occupe tout l'espace restant
-          // à droite de la sidebar (largeur fixe).
-          // AnimatedSwitcher anime la transition entre deux pages (fondu +
-          // léger glissement vertical) au lieu d'un changement instantané et
-          // sec — rend la navigation beaucoup plus "vivante".
           Expanded(
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 260),
-              switchInCurve: Curves.easeOut,
+              duration: kMotionMedium,
+              switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeIn,
-              transitionBuilder: (child, animation) {
-                final offsetAnimation = Tween<Offset>(
-                  begin: const Offset(0, 0.02),
-                  end: Offset.zero,
-                ).animate(animation);
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(position: offsetAnimation, child: child),
-                );
-              },
-              // La clé change à chaque item sélectionné : c'est ce qui
-              // indique à AnimatedSwitcher qu'il doit jouer la transition.
+              transitionBuilder: pageTransition,
               child: KeyedSubtree(
-                key: ValueKey(_selected),
-                child: _buildContent(),
+                key: ValueKey('${selected.id}-$allowed'),
+                child: allowed
+                    ? buildDestination(selected)
+                    : AccessDeniedScreen(
+                        destination: selected,
+                        role: role,
+                        accountType: accountType,
+                        onBackHome: () =>
+                            ref.read(currentDestinationProvider.notifier).state = home,
+                      ),
               ),
             ),
           ),
@@ -73,47 +79,50 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  /// Retourne l'écran correspondant à l'item sélectionné. Chaque entrée du
-  /// référentiel Desktop possède désormais un écran navigable.
-  Widget _buildContent() {
-    switch (_selected) {
-      case SidebarItem.dashboard:
+  /// Écran de chaque destination. Le `switch` est exhaustif : ajouter une
+  /// destination sans écran ne compile pas, ce qui remplace l'ancien repli
+  /// « page à venir ».
+  static Widget buildDestination(AppDestination destination) {
+    switch (destination) {
+      case AppDestination.dashboard:
         return const DashboardScreen();
-      case SidebarItem.students:
+      case AppDestination.personalWorkspace:
+        return const PersonalWorkspaceScreen();
+      case AppDestination.students:
         return const StudentsScreen();
-      case SidebarItem.programs:
+      case AppDestination.programs:
         return const ProgramsScreen();
-      case SidebarItem.teachers:
+      case AppDestination.teachers:
         return const TeachersScreen();
-      case SidebarItem.ue:
+      case AppDestination.teachingUnits:
         return const TeachingUnitsScreen();
-      case SidebarItem.classrooms:
+      case AppDestination.classrooms:
         return const ClassroomsScreen();
-      case SidebarItem.structure:
+      case AppDestination.structure:
         return const StructureManagementScreen();
-      case SidebarItem.schedule:
+      case AppDestination.schedule:
         return const ScheduleScreen();
-      case SidebarItem.attendance:
+      case AppDestination.attendance:
         return const AttendanceScreen();
-      case SidebarItem.assignments:
+      case AppDestination.assignments:
         return const AssignmentsManagementScreen();
-      case SidebarItem.grades:
+      case AppDestination.grades:
         return const GradesManagementScreen();
-      case SidebarItem.library:
+      case AppDestination.library:
         return const LibraryManagementScreen();
-      case SidebarItem.conferences:
+      case AppDestination.conferences:
         return const ConferencesScreen();
-      case SidebarItem.sentinelle:
+      case AppDestination.sentinelle:
         return const SentinelleManagementScreen();
-      case SidebarItem.teams:
+      case AppDestination.teams:
         return const TeamsScreen();
-      case SidebarItem.communications:
+      case AppDestination.messaging:
         return const MessagingScreen();
-      case SidebarItem.payments:
+      case AppDestination.payments:
         return const PaymentsManagementScreen();
-      case SidebarItem.statistics:
+      case AppDestination.statistics:
         return const StatisticsScreen();
-      case SidebarItem.settings:
+      case AppDestination.settings:
         return const SettingsScreen();
     }
   }
