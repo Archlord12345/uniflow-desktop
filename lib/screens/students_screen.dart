@@ -131,13 +131,15 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           onPressed: () {
             // TODO: ouvrir le panneau de filtres avancés
           },
-          icon: const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
+          icon:
+              const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
           label: const Text('Filtres avancés'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.textSecondary,
             side: const BorderSide(color: AppColors.inputBorder),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
         ElevatedButton.icon(
@@ -161,25 +163,34 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   /// ligne débordait. Ils se replient alors sur plusieurs rangées.
   Widget _buildFiltersRow() {
     final searchField = TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Rechercher un étudiant...',
-              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-              prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
-              filled: true,
-              fillColor: AppColors.cardWhite,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.inputBorder)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.inputBorder)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5)),
-            ),
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Rechercher un étudiant...',
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+        prefixIcon:
+            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        filled: true,
+        fillColor: AppColors.cardWhite,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+                const BorderSide(color: AppColors.primaryBlue, width: 1.5)),
+      ),
     );
 
     final exportButton = OutlinedButton.icon(
       onPressed: () {
         // TODO: exporter la liste des étudiants (CSV/Excel)
       },
-      icon: const Icon(Icons.file_upload_outlined, size: 17, color: AppColors.textSecondary),
+      icon: const Icon(Icons.file_upload_outlined,
+          size: 17, color: AppColors.textSecondary),
       label: const Text('Export'),
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.textSecondary,
@@ -224,12 +235,18 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 
   Widget _buildTableHeader(List<Student> students) {
-    const style = TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.3);
-    final allChecked = students.isNotEmpty && students.every((s) => _checkedIds.contains(s.id));
+    const style = TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textMuted,
+        letterSpacing: 0.3);
+    final allChecked = students.isNotEmpty &&
+        students.every((s) => _checkedIds.contains(s.id));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
+      decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
           SizedBox(
@@ -315,7 +332,9 @@ class _FilterDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(border: Border.all(color: AppColors.inputBorder), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(
+          border: Border.all(color: AppColors.inputBorder),
+          borderRadius: BorderRadius.circular(10)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -327,11 +346,13 @@ class _FilterDropdown extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
+              style: const TextStyle(
+                  fontSize: 13.5, color: AppColors.textSecondary),
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textMuted),
+          const Icon(Icons.keyboard_arrow_down,
+              size: 18, color: AppColors.textMuted),
         ],
       ),
     );
@@ -362,7 +383,8 @@ class _StudentRow extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
+      decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
           SizedBox(
@@ -377,7 +399,8 @@ class _StudentRow extends StatelessWidget {
             width: 28,
             child: Text(
               index.toString(),
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
           Expanded(
@@ -394,14 +417,21 @@ class _StudentRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     student.fullName.isEmpty ? '—' : student.fullName,
-                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
           ),
-          Expanded(flex: 2, child: Text(_orDash(student.matricule), style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+              flex: 2,
+              child: Text(_orDash(student.matricule),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary))),
           Expanded(
             flex: 3,
             child: Text(
@@ -415,13 +445,29 @@ class _StudentRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Expanded(flex: 2, child: Text(_orDash(student.programme), style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(_orDash(student.niveau), style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+              flex: 2,
+              child: Text(_orDash(student.programme),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+              flex: 2,
+              child: Text(_orDash(student.niveau),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary))),
           Expanded(
             flex: 2,
-            child: Align(alignment: Alignment.centerLeft, child: StatusBadge(label: student.statut, backgroundColor: student.statutColor)),
+            child: Align(
+                alignment: Alignment.centerLeft,
+                child: StatusBadge(
+                    label: student.statut,
+                    backgroundColor: student.statutColor)),
           ),
-          Expanded(flex: 2, child: Text(_orDash(student.inscritLe), style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+              flex: 2,
+              child: Text(_orDash(student.inscritLe),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary))),
           SizedBox(
             width: 100,
             child: Row(
@@ -430,17 +476,20 @@ class _StudentRow extends StatelessWidget {
                   icon: const Icon(Icons.remove_red_eye_outlined, size: 17),
                   color: AppColors.primaryBlue,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  constraints:
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
                   tooltip: 'Voir la fiche',
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => StudentDetailScreen(student: student)));
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => StudentDetailScreen(student: student)));
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 16),
                   color: const Color(0xFFF5A623),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  constraints:
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
                   tooltip: 'Modifier',
                   onPressed: () {
                     // TODO: ouvrir le formulaire d'édition
@@ -450,7 +499,8 @@ class _StudentRow extends StatelessWidget {
                   icon: const Icon(Icons.delete_outline, size: 16),
                   color: AppColors.danger,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  constraints:
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
                   tooltip: 'Supprimer',
                   onPressed: () {
                     // TODO: confirmer puis supprimer l'étudiant

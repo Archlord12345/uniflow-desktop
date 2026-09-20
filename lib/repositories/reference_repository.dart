@@ -87,7 +87,11 @@ class ReferenceRepository {
       collectionId: 'classrooms',
       documentId: ID.unique(),
       data: room.toPayload(),
-      permissions: [Permission.read(Role.any()), Permission.update(Role.users()), Permission.delete(Role.users())],
+      permissions: [
+        Permission.read(Role.any()),
+        Permission.update(Role.users()),
+        Permission.delete(Role.users())
+      ],
     );
     return ClassroomRef.fromDocument(doc);
   }

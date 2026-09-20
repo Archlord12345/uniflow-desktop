@@ -68,7 +68,8 @@ Future<void> showDeleteAccountFlow(BuildContext context, WidgetRef ref) async {
         body: ResultView(
           success: true,
           title: 'Compte supprimé',
-          message: 'Vos données de compte ont été effacées. Merci d\'avoir utilisé UniFlow.',
+          message:
+              'Vos données de compte ont été effacées. Merci d\'avoir utilisé UniFlow.',
           actionLabel: 'Revenir à l\'accueil',
           onAction: () => navigator.pushAndRemoveUntil(
             softRoute(const LoginScreen()),
@@ -85,7 +86,8 @@ class _DeleteAccountDialog extends ConsumerStatefulWidget {
   const _DeleteAccountDialog();
 
   @override
-  ConsumerState<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
+  ConsumerState<_DeleteAccountDialog> createState() =>
+      _DeleteAccountDialogState();
 }
 
 class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
@@ -115,7 +117,8 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
       return;
     }
     if (_keyword.text.trim() != kDeleteAccountKeyword) {
-      setState(() => _error = 'Recopiez exactement le mot $kDeleteAccountKeyword.');
+      setState(
+          () => _error = 'Recopiez exactement le mot $kDeleteAccountKeyword.');
       return;
     }
     setState(() {
@@ -184,12 +187,14 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
                   controller: _keyword,
                   autofocus: true,
                   enabled: !_busy,
-                  decoration: const InputDecoration(labelText: 'Tapez $kDeleteAccountKeyword'),
+                  decoration: const InputDecoration(
+                      labelText: 'Tapez $kDeleteAccountKeyword'),
                   onSubmitted: (_) => _submit(),
                 ),
               if (_error != null) ...[
                 const SizedBox(height: 10),
-                Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 12.5)),
+                Text(_error!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12.5)),
               ],
             ],
           ),
@@ -205,7 +210,11 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
           onPressed: _busy ? null : _submit,
           child: _busy
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
               : Text(_step == 0 ? 'Continuer' : 'Supprimer définitivement'),
         ),
       ],

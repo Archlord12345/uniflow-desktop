@@ -11,7 +11,8 @@ import '../providers/auth_provider.dart';
 import '../utils/avatar.dart';
 import '../models/appwrite_models.dart';
 
-final dashboardStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+final dashboardStatsProvider =
+    FutureProvider<Map<String, dynamic>>((ref) async {
   // Recalculé à chaque changement de compte : les caches du compte précédent
   // survivaient à la déconnexion.
   ref.watch(currentUserProvider.select((u) => u?.id));
@@ -19,7 +20,8 @@ final dashboardStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async 
 });
 
 /// Inscriptions des 6 derniers mois, comptées depuis `academic_enrollments`.
-final dashboardEnrollmentsProvider = FutureProvider<List<MonthlyCount>>((ref) async {
+final dashboardEnrollmentsProvider =
+    FutureProvider<List<MonthlyCount>>((ref) async {
   // Recalculé à chaque changement de compte : les caches du compte précédent
   // survivaient à la déconnexion.
   ref.watch(currentUserProvider.select((u) => u?.id));
@@ -28,7 +30,8 @@ final dashboardEnrollmentsProvider = FutureProvider<List<MonthlyCount>>((ref) as
 
 /// Répartition des présences. `null` = pas de données exploitables, ce que la
 /// carte distingue explicitement d'un taux nul.
-final dashboardAttendanceProvider = FutureProvider<AttendanceBreakdown?>((ref) async {
+final dashboardAttendanceProvider =
+    FutureProvider<AttendanceBreakdown?>((ref) async {
   // Recalculé à chaque changement de compte : les caches du compte précédent
   // survivaient à la déconnexion.
   ref.watch(currentUserProvider.select((u) => u?.id));
@@ -36,7 +39,8 @@ final dashboardAttendanceProvider = FutureProvider<AttendanceBreakdown?>((ref) a
 });
 
 /// Derniers documents créés, toutes collections confondues.
-final dashboardActivityProvider = FutureProvider<List<ActivityEntry>>((ref) async {
+final dashboardActivityProvider =
+    FutureProvider<List<ActivityEntry>>((ref) async {
   // Recalculé à chaque changement de compte : les caches du compte précédent
   // survivaient à la déconnexion.
   ref.watch(currentUserProvider.select((u) => u?.id));
@@ -150,7 +154,8 @@ class DashboardScreen extends ConsumerWidget {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher globalement...',
-                      hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 13.5),
+                      hintStyle:
+                          TextStyle(color: AppColors.textMuted, fontSize: 13.5),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 14),
@@ -297,7 +302,8 @@ class _StatGrid extends StatelessWidget {
                     // les cartes présentes gardent ainsi la même largeur que
                     // sur une rangée pleine.
                     Expanded(
-                      child: i < slice.length ? slice[i] : const SizedBox.shrink(),
+                      child:
+                          i < slice.length ? slice[i] : const SizedBox.shrink(),
                     ),
                   ],
                 ],
@@ -387,7 +393,8 @@ class _ChartEmpty extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.insights_outlined, size: 34, color: AppColors.textMuted),
+                const Icon(Icons.insights_outlined,
+                    size: 34, color: AppColors.textMuted),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: 220,
@@ -395,7 +402,9 @@ class _ChartEmpty extends StatelessWidget {
                     message,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                        fontSize: 12.5, color: AppColors.textMuted, height: 1.45),
+                        fontSize: 12.5,
+                        color: AppColors.textMuted,
+                        height: 1.45),
                   ),
                 ),
               ],
@@ -422,7 +431,8 @@ class _EnrollmentChartCard extends ConsumerWidget {
         data: (months) {
           if (months.isEmpty || months.every((month) => month.count == 0)) {
             return const _ChartEmpty(
-              message: 'Aucune inscription enregistrée sur les 6 derniers mois.\n'
+              message:
+                  'Aucune inscription enregistrée sur les 6 derniers mois.\n'
                   'La courbe se remplit depuis la collection « academic_enrollments ».',
             );
           }
@@ -432,7 +442,8 @@ class _EnrollmentChartCard extends ConsumerWidget {
           height: 180,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (error, _) => _ChartEmpty(message: 'Inscriptions indisponibles.\n$error'),
+        error: (error, _) =>
+            _ChartEmpty(message: 'Inscriptions indisponibles.\n$error'),
       ),
     );
   }
@@ -459,7 +470,8 @@ class _EnrollmentLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxCount = months.map((month) => month.count).reduce((a, b) => a > b ? a : b);
+    final maxCount =
+        months.map((month) => month.count).reduce((a, b) => a > b ? a : b);
     final maxY = _axisMax(maxCount);
     final interval = maxY / 5;
 
@@ -473,22 +485,28 @@ class _EnrollmentLineChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: interval,
-            getDrawingHorizontalLine: (value) => FlLine(color: AppColors.inputBorder, strokeWidth: 1),
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: AppColors.inputBorder, strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 26,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  if (index < 0 || index >= months.length) return const SizedBox.shrink();
+                  if (index < 0 || index >= months.length)
+                    return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: Text(months[index].label, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                    child: Text(months[index].label,
+                        style: const TextStyle(
+                            fontSize: 11.5, color: AppColors.textMuted)),
                   );
                 },
               ),
@@ -500,7 +518,8 @@ class _EnrollmentLineChart extends StatelessWidget {
                 reservedSize: 34,
                 getTitlesWidget: (value, meta) => Text(
                   value.toInt().toString(),
-                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                  style: const TextStyle(
+                      fontSize: 11.5, color: AppColors.textMuted),
                 ),
               ),
             ),
@@ -514,7 +533,11 @@ class _EnrollmentLineChart extends StatelessWidget {
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, percent, bar, index) =>
-                    FlDotCirclePainter(radius: 3.5, color: AppColors.primaryBlue, strokeWidth: 2, strokeColor: Colors.white),
+                    FlDotCirclePainter(
+                        radius: 3.5,
+                        color: AppColors.primaryBlue,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white),
               ),
               spots: [
                 for (int i = 0; i < months.length; i++)
@@ -554,7 +577,8 @@ class _AttendanceDonutCard extends ConsumerWidget {
           height: 180,
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (error, _) => _ChartEmpty(message: 'Présences indisponibles.\n$error'),
+        error: (error, _) =>
+            _ChartEmpty(message: 'Présences indisponibles.\n$error'),
       ),
     );
   }
@@ -579,9 +603,21 @@ class _AttendanceDonut extends StatelessWidget {
                 sectionsSpace: 2,
                 centerSpaceRadius: 46,
                 sections: [
-                  PieChartSectionData(value: breakdown.present.toDouble(), color: AppColors.teal, radius: 22, showTitle: false),
-                  PieChartSectionData(value: breakdown.absent.toDouble(), color: AppColors.deepBlue, radius: 22, showTitle: false),
-                  PieChartSectionData(value: breakdown.late.toDouble(), color: const Color(0xFFE8724C), radius: 22, showTitle: false),
+                  PieChartSectionData(
+                      value: breakdown.present.toDouble(),
+                      color: AppColors.teal,
+                      radius: 22,
+                      showTitle: false),
+                  PieChartSectionData(
+                      value: breakdown.absent.toDouble(),
+                      color: AppColors.deepBlue,
+                      radius: 22,
+                      showTitle: false),
+                  PieChartSectionData(
+                      value: breakdown.late.toDouble(),
+                      color: const Color(0xFFE8724C),
+                      radius: 22,
+                      showTitle: false),
                 ],
               ),
             ),
@@ -595,16 +631,26 @@ class _AttendanceDonut extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _LegendRow(color: AppColors.teal, label: 'Présent', value: percent(breakdown.present)),
+                _LegendRow(
+                    color: AppColors.teal,
+                    label: 'Présent',
+                    value: percent(breakdown.present)),
                 const SizedBox(height: 14),
-                _LegendRow(color: AppColors.deepBlue, label: 'Absent', value: percent(breakdown.absent)),
+                _LegendRow(
+                    color: AppColors.deepBlue,
+                    label: 'Absent',
+                    value: percent(breakdown.absent)),
                 const SizedBox(height: 14),
-                _LegendRow(color: const Color(0xFFE8724C), label: 'Retard', value: percent(breakdown.late)),
+                _LegendRow(
+                    color: const Color(0xFFE8724C),
+                    label: 'Retard',
+                    value: percent(breakdown.late)),
                 const SizedBox(height: 14),
                 Text(
                   '${breakdown.total} enregistrement${breakdown.total > 1 ? 's' : ''}',
                   maxLines: 2,
-                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                  style: const TextStyle(
+                      fontSize: 11.5, color: AppColors.textMuted),
                 ),
               ],
             ),
@@ -620,13 +666,17 @@ class _LegendRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _LegendRow({required this.color, required this.label, required this.value});
+  const _LegendRow(
+      {required this.color, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 8),
         Flexible(
           child: Column(
@@ -636,13 +686,17 @@ class _LegendRow extends StatelessWidget {
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary),
               ),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -728,7 +782,8 @@ class _ActivityRow extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(moment.year, moment.month, moment.day);
-    final clock = '${moment.hour.toString().padLeft(2, '0')}:${moment.minute.toString().padLeft(2, '0')}';
+    final clock =
+        '${moment.hour.toString().padLeft(2, '0')}:${moment.minute.toString().padLeft(2, '0')}';
 
     final days = today.difference(day).inDays;
     if (days <= 0) return "Aujourd'hui, $clock";
@@ -748,17 +803,25 @@ class _ActivityRow extends StatelessWidget {
           Container(
             width: 34,
             height: 34,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(9)),
-            child: Icon(_icons[entry.kind] ?? Icons.circle_outlined, size: 17, color: color),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(9)),
+            child: Icon(_icons[entry.kind] ?? Icons.circle_outlined,
+                size: 17, color: color),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _title,
-              style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary),
             ),
           ),
-          Text(_time, style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text(_time,
+              style:
+                  const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
         ],
       ),
     );

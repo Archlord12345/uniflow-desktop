@@ -110,14 +110,15 @@ class AdminDirectoryApi {
         .toList();
   }
 
-  Future<Map<String, dynamic>> create(AccountDraft draft) =>
-      _api.call(ApiPaths.adminDirectory, {'action': 'create', ...draft.toJson()});
+  Future<Map<String, dynamic>> create(AccountDraft draft) => _api
+      .call(ApiPaths.adminDirectory, {'action': 'create', ...draft.toJson()});
 
   Future<Map<String, dynamic>> update(String userId, AccountDraft draft) =>
-      _api.call(ApiPaths.adminDirectory, {'action': 'update', 'userId': userId, ...draft.toJson()});
+      _api.call(ApiPaths.adminDirectory,
+          {'action': 'update', 'userId': userId, ...draft.toJson()});
 
-  Future<void> delete(String userId) =>
-      _api.call(ApiPaths.adminDirectory, {'action': 'delete', 'userId': userId});
+  Future<void> delete(String userId) => _api
+      .call(ApiPaths.adminDirectory, {'action': 'delete', 'userId': userId});
 }
 
 // ---------------------------------------------------------------------------
@@ -129,7 +130,11 @@ class RosterStudent {
   final String name;
   final String matricule;
   final String role;
-  const RosterStudent({required this.userId, required this.name, this.matricule = '', this.role = 'STUDENT'});
+  const RosterStudent(
+      {required this.userId,
+      required this.name,
+      this.matricule = '',
+      this.role = 'STUDENT'});
 }
 
 class GradeRoster {
@@ -149,12 +154,16 @@ class GradeRoster {
   /// Intitulés d'évaluation déjà utilisés, dans l'ordre d'apparition.
   List<String> get evaluationTitles {
     final seen = <String>{};
-    return [for (final g in grades) if (seen.add(g.evaluationTitle)) g.evaluationTitle];
+    return [
+      for (final g in grades)
+        if (seen.add(g.evaluationTitle)) g.evaluationTitle
+    ];
   }
 
   AcademicGrade? gradeOf(String studentId, String evaluationTitle) {
     for (final g in grades) {
-      if (g.studentId == studentId && g.evaluationTitle == evaluationTitle) return g;
+      if (g.studentId == studentId && g.evaluationTitle == evaluationTitle)
+        return g;
     }
     return null;
   }
@@ -165,8 +174,11 @@ class GradesApi {
   const GradesApi(this._api);
 
   Future<GradeRoster> roster(String courseId) async {
-    final data = await _api.call(ApiPaths.academicGrades, {'action': 'roster', 'courseId': courseId});
-    final course = data['course'] is Map ? Map<String, dynamic>.from(data['course'] as Map) : const {};
+    final data = await _api.call(
+        ApiPaths.academicGrades, {'action': 'roster', 'courseId': courseId});
+    final course = data['course'] is Map
+        ? Map<String, dynamic>.from(data['course'] as Map)
+        : const {};
     final students = (data['students'] as List? ?? const [])
         .whereType<Map>()
         .map((s) => RosterStudent(
@@ -219,7 +231,10 @@ class GradesApi {
         'type': type,
       });
 
-  Future<void> delete({required String courseId, required String studentId, required String gradeId}) =>
+  Future<void> delete(
+          {required String courseId,
+          required String studentId,
+          required String gradeId}) =>
       _api.call(ApiPaths.academicGrades, {
         'action': 'delete',
         'courseId': courseId,
@@ -237,7 +252,11 @@ class AttendanceSessionInfo {
   final String courseId;
   final DateTime date;
   final String createdBy;
-  const AttendanceSessionInfo({required this.id, required this.courseId, required this.date, this.createdBy = ''});
+  const AttendanceSessionInfo(
+      {required this.id,
+      required this.courseId,
+      required this.date,
+      this.createdBy = ''});
 }
 
 class AttendanceRecordInfo {
@@ -279,13 +298,18 @@ class AttendanceApi {
     final response = await _service.databases.listDocuments(
       databaseId: _service.databaseId,
       collectionId: 'attendance_sessions',
-      queries: [Query.equal('courseId', courseId), Query.orderDesc('date'), Query.limit(200)],
+      queries: [
+        Query.equal('courseId', courseId),
+        Query.orderDesc('date'),
+        Query.limit(200)
+      ],
     );
     return response.documents
         .map((d) => AttendanceSessionInfo(
               id: d.$id,
               courseId: d.data['courseId'] as String? ?? courseId,
-              date: DateTime.tryParse(d.data['date'] as String? ?? '') ?? DateTime.now(),
+              date: DateTime.tryParse(d.data['date'] as String? ?? '') ??
+                  DateTime.now(),
               createdBy: d.data['createdBy'] as String? ?? '',
             ))
         .toList();
@@ -303,7 +327,8 @@ class AttendanceApi {
               sessionId: sessionId,
               studentId: d.data['studentId'] as String? ?? '',
               status: d.data['status'] as String? ?? 'ABSENT',
-              verificationMethod: d.data['verificationMethod'] as String? ?? 'MANUAL',
+              verificationMethod:
+                  d.data['verificationMethod'] as String? ?? 'MANUAL',
             ))
         .toList();
   }
@@ -319,7 +344,8 @@ class AttendanceApi {
       'courseId': courseId,
       'date': date.toUtc().toIso8601String(),
       'rows': [
-        for (final entry in statusByStudent.entries) {'studentId': entry.key, 'status': entry.value},
+        for (final entry in statusByStudent.entries)
+          {'studentId': entry.key, 'status': entry.value},
       ],
     });
     return data['sessionId'] as String? ?? '';
@@ -340,7 +366,11 @@ class AttendanceApi {
       'action': 'issue',
       'sessionId': sessionId,
       'courseId': courseId,
-      'origin': {'latitude': latitude, 'longitude': longitude, 'accuracy': accuracyMeters},
+      'origin': {
+        'latitude': latitude,
+        'longitude': longitude,
+        'accuracy': accuracyMeters
+      },
       'radiusMeters': radiusMeters,
     });
     return IssuedQr(
@@ -353,8 +383,8 @@ class AttendanceApi {
     );
   }
 
-  Future<void> revoke(String token) =>
-      _api.call(ApiPaths.attendanceSecure, {'action': 'revoke', 'token': token});
+  Future<void> revoke(String token) => _api
+      .call(ApiPaths.attendanceSecure, {'action': 'revoke', 'token': token});
 }
 
 // ---------------------------------------------------------------------------
@@ -384,7 +414,9 @@ class AssignmentDraft {
     this.published = true,
   });
 
-  Map<String, dynamic> toData({required String teacherId, required String teacherName}) => {
+  Map<String, dynamic> toData(
+          {required String teacherId, required String teacherName}) =>
+      {
         'courseId': courseId,
         'courseCode': courseCode,
         'title': title.trim(),
@@ -396,7 +428,8 @@ class AssignmentDraft {
         'type': type,
         'maxScore': maxScore,
         'allowLate': allowLate,
-        'publishedAt': published ? DateTime.now().toUtc().toIso8601String() : '',
+        'publishedAt':
+            published ? DateTime.now().toUtc().toIso8601String() : '',
       };
 }
 
@@ -451,7 +484,8 @@ class AssignmentsApi {
     return AcademicAssignment.fromDocument(doc);
   }
 
-  Future<void> update(String id, Map<String, dynamic> data) => _service.databases.updateDocument(
+  Future<void> update(String id, Map<String, dynamic> data) =>
+      _service.databases.updateDocument(
         databaseId: _service.databaseId,
         collectionId: 'academic_assignments',
         documentId: id,
@@ -468,7 +502,11 @@ class AssignmentsApi {
     final response = await _service.databases.listDocuments(
       databaseId: _service.databaseId,
       collectionId: 'academic_submissions',
-      queries: [Query.equal('assignmentId', assignmentId), Query.orderDesc('submittedAt'), Query.limit(500)],
+      queries: [
+        Query.equal('assignmentId', assignmentId),
+        Query.orderDesc('submittedAt'),
+        Query.limit(500)
+      ],
     );
     return response.documents.map((d) {
       final data = d.data;
@@ -487,7 +525,8 @@ class AssignmentsApi {
     }).toList();
   }
 
-  Future<void> gradeSubmission(String submissionId, {required double score, String feedback = ''}) =>
+  Future<void> gradeSubmission(String submissionId,
+          {required double score, String feedback = ''}) =>
       _service.databases.updateDocument(
         databaseId: _service.databaseId,
         collectionId: 'academic_submissions',
@@ -533,7 +572,11 @@ class NotificationsApi {
     final response = await _service.databases.listDocuments(
       databaseId: _service.databaseId,
       collectionId: 'notifications',
-      queries: [Query.equal('ownerId', ownerId), Query.orderDesc('\$createdAt'), Query.limit(100)],
+      queries: [
+        Query.equal('ownerId', ownerId),
+        Query.orderDesc('\$createdAt'),
+        Query.limit(100)
+      ],
     );
     return response.documents.map((d) {
       final data = d.data;
@@ -543,13 +586,15 @@ class NotificationsApi {
         title: data['title'] as String? ?? '',
         message: data['message'] as String? ?? '',
         isRead: data['isRead'] == true,
-        createdAt: DateTime.tryParse(data['createdAt'] as String? ?? d.$createdAt),
+        createdAt:
+            DateTime.tryParse(data['createdAt'] as String? ?? d.$createdAt),
         link: data['link'] as String? ?? '',
       );
     }).toList();
   }
 
-  Future<void> markRead(String id, {bool read = true}) => _service.databases.updateDocument(
+  Future<void> markRead(String id, {bool read = true}) =>
+      _service.databases.updateDocument(
         databaseId: _service.databaseId,
         collectionId: 'notifications',
         documentId: id,
@@ -572,16 +617,26 @@ class TeamRosterApi {
   const TeamRosterApi(this._api);
 
   static const teams = ['Leadership', 'Frontend', 'Backend'];
-  static const accents = ['blue', 'purple', 'emerald', 'amber', 'rose', 'cyan', 'indigo'];
+  static const accents = [
+    'blue',
+    'purple',
+    'emerald',
+    'amber',
+    'rose',
+    'cyan',
+    'indigo'
+  ];
 
   Future<Map<String, dynamic>> create(Map<String, dynamic> member) =>
       _api.call(ApiPaths.teamRoster, {'action': 'create', ...member});
 
-  Future<Map<String, dynamic>> update(String memberId, Map<String, dynamic> member) =>
-      _api.call(ApiPaths.teamRoster, {'action': 'update', 'memberId': memberId, ...member});
+  Future<Map<String, dynamic>> update(
+          String memberId, Map<String, dynamic> member) =>
+      _api.call(ApiPaths.teamRoster,
+          {'action': 'update', 'memberId': memberId, ...member});
 
-  Future<void> delete(String memberId) =>
-      _api.call(ApiPaths.teamRoster, {'action': 'delete', 'memberId': memberId});
+  Future<void> delete(String memberId) => _api
+      .call(ApiPaths.teamRoster, {'action': 'delete', 'memberId': memberId});
 }
 
 // ---------------------------------------------------------------------------
@@ -595,7 +650,8 @@ final gradesApiProvider = Provider<GradesApi>(
   (ref) => GradesApi(ref.watch(uniflowApiProvider)),
 );
 final attendanceApiProvider = Provider<AttendanceApi>(
-  (ref) => AttendanceApi(ref.watch(uniflowApiProvider), ref.watch(appwriteServiceProvider)),
+  (ref) => AttendanceApi(
+      ref.watch(uniflowApiProvider), ref.watch(appwriteServiceProvider)),
 );
 final assignmentsApiProvider = Provider<AssignmentsApi>(
   (ref) => AssignmentsApi(ref.watch(appwriteServiceProvider)),
@@ -608,7 +664,9 @@ final teamRosterApiProvider = Provider<TeamRosterApi>(
 );
 
 /// Comptes gérés par l'administration, filtrés par filière/niveau.
-final managedAccountsProvider =
-    FutureProvider.family<List<ManagedAccount>, ({String? program, String? level})>((ref, filter) {
-  return ref.watch(adminDirectoryApiProvider).list(program: filter.program, level: filter.level);
+final managedAccountsProvider = FutureProvider.family<List<ManagedAccount>,
+    ({String? program, String? level})>((ref, filter) {
+  return ref
+      .watch(adminDirectoryApiProvider)
+      .list(program: filter.program, level: filter.level);
 });

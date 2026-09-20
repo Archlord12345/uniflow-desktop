@@ -92,10 +92,12 @@ class SessionController {
   /// `/account` est appelé ensuite ; il peut ne pas encore être déployé
   /// (404) : le message le dit sans faire passer l'échec pour une erreur du
   /// poste.
-  Future<DeleteAccountResult> deleteOwnAccount({required String password}) async {
+  Future<DeleteAccountResult> deleteOwnAccount(
+      {required String password}) async {
     final user = _ref.read(currentUserProvider);
     if (user == null) {
-      return const DeleteAccountResult(DeleteAccountOutcome.failed, 'Aucune session ouverte.');
+      return const DeleteAccountResult(
+          DeleteAccountOutcome.failed, 'Aucune session ouverte.');
     }
     if (user.isSuperAdmin) {
       return const DeleteAccountResult(
@@ -151,7 +153,8 @@ class SessionController {
       await _snapshotStore.clear();
     } catch (_) {}
     clearLocalState();
-    return const DeleteAccountResult(DeleteAccountOutcome.deleted, 'Votre compte a été supprimé.');
+    return const DeleteAccountResult(
+        DeleteAccountOutcome.deleted, 'Votre compte a été supprimé.');
   }
 }
 

@@ -29,7 +29,9 @@ class TeamRepository {
       collectionId: 'team_members',
       queries: [Query.orderAsc('displayOrder'), Query.limit(100)],
     );
-    return response.documents.map((doc) => TeamMember.fromDocument(doc)).toList();
+    return response.documents
+        .map((doc) => TeamMember.fromDocument(doc))
+        .toList();
   }
 }
 

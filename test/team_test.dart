@@ -63,7 +63,8 @@ void main() {
     test('un document incomplet ne fait pas échouer l\'affichage', () {
       // Cas réel : un document écrit à la main depuis la console Appwrite, ou
       // créé avant l'ajout d'un attribut au schéma.
-      final membre = TeamMember.fromDocument(documentAvec({'name': 'Membre Partiel'}));
+      final membre =
+          TeamMember.fromDocument(documentAvec({'name': 'Membre Partiel'}));
 
       expect(membre.name, 'Membre Partiel');
       expect(membre.github, '');
@@ -142,26 +143,35 @@ void main() {
         );
 
     test('la base de données prime sur l\'équipe', () {
-      expect(teamMemberIcon(membre('Backend Developer', 'SGBD & Infrastructure', 'Backend')),
+      expect(
+          teamMemberIcon(
+              membre('Backend Developer', 'SGBD & Infrastructure', 'Backend')),
           Icons.storage_outlined);
     });
 
     test('le mobile se reconnaît à la sous-équipe', () {
-      expect(teamMemberIcon(membre('Mobile Developer', 'Frontend Mobile App', 'Frontend')),
+      expect(
+          teamMemberIcon(
+              membre('Mobile Developer', 'Frontend Mobile App', 'Frontend')),
           Icons.smartphone_outlined);
     });
 
     test('sinon l\'icône suit l\'équipe', () {
-      expect(teamMemberIcon(membre('Chef de projet', 'Direction', 'Leadership')),
+      expect(
+          teamMemberIcon(membre('Chef de projet', 'Direction', 'Leadership')),
           Icons.workspace_premium_outlined);
-      expect(teamMemberIcon(membre('Backend Developer', 'Microservices', 'Backend')),
+      expect(
+          teamMemberIcon(
+              membre('Backend Developer', 'Microservices', 'Backend')),
           Icons.dns_outlined);
-      expect(teamMemberIcon(membre('Frontend Developer', 'Web', 'Frontend')), Icons.code_outlined);
+      expect(teamMemberIcon(membre('Frontend Developer', 'Web', 'Frontend')),
+          Icons.code_outlined);
     });
   });
 
   group('SilhouetteAvatar', () {
-    testWidgets('sans photo, affiche une silhouette et aucun texte', (tester) async {
+    testWidgets('sans photo, affiche une silhouette et aucun texte',
+        (tester) async {
       await tester.pumpWidget(host(const SilhouetteAvatar(avatarFileId: '')));
 
       expect(find.byIcon(Icons.person_outline), findsOneWidget);
@@ -170,7 +180,8 @@ void main() {
       expect(find.byType(Text), findsNothing);
     });
 
-    testWidgets('un identifiant vide ou nul donne le même résultat', (tester) async {
+    testWidgets('un identifiant vide ou nul donne le même résultat',
+        (tester) async {
       await tester.pumpWidget(host(const SilhouetteAvatar()));
       expect(find.byIcon(Icons.person_outline), findsOneWidget);
     });
@@ -202,10 +213,12 @@ void main() {
 
       // Aucun des membres de test n'a de photo : chacun a sa silhouette, et
       // aucune carte n'affiche d'initiales.
-      expect(find.byIcon(Icons.person_outline), findsNWidgets(equipeDeTest().length));
+      expect(find.byIcon(Icons.person_outline),
+          findsNWidgets(equipeDeTest().length));
     });
 
-    testWidgets('les tuiles de statistiques comptent la liste affichée', (tester) async {
+    testWidgets('les tuiles de statistiques comptent la liste affichée',
+        (tester) async {
       await afficher(tester);
 
       expect(find.text('Membres au total'), findsOneWidget);

@@ -44,8 +44,7 @@ class ConferenceHostState {
   bool get isRunning => status == HostState.running && conference != null;
 
   /// Vrai pendant une transition (démarrage ou arrêt).
-  bool get isBusy =>
-      status == HostState.starting;
+  bool get isBusy => status == HostState.starting;
 
   /// Adresse complète de l'API de jonction, affichable et copiable.
   String? get apiAddress {

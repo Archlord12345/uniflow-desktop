@@ -185,7 +185,8 @@ class Assignment {
         'type': type.name.toUpperCase(),
         'status': status.value,
         'dueDate': dueDate.toUtc().toIso8601String(),
-        'publishedAt': (publishedAt ?? DateTime.now()).toUtc().toIso8601String(),
+        'publishedAt':
+            (publishedAt ?? DateTime.now()).toUtc().toIso8601String(),
         'maxScore': maxScore,
         'allowLate': allowLate,
         'quizJson': quizJson,
@@ -207,8 +208,10 @@ class Assignment {
       final filieres = _stringList(decoded['filieres']);
       final niveaux = _stringList(decoded['niveaux']);
       if (filieres.isEmpty && niveaux.isEmpty) return true;
-      final filiereOk = filieres.isEmpty || (filiere != null && filieres.contains(filiere));
-      final niveauOk = niveaux.isEmpty || (niveau != null && niveaux.contains(niveau));
+      final filiereOk =
+          filieres.isEmpty || (filiere != null && filieres.contains(filiere));
+      final niveauOk =
+          niveaux.isEmpty || (niveau != null && niveaux.contains(niveau));
       return filiereOk && niveauOk;
     } catch (_) {
       return true;
@@ -385,13 +388,15 @@ class QuizDefinition {
       for (var i = 0; i < raw.length; i++) {
         final item = raw[i];
         if (item is Map) {
-          questions.add(QuizQuestion.fromJson(Map<String, dynamic>.from(item), i));
+          questions
+              .add(QuizQuestion.fromJson(Map<String, dynamic>.from(item), i));
         }
       }
     }
     return QuizDefinition(
       title: json['title']?.toString(),
-      durationMinutes: int.tryParse('${json['durationMinutes'] ?? json['duration'] ?? ''}'),
+      durationMinutes:
+          int.tryParse('${json['durationMinutes'] ?? json['duration'] ?? ''}'),
       questions: questions,
     );
   }
@@ -410,7 +415,8 @@ class QuizResult {
   });
 
   /// Note ramenée sur le barème du devoir.
-  double scaledTo(double maxScore) => total <= 0 ? 0 : earned / total * maxScore;
+  double scaledTo(double maxScore) =>
+      total <= 0 ? 0 : earned / total * maxScore;
 
   /// Nombre de questions justes.
   int get correctCount => outcomes.where((o) => o.isCorrect).length;
@@ -452,14 +458,16 @@ class QuizGrader {
       );
     }
 
-    return QuizResult(earned: earned, total: quiz.totalPoints, outcomes: outcomes);
+    return QuizResult(
+        earned: earned, total: quiz.totalPoints, outcomes: outcomes);
   }
 
   /// Une question est-elle juste ?
   static bool isCorrect(QuizQuestion question, dynamic given) {
     switch (question.type) {
       case QuestionType.single:
-        final expected = question.correct.isEmpty ? null : question.correct.first;
+        final expected =
+            question.correct.isEmpty ? null : question.correct.first;
         if (expected == null) return false;
         return _asInt(given) == expected;
 
@@ -519,11 +527,14 @@ List<String> _stringList(dynamic value) {
 
 List<int> _intList(dynamic value) {
   if (value is List) {
-    return value.map((e) {
-      if (e is int) return e;
-      if (e is double) return e.toInt();
-      return int.tryParse(e.toString()) ?? -1;
-    }).where((e) => e >= 0).toList();
+    return value
+        .map((e) {
+          if (e is int) return e;
+          if (e is double) return e.toInt();
+          return int.tryParse(e.toString()) ?? -1;
+        })
+        .where((e) => e >= 0)
+        .toList();
   }
   if (value is int) return [value];
   if (value is String) {

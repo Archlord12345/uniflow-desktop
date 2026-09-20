@@ -26,7 +26,8 @@ class ConferenceRegistry {
   /// Collection de l'annuaire, surchargeable depuis `.env` pour ne pas
   /// dépendre d'un nom figé.
   static String get collectionId =>
-      dotenv.maybeGet('APPWRITE_CONFERENCE_COLLECTION_ID') ?? 'conference_rooms';
+      dotenv.maybeGet('APPWRITE_CONFERENCE_COLLECTION_ID') ??
+      'conference_rooms';
 
   /// Publie une réunion. Renvoie l'identifiant du document créé, ou `null` si
   /// la publication a échoué.

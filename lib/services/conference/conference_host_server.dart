@@ -92,7 +92,9 @@ class ConferenceHostServer {
   Future<void> _handle(HttpRequest request) async {
     final segments = request.uri.pathSegments;
 
-    if (request.method == 'GET' && segments.length == 1 && segments[0] == 'health') {
+    if (request.method == 'GET' &&
+        segments.length == 1 &&
+        segments[0] == 'health') {
       return _json(request, HttpStatus.ok, {
         'status': 'ok',
         'rooms': _rooms.length,
@@ -171,7 +173,8 @@ class ConferenceHostServer {
   Future<void> _end(HttpRequest request, String roomId) async {
     final room = _rooms[roomId];
     if (room == null) {
-      return _json(request, HttpStatus.notFound, {'error': 'Réunion inconnue.'});
+      return _json(
+          request, HttpStatus.notFound, {'error': 'Réunion inconnue.'});
     }
 
     final provided = request.headers.value('x-host-token') ?? '';
@@ -215,7 +218,8 @@ class ConferenceHostServer {
       ..statusCode = statusCode
       ..headers.contentType = ContentType.json
       ..headers.set('Access-Control-Allow-Origin', '*')
-      ..headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Host-Token')
+      ..headers
+          .set('Access-Control-Allow-Headers', 'Content-Type, X-Host-Token')
       ..headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     request.response.write(jsonEncode(body));
     await request.response.close();

@@ -97,7 +97,8 @@ final classroomsProvider = FutureProvider<List<Classroom>>((ref) async {
   final merged = <Classroom>[];
   final seen = <String>{};
   for (final room in reference.classrooms.where((r) => r.active)) {
-    final usage = byName[room.code.toLowerCase()] ?? byName[room.name.toLowerCase()];
+    final usage =
+        byName[room.code.toLowerCase()] ?? byName[room.name.toLowerCase()];
     seen.add(room.code.toLowerCase());
     if (usage != null) seen.add(usage.nom.toLowerCase());
     merged.add(Classroom(
@@ -157,11 +158,14 @@ class ProgramOptions {
     final levels = <String>{};
     final byProgram = <String, Set<String>>{};
     for (final course in courses) {
-      if (course.university.trim().isNotEmpty) universities.add(course.university.trim());
+      if (course.university.trim().isNotEmpty)
+        universities.add(course.university.trim());
       if (course.program.trim().isNotEmpty) programs.add(course.program.trim());
       if (course.level.trim().isNotEmpty) levels.add(course.level.trim());
       if (course.program.trim().isNotEmpty && course.level.trim().isNotEmpty) {
-        byProgram.putIfAbsent(course.program.trim(), () => {}).add(course.level.trim());
+        byProgram
+            .putIfAbsent(course.program.trim(), () => {})
+            .add(course.level.trim());
       }
     }
     List<String> sortedLevels(Iterable<String> values) {
@@ -169,12 +173,14 @@ class ProgramOptions {
       list.sort((a, b) => _levelRank(a).compareTo(_levelRank(b)));
       return list;
     }
+
     return ProgramOptions(
       universities: universities.toList()..sort(),
       programs: programs.toList()..sort(),
       levels: sortedLevels(levels),
       levelsByProgram: {
-        for (final entry in byProgram.entries) entry.key: sortedLevels(entry.value),
+        for (final entry in byProgram.entries)
+          entry.key: sortedLevels(entry.value),
       },
     );
   }

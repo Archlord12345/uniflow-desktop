@@ -55,7 +55,8 @@ void main() {
   final screens = <String, Widget>{
     'Connexion': const LoginScreen(),
     'Inscription': const RegisterScreen(),
-    'Inscription indépendante': const RegisterScreen(initialType: AccountType.personal),
+    'Inscription indépendante':
+        const RegisterScreen(initialType: AccountType.personal),
     'Espace personnel': const PersonalWorkspaceScreen(),
     'Coquille': const MainShell(),
     'Tableau de bord': const DashboardScreen(),
@@ -93,7 +94,8 @@ void main() {
 
             await tester.pumpWidget(
               MediaQuery(
-                data: MediaQueryData(size: size, textScaler: TextScaler.linear(scale)),
+                data: MediaQueryData(
+                    size: size, textScaler: TextScaler.linear(scale)),
                 child: host(entry.value),
               ),
             );

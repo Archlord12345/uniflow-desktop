@@ -25,7 +25,8 @@ import 'package:uniflow/widgets/motion.dart';
 import 'layout_test_support.dart';
 
 class FakeAuthRepository extends AuthRepository {
-  FakeAuthRepository(AppwriteService service) : super(service, UniFlowApi(service));
+  FakeAuthRepository(AppwriteService service)
+      : super(service, UniFlowApi(service));
 
   int logoutCalls = 0;
   bool logoutThrows = false;
@@ -44,7 +45,8 @@ class FakeAuthRepository extends AuthRepository {
   @override
   Future<void> verifyPassword(String email, String password) async {
     if (password != acceptedPassword) {
-      throw AppwriteException('Invalid credentials', 401, 'user_invalid_credentials');
+      throw AppwriteException(
+          'Invalid credentials', 401, 'user_invalid_credentials');
     }
   }
 
@@ -56,13 +58,15 @@ class FakeAuthRepository extends AuthRepository {
   }
 }
 
-ProviderContainer conteneur(FakeAuthRepository repo, {bool superAdmin = false}) {
+ProviderContainer conteneur(FakeAuthRepository repo,
+    {bool superAdmin = false}) {
   final service = AppwriteService();
   final store = InMemorySessionSnapshotStore();
   return ProviderContainer(overrides: [
     appwriteServiceProvider.overrideWithValue(service),
     authRepositoryProvider.overrideWithValue(repo),
-    currentUserProvider.overrideWith((ref) => testUser().copyWith(isSuperAdmin: superAdmin)),
+    currentUserProvider
+        .overrideWith((ref) => testUser().copyWith(isSuperAdmin: superAdmin)),
     sessionControllerProvider.overrideWith(
       (ref) => SessionController(ref, snapshotStore: store),
     ),
@@ -75,14 +79,16 @@ void main() {
     // Le client Appwrite interroge `path_provider` à sa construction (jar de
     // cookies) ; sans doublure, l'erreur asynchrone fait échouer les tests
     // unitaires hors `testWidgets`.
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
       (call) async => Directory.systemTemp.path,
     );
   });
 
   group('SessionController.signOut', () {
-    test('ferme la session, tolère une session déjà expirée et vide le profil', () async {
+    test('ferme la session, tolère une session déjà expirée et vide le profil',
+        () async {
       final repo = FakeAuthRepository(AppwriteService())..logoutThrows = true;
       final container = conteneur(repo);
       addTearDown(container.dispose);
@@ -116,16 +122,19 @@ void main() {
       final container = conteneur(repo);
       addTearDown(container.dispose);
 
-      final result =
-          await container.read(sessionControllerProvider).deleteOwnAccount(password: 'faux');
+      final result = await container
+          .read(sessionControllerProvider)
+          .deleteOwnAccount(password: 'faux');
 
       expect(result.outcome, DeleteAccountOutcome.wrongPassword);
       expect(repo.deleteCalls, 0);
     });
 
-    test('service /account absent (404) : message explicite, session conservée', () async {
+    test('service /account absent (404) : message explicite, session conservée',
+        () async {
       final repo = FakeAuthRepository(AppwriteService())
-        ..deleteError = const ApiException('introuvable', code: 'NOT_FOUND', status: 404);
+        ..deleteError =
+            const ApiException('introuvable', code: 'NOT_FOUND', status: 404);
       final container = conteneur(repo);
       addTearDown(container.dispose);
 
@@ -140,7 +149,8 @@ void main() {
 
     test('erreur 500 : signalée comme indisponibilité du serveur', () async {
       final repo = FakeAuthRepository(AppwriteService())
-        ..deleteError = const ApiException('boom', code: 'INTERNAL', status: 500);
+        ..deleteError =
+            const ApiException('boom', code: 'INTERNAL', status: 500);
       final container = conteneur(repo);
       addTearDown(container.dispose);
 
@@ -151,7 +161,8 @@ void main() {
       expect(result.outcome, DeleteAccountOutcome.serviceUnavailable);
     });
 
-    test('succès : le compte est supprimé et le poste est déconnecté', () async {
+    test('succès : le compte est supprimé et le poste est déconnecté',
+        () async {
       final repo = FakeAuthRepository(AppwriteService());
       final container = conteneur(repo);
       addTearDown(container.dispose);
@@ -167,27 +178,33 @@ void main() {
   });
 
   group('Flux d\'interface', () {
-    Widget appli(FakeAuthRepository repo, Widget body, {bool superAdmin = false}) {
+    Widget appli(FakeAuthRepository repo, Widget body,
+        {bool superAdmin = false}) {
       final service = AppwriteService();
       return ProviderScope(
         overrides: [
           appwriteServiceProvider.overrideWithValue(service),
           authRepositoryProvider.overrideWithValue(repo),
-          currentUserProvider.overrideWith((ref) => testUser().copyWith(isSuperAdmin: superAdmin)),
+          currentUserProvider.overrideWith(
+              (ref) => testUser().copyWith(isSuperAdmin: superAdmin)),
           sessionCheckProvider.overrideWith((ref) async {}),
           sessionControllerProvider.overrideWith(
-            (ref) => SessionController(ref, snapshotStore: InMemorySessionSnapshotStore()),
+            (ref) => SessionController(ref,
+                snapshotStore: InMemorySessionSnapshotStore()),
           ),
         ],
-        child: MaterialApp(theme: AppTheme.lightTheme, home: Scaffold(body: body)),
+        child:
+            MaterialApp(theme: AppTheme.lightTheme, home: Scaffold(body: body)),
       );
     }
 
-    testWidgets('« Se déconnecter » ramène à l\'écran de connexion', (tester) async {
+    testWidgets('« Se déconnecter » ramène à l\'écran de connexion',
+        (tester) async {
       motionReduced.value = true;
       addTearDown(() => motionReduced.value = false);
       final repo = FakeAuthRepository(AppwriteService());
-      await tester.pumpWidget(appli(repo, const Center(child: SignOutButton())));
+      await tester
+          .pumpWidget(appli(repo, const Center(child: SignOutButton())));
 
       await tester.tap(find.text('Se déconnecter'));
       await tester.pumpAndSettle();
@@ -196,7 +213,8 @@ void main() {
       expect(find.byType(LoginScreen), findsOneWidget);
     });
 
-    testWidgets('suppression : mot de passe, mot SUPPRIMER, écran de succès', (tester) async {
+    testWidgets('suppression : mot de passe, mot SUPPRIMER, écran de succès',
+        (tester) async {
       motionReduced.value = true;
       addTearDown(() => motionReduced.value = false);
       final repo = FakeAuthRepository(AppwriteService());
@@ -216,19 +234,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Supprimer mon compte'), findsOneWidget);
 
-      await tester.enterText(find.byKey(const Key('delete-account-password')), repo.acceptedPassword);
+      await tester.enterText(find.byKey(const Key('delete-account-password')),
+          repo.acceptedPassword);
       await tester.tap(find.byKey(const Key('delete-account-confirm')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('delete-account-keyword')), findsOneWidget);
 
       // Mot mal recopié : on reste dans le dialogue, rien n'est supprimé.
-      await tester.enterText(find.byKey(const Key('delete-account-keyword')), 'supprimer');
+      await tester.enterText(
+          find.byKey(const Key('delete-account-keyword')), 'supprimer');
       await tester.tap(find.byKey(const Key('delete-account-confirm')));
       await tester.pumpAndSettle();
       expect(repo.deleteCalls, 0);
       expect(find.textContaining('Recopiez exactement'), findsOneWidget);
 
-      await tester.enterText(find.byKey(const Key('delete-account-keyword')), kDeleteAccountKeyword);
+      await tester.enterText(find.byKey(const Key('delete-account-keyword')),
+          kDeleteAccountKeyword);
       await tester.tap(find.byKey(const Key('delete-account-confirm')));
       await tester.pumpAndSettle();
 
@@ -236,7 +257,8 @@ void main() {
       expect(find.text('Compte supprimé'), findsOneWidget);
     });
 
-    testWidgets('superadmin : refus explicite, dialogue conservé', (tester) async {
+    testWidgets('superadmin : refus explicite, dialogue conservé',
+        (tester) async {
       motionReduced.value = true;
       addTearDown(() => motionReduced.value = false);
       final repo = FakeAuthRepository(AppwriteService());
@@ -255,10 +277,12 @@ void main() {
 
       await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('delete-account-password')), repo.acceptedPassword);
+      await tester.enterText(find.byKey(const Key('delete-account-password')),
+          repo.acceptedPassword);
       await tester.tap(find.byKey(const Key('delete-account-confirm')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('delete-account-keyword')), kDeleteAccountKeyword);
+      await tester.enterText(find.byKey(const Key('delete-account-keyword')),
+          kDeleteAccountKeyword);
       await tester.tap(find.byKey(const Key('delete-account-confirm')));
       await tester.pumpAndSettle();
 

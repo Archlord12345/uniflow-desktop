@@ -22,7 +22,9 @@ class PersonalRepository {
         Query.orderDesc('\$createdAt'),
       ],
     );
-    return response.documents.map((doc) => PersonalSubject.fromDocument(doc)).toList();
+    return response.documents
+        .map((doc) => PersonalSubject.fromDocument(doc))
+        .toList();
   }
 
   Future<PersonalSubject> createSubject({
@@ -72,7 +74,8 @@ final personalRepositoryProvider = Provider<PersonalRepository>((ref) {
 });
 
 /// Matières du compte connecté.
-final personalSubjectsProvider = FutureProvider<List<PersonalSubject>>((ref) async {
+final personalSubjectsProvider =
+    FutureProvider<List<PersonalSubject>>((ref) async {
   final user = await ref.watch(authRepositoryProvider).getCurrentUser();
   if (user == null) return const [];
   return ref.watch(personalRepositoryProvider).getSubjects(user.id);

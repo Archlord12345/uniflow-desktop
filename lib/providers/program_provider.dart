@@ -41,7 +41,9 @@ List<FacultyNode> buildProgramTree(
   // Squelette du référentiel : chaque filière active, avec ses niveaux
   // déclarés, sous le nom de son université.
   for (final program in reference.programs.where((p) => p.active)) {
-    final university = reference.universityByCode(program.universityCode)?.name ?? program.universityCode;
+    final university =
+        reference.universityByCode(program.universityCode)?.name ??
+            program.universityCode;
     final levels = grouped
         .putIfAbsent(university, () => {})
         .putIfAbsent(program.code, () => {});
@@ -50,11 +52,13 @@ List<FacultyNode> buildProgramTree(
     }
   }
   for (final course in courses) {
-    final university =
-        course.university.trim().isEmpty ? unknownUniversity : course.university.trim();
+    final university = course.university.trim().isEmpty
+        ? unknownUniversity
+        : course.university.trim();
     final program =
         course.program.trim().isEmpty ? unknownProgram : course.program.trim();
-    final level = course.level.trim().isEmpty ? unknownLevel : course.level.trim();
+    final level =
+        course.level.trim().isEmpty ? unknownLevel : course.level.trim();
 
     grouped
         .putIfAbsent(university, () => {})
@@ -80,7 +84,8 @@ List<FacultyNode> buildProgramTree(
         final levelCourses = levels[level]!;
         final teachers = <String>{
           for (final course in levelCourses)
-            if ((course.teacherName ?? '').trim().isNotEmpty) course.teacherName!.trim(),
+            if ((course.teacherName ?? '').trim().isNotEmpty)
+              course.teacherName!.trim(),
         }.toList()
           ..sort();
 

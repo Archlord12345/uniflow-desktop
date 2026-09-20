@@ -52,7 +52,8 @@ class RegistrationRequest {
           'program': program?.trim(),
           'level': level?.trim(),
         },
-        if (country != null && country!.trim().isNotEmpty) 'country': country!.trim(),
+        if (country != null && country!.trim().isNotEmpty)
+          'country': country!.trim(),
       };
 }
 
@@ -116,7 +117,8 @@ class AuthRepository {
     try {
       await _account.deleteSession(sessionId: 'current');
     } catch (_) {}
-    await _account.createEmailPasswordSession(email: email.trim(), password: password);
+    await _account.createEmailPasswordSession(
+        email: email.trim(), password: password);
   }
 
   /// Demande au serveur la suppression du compte connecté (service
@@ -158,7 +160,8 @@ class AuthRepository {
 
   /// Construit l'utilisateur à partir du compte et de son document. Fonction
   /// pure, testable : c'est ici que le contrat des labels s'applique.
-  static UniFlowUser buildUser(models.User account, Map<String, dynamic> profile) {
+  static UniFlowUser buildUser(
+      models.User account, Map<String, dynamic> profile) {
     final labels = account.labels.map((e) => e.toString()).toList();
     final role = UserRole.fromLabels(
       labels,

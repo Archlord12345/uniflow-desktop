@@ -37,19 +37,26 @@ class FilterDropdown extends StatelessWidget {
         child: DropdownButton<String?>(
           value: safeValue,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textMuted),
-          style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
-          hint: Text(anyLabel, style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary)),
+          icon: const Icon(Icons.keyboard_arrow_down,
+              size: 18, color: AppColors.textMuted),
+          style:
+              const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
+          hint: Text(anyLabel,
+              style: const TextStyle(
+                  fontSize: 13.5, color: AppColors.textSecondary)),
           items: [
             DropdownMenuItem<String?>(
               value: null,
-              child: Text(anyLabel, style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary)),
+              child: Text(anyLabel,
+                  style: const TextStyle(
+                      fontSize: 13.5, color: AppColors.textSecondary)),
             ),
             ...options.map((option) => DropdownMenuItem<String?>(
                   value: option,
                   child: Text(
                     option,
-                    style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                        fontSize: 13.5, color: AppColors.textPrimary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 )),

@@ -28,8 +28,7 @@ final scheduleWeekProvider = FutureProvider<ScheduleWeek>((ref) async {
   final coursesById = {for (final course in courses) course.id: course};
   final coursesByCode = {for (final course in courses) course.code: course};
 
-  final weekStart = _mondayOf(DateTime.now())
-      .add(Duration(days: 7 * offset));
+  final weekStart = _mondayOf(DateTime.now()).add(Duration(days: 7 * offset));
 
   final events = <ScheduleEvent>[];
   var unplaced = 0;
@@ -50,8 +49,8 @@ final scheduleWeekProvider = FutureProvider<ScheduleWeek>((ref) async {
       continue;
     }
 
-    final course = coursesById[schedule.courseId] ??
-        coursesByCode[schedule.courseCode];
+    final course =
+        coursesById[schedule.courseId] ?? coursesByCode[schedule.courseCode];
 
     events.add(
       ScheduleEvent(
@@ -96,12 +95,36 @@ int? _dayIndex(String raw) {
   if (value.isEmpty) return null;
 
   const byName = <String, int>{
-    'LUNDI': 0, 'MONDAY': 0, 'MON': 0, 'LUN': 0, 'LUN.': 0,
-    'MARDI': 1, 'TUESDAY': 1, 'TUE': 1, 'MAR': 1, 'MAR.': 1,
-    'MERCREDI': 2, 'WEDNESDAY': 2, 'WED': 2, 'MER': 2, 'MER.': 2,
-    'JEUDI': 3, 'THURSDAY': 3, 'THU': 3, 'JEU': 3, 'JEU.': 3,
-    'VENDREDI': 4, 'FRIDAY': 4, 'FRI': 4, 'VEN': 4, 'VEN.': 4,
-    'SAMEDI': 5, 'SATURDAY': 5, 'SAT': 5, 'SAM': 5, 'SAM.': 5,
+    'LUNDI': 0,
+    'MONDAY': 0,
+    'MON': 0,
+    'LUN': 0,
+    'LUN.': 0,
+    'MARDI': 1,
+    'TUESDAY': 1,
+    'TUE': 1,
+    'MAR': 1,
+    'MAR.': 1,
+    'MERCREDI': 2,
+    'WEDNESDAY': 2,
+    'WED': 2,
+    'MER': 2,
+    'MER.': 2,
+    'JEUDI': 3,
+    'THURSDAY': 3,
+    'THU': 3,
+    'JEU': 3,
+    'JEU.': 3,
+    'VENDREDI': 4,
+    'FRIDAY': 4,
+    'FRI': 4,
+    'VEN': 4,
+    'VEN.': 4,
+    'SAMEDI': 5,
+    'SATURDAY': 5,
+    'SAT': 5,
+    'SAM': 5,
+    'SAM.': 5,
   };
   final named = byName[value];
   if (named != null) return named;

@@ -22,15 +22,15 @@ class StudentHistoryEvent {
 /// (voir [Student.fromDirectory]).
 class Student {
   // ----- Champs affichés dans le tableau "Étudiants" -----
-  final String id;          // identifiant interne, ex: "ST-1021"
-  final String matricule;   // "N° Étudiant" affiché, ex: "20230001"
+  final String id; // identifiant interne, ex: "ST-1021"
+  final String matricule; // "N° Étudiant" affiché, ex: "20230001"
   final String fullName;
   final String email;
-  final String programme;   // ex: "Informatique" (colonne "Programme" du tableau)
-  final String niveau;      // ex: "Licence 2"
-  final String statut;      // "Actif" | "Inactif" | "En échange"
+  final String programme; // ex: "Informatique" (colonne "Programme" du tableau)
+  final String niveau; // ex: "Licence 2"
+  final String statut; // "Actif" | "Inactif" | "En échange"
   final Color statutColor;
-  final String inscritLe;   // ex: "12/09/2023"
+  final String inscritLe; // ex: "12/09/2023"
   final Color avatarColor;
 
   // ----- Champs supplémentaires pour la page de détail -----
@@ -39,7 +39,7 @@ class Student {
   final String adresse;
   final String genre;
   final String nationalite;
-  final String filiere;         // nom complet du programme, ex: "Licence Informatique"
+  final String filiere; // nom complet du programme, ex: "Licence Informatique"
   final String semestre;
   final String specialite;
   final String groupe;
@@ -111,7 +111,11 @@ class Student {
 
   /// Initiales calculées à partir du nom complet (ex: "Ahmed Ben Ahmad" -> "AA")
   String get initials {
-    final parts = fullName.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final parts = fullName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
     if (parts.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();

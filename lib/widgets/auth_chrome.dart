@@ -49,12 +49,15 @@ class AuthShell extends StatelessWidget {
             Positioned(
               top: -140,
               left: -120,
-              child: _Blob(size: 320, color: AppColors.primaryBlue.withValues(alpha: 0.10)),
+              child: _Blob(
+                  size: 320,
+                  color: AppColors.primaryBlue.withValues(alpha: 0.10)),
             ),
             Positioned(
               bottom: -160,
               right: -130,
-              child: _Blob(size: 340, color: AppColors.teal.withValues(alpha: 0.12)),
+              child: _Blob(
+                  size: 340, color: AppColors.teal.withValues(alpha: 0.12)),
             ),
             SafeArea(
               child: LayoutBuilder(
@@ -67,7 +70,8 @@ class AuthShell extends StatelessWidget {
                   return SingleChildScrollView(
                     padding: EdgeInsets.all(padding),
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight - padding * 2),
+                      constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - padding * 2),
                       child: Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 1080),
@@ -78,10 +82,12 @@ class AuthShell extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: AppColors.cardWhite,
                                 borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: AppColors.inputBorder),
+                                border:
+                                    Border.all(color: AppColors.inputBorder),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primaryBlue.withValues(alpha: 0.13),
+                                    color: AppColors.primaryBlue
+                                        .withValues(alpha: 0.13),
                                     blurRadius: 48,
                                     offset: const Offset(0, 20),
                                   ),
@@ -91,9 +97,7 @@ class AuthShell extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(24),
                                 child: Material(
                                   type: MaterialType.transparency,
-                                  child: sideBySide
-                                      ? _wide(isWide)
-                                      : _narrow(),
+                                  child: sideBySide ? _wide(isWide) : _narrow(),
                                 ),
                               ),
                             ),
@@ -122,7 +126,8 @@ class AuthShell extends StatelessWidget {
             child: ColoredBox(
               color: AppColors.cardWhite,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: isWide ? 44 : 32, vertical: 40),
+                padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? 44 : 32, vertical: 40),
                 child: form,
               ),
             ),
@@ -136,7 +141,10 @@ class AuthShell extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 180, width: double.infinity, child: AuthHeroPanel(compact: true)),
+        const SizedBox(
+            height: 180,
+            width: double.infinity,
+            child: AuthHeroPanel(compact: true)),
         ColoredBox(
           color: AppColors.cardWhite,
           child: Padding(
@@ -158,7 +166,8 @@ class AuthHeroPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned.fill(child: Image.asset('assets/images/login.jpg', fit: BoxFit.cover)),
+        Positioned.fill(
+            child: Image.asset('assets/images/login.jpg', fit: BoxFit.cover)),
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -176,7 +185,8 @@ class AuthHeroPanel extends StatelessWidget {
         ),
         Positioned.fill(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: compact ? 20 : 36, vertical: compact ? 16 : 40),
+            padding: EdgeInsets.symmetric(
+                horizontal: compact ? 20 : 36, vertical: compact ? 16 : 40),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -191,7 +201,8 @@ class AuthHeroPanel extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.h1.copyWith(color: Colors.white, fontSize: compact ? 21 : 27),
+                  style: AppTextStyles.h1.copyWith(
+                      color: Colors.white, fontSize: compact ? 21 : 27),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -208,7 +219,8 @@ class AuthHeroPanel extends StatelessWidget {
                   const SizedBox(height: 30),
                   const _HeroPoint(
                     icon: Icons.school_outlined,
-                    text: 'Étudiants, enseignants et programmes au même endroit',
+                    text:
+                        'Étudiants, enseignants et programmes au même endroit',
                   ),
                   const SizedBox(height: 12),
                   const _HeroPoint(
@@ -218,7 +230,8 @@ class AuthHeroPanel extends StatelessWidget {
                   const SizedBox(height: 12),
                   const _HeroPoint(
                     icon: Icons.videocam_outlined,
-                    text: 'Visioconférence hébergée sur le poste, même sans internet',
+                    text:
+                        'Visioconférence hébergée sur le poste, même sans internet',
                   ),
                 ],
               ],
@@ -276,7 +289,8 @@ class GradientButton extends StatelessWidget {
                   ? const SizedBox(
                       width: 22,
                       height: 22,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.4),
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2.4),
                     )
                   : Row(
                       mainAxisSize: MainAxisSize.min,
@@ -351,7 +365,8 @@ class AccountTypeSelector extends StatelessWidget {
   final AccountType value;
   final ValueChanged<AccountType> onChanged;
 
-  const AccountTypeSelector({super.key, required this.value, required this.onChanged});
+  const AccountTypeSelector(
+      {super.key, required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +434,9 @@ class _TypeCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: selected ? AppColors.primaryBlue : AppColors.textMuted),
+            Icon(icon,
+                size: 22,
+                color: selected ? AppColors.primaryBlue : AppColors.textMuted),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -433,14 +450,17 @@ class _TypeCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
-                      color: selected ? AppColors.primaryBlue : AppColors.textPrimary,
+                      color: selected
+                          ? AppColors.primaryBlue
+                          : AppColors.textPrimary,
                     ),
                   ),
                   Text(
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -471,7 +491,8 @@ class AuthDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    OutlineInputBorder border(Color color, [double width = 1]) => OutlineInputBorder(
+    OutlineInputBorder border(Color color, [double width = 1]) =>
+        OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: color, width: width),
         );
@@ -487,7 +508,8 @@ class AuthDropdown<T> extends StatelessWidget {
           key: ValueKey(value),
           initialValue: value,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
+          icon:
+              const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
           style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
           hint: Text(
             hint,
@@ -498,7 +520,8 @@ class AuthDropdown<T> extends StatelessWidget {
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.inputFill,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
             border: border(AppColors.inputBorder),
             enabledBorder: border(AppColors.inputBorder),
             focusedBorder: border(AppColors.primaryBlue, 1.5),
@@ -537,7 +560,10 @@ class _HeroPoint extends StatelessWidget {
             padding: const EdgeInsets.only(top: 5),
             child: Text(
               text,
-              style: TextStyle(fontSize: 13, height: 1.35, color: Colors.white.withValues(alpha: 0.9)),
+              style: TextStyle(
+                  fontSize: 13,
+                  height: 1.35,
+                  color: Colors.white.withValues(alpha: 0.9)),
             ),
           ),
         ),
@@ -556,7 +582,8 @@ class _Blob extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(size * 0.4)),
+      decoration: BoxDecoration(
+          color: color, borderRadius: BorderRadius.circular(size * 0.4)),
     );
   }
 }

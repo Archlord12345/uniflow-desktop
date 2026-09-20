@@ -63,7 +63,8 @@ class AssignmentRepository {
   }
 
   /// Devoirs créés par un enseignant, brouillons compris.
-  Future<List<Assignment>> listForTeacher(String teacherId, {int limit = 100}) async {
+  Future<List<Assignment>> listForTeacher(String teacherId,
+      {int limit = 100}) async {
     final response = await _guard(
       () => _service.databases.listDocuments(
         databaseId: _service.databaseId,
@@ -75,7 +76,9 @@ class AssignmentRepository {
         ],
       ),
     );
-    return response.documents.map((doc) => Assignment.fromDocument(doc)).toList();
+    return response.documents
+        .map((doc) => Assignment.fromDocument(doc))
+        .toList();
   }
 
   Future<Assignment> getAssignment(String id) async {
@@ -111,7 +114,8 @@ class AssignmentRepository {
     return Assignment.fromDocument(doc);
   }
 
-  Future<Assignment> updateAssignment(String id, Map<String, dynamic> changes) async {
+  Future<Assignment> updateAssignment(
+      String id, Map<String, dynamic> changes) async {
     final doc = await _guard(
       () => _service.databases.updateDocument(
         databaseId: _service.databaseId,
@@ -146,7 +150,9 @@ class AssignmentRepository {
         ],
       ),
     );
-    return response.documents.map((doc) => Submission.fromDocument(doc)).toList();
+    return response.documents
+        .map((doc) => Submission.fromDocument(doc))
+        .toList();
   }
 
   /// Rendus d'un élève, tous devoirs confondus — vue élève.
@@ -161,7 +167,9 @@ class AssignmentRepository {
         ],
       ),
     );
-    return response.documents.map((doc) => Submission.fromDocument(doc)).toList();
+    return response.documents
+        .map((doc) => Submission.fromDocument(doc))
+        .toList();
   }
 
   /// Rend un devoir.
@@ -252,7 +260,8 @@ class AssignmentRepository {
         '?project=${_service.client.config['project']}';
   }
 
-  Future<Submission?> _existingSubmission(String assignmentId, String studentId) async {
+  Future<Submission?> _existingSubmission(
+      String assignmentId, String studentId) async {
     final response = await _guard(
       () => _service.databases.listDocuments(
         databaseId: _service.databaseId,
@@ -277,7 +286,8 @@ class AssignmentRepository {
       Permission.read(Role.user(studentId)),
       Permission.update(Role.user(studentId)),
       Permission.delete(Role.user(studentId)),
-      if (teacherId != null && teacherId.isNotEmpty) Permission.read(Role.user(teacherId)),
+      if (teacherId != null && teacherId.isNotEmpty)
+        Permission.read(Role.user(teacherId)),
     ];
   }
 

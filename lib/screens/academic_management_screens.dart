@@ -30,9 +30,12 @@ class _CoursePicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final courses = ref.watch(scopedCoursesProvider).valueOrNull ?? const <AcademicCourse>[];
+    final courses = ref.watch(scopedCoursesProvider).valueOrNull ??
+        const <AcademicCourse>[];
     final selected = ref.watch(selectedCourseIdProvider);
-    final value = courses.any((c) => c.id == selected) ? selected : (courses.isEmpty ? null : courses.first.id);
+    final value = courses.any((c) => c.id == selected)
+        ? selected
+        : (courses.isEmpty ? null : courses.first.id);
     if (value != selected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(selectedCourseIdProvider.notifier).state = value;
@@ -51,16 +54,19 @@ class _CoursePicker extends ConsumerWidget {
           value: value,
           isExpanded: true,
           isDense: true,
-          hint: const Text('Aucun cours dans votre périmètre', style: TextStyle(fontSize: 13)),
+          hint: const Text('Aucun cours dans votre périmètre',
+              style: TextStyle(fontSize: 13)),
           style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
           items: [
             for (final c in courses)
               DropdownMenuItem(
                 value: c.id,
-                child: Text('${c.code} · ${c.name} (${c.program} ${c.level})', overflow: TextOverflow.ellipsis),
+                child: Text('${c.code} · ${c.name} (${c.program} ${c.level})',
+                    overflow: TextOverflow.ellipsis),
               ),
           ],
-          onChanged: (v) => ref.read(selectedCourseIdProvider.notifier).state = v,
+          onChanged: (v) =>
+              ref.read(selectedCourseIdProvider.notifier).state = v,
         ),
       ),
     );
@@ -77,13 +83,16 @@ String _formatDateTime(DateTime d) =>
 // Devoirs
 // ---------------------------------------------------------------------------
 
-final _assignmentsOfCourseProvider = FutureProvider.family<List<AcademicAssignment>, String>((ref, courseId) async {
+final _assignmentsOfCourseProvider =
+    FutureProvider.family<List<AcademicAssignment>, String>(
+        (ref, courseId) async {
   final all = await ref.watch(academicRepositoryProvider).getAssignments();
   return all.where((a) => a.courseId == courseId).toList()
     ..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 });
 
-final _submissionsProvider = FutureProvider.family<List<SubmissionInfo>, String>((ref, assignmentId) {
+final _submissionsProvider =
+    FutureProvider.family<List<SubmissionInfo>, String>((ref, assignmentId) {
   return ref.watch(assignmentsApiProvider).submissionsOf(assignmentId);
 });
 
@@ -104,32 +113,48 @@ class AssignmentsManagementScreen extends ConsumerWidget {
       children: [
         AppTopBar(
           title: 'Devoirs',
-          subtitle: canEdit ? 'Publiez et corrigez les travaux de vos cours' : 'Les travaux demandés dans vos cours',
+          subtitle: canEdit
+              ? 'Publiez et corrigez les travaux de vos cours'
+              : 'Les travaux demandés dans vos cours',
           actions: [
             if (canEdit)
               FilledButton.icon(
-                onPressed: courseId == null ? null : () => _openEditor(context, ref, courseId: courseId),
+                onPressed: courseId == null
+                    ? null
+                    : () => _openEditor(context, ref, courseId: courseId),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Nouveau devoir'),
               ),
           ],
         ),
-        const Padding(padding: EdgeInsets.fromLTRB(28, 18, 28, 0), child: Align(alignment: Alignment.centerLeft, child: _CoursePicker())),
+        const Padding(
+            padding: EdgeInsets.fromLTRB(28, 18, 28, 0),
+            child:
+                Align(alignment: Alignment.centerLeft, child: _CoursePicker())),
         Expanded(
           child: courses.when(
-            loading: () => const Padding(padding: EdgeInsets.all(28), child: CardGridSkeleton(count: 3)),
-            error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(scopedCoursesProvider)),
+            loading: () => const Padding(
+                padding: EdgeInsets.all(28), child: CardGridSkeleton(count: 3)),
+            error: (e, _) => DataErrorView(
+                error: e, onRetry: () => ref.invalidate(scopedCoursesProvider)),
             data: (_) {
               if (courseId == null) {
                 return const DataEmptyView(
                   icon: Icons.task_outlined,
-                  message: 'Aucun cours dans votre périmètre : les devoirs s\'affichent par cours.',
+                  message:
+                      'Aucun cours dans votre périmètre : les devoirs s\'affichent par cours.',
                 );
               }
-              final assignments = ref.watch(_assignmentsOfCourseProvider(courseId));
+              final assignments =
+                  ref.watch(_assignmentsOfCourseProvider(courseId));
               return assignments.when(
-                loading: () => const Padding(padding: EdgeInsets.all(28), child: CardGridSkeleton(count: 3)),
-                error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(_assignmentsOfCourseProvider(courseId))),
+                loading: () => const Padding(
+                    padding: EdgeInsets.all(28),
+                    child: CardGridSkeleton(count: 3)),
+                error: (e, _) => DataErrorView(
+                    error: e,
+                    onRetry: () =>
+                        ref.invalidate(_assignmentsOfCourseProvider(courseId))),
                 data: (items) {
                   if (items.isEmpty) {
                     return DataEmptyView(
@@ -147,9 +172,11 @@ class AssignmentsManagementScreen extends ConsumerWidget {
                       child: _AssignmentCard(
                         assignment: items[i],
                         canEdit: canEdit,
-                        onEdit: () => _openEditor(context, ref, courseId: courseId, existing: items[i]),
+                        onEdit: () => _openEditor(context, ref,
+                            courseId: courseId, existing: items[i]),
                         onDelete: () => _delete(context, ref, items[i]),
-                        onSubmissions: () => _openSubmissions(context, items[i]),
+                        onSubmissions: () =>
+                            _openSubmissions(context, items[i]),
                       ),
                     ),
                   );
@@ -162,25 +189,32 @@ class AssignmentsManagementScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openEditor(BuildContext context, WidgetRef ref, {required String courseId, AcademicAssignment? existing}) async {
-    final courses = ref.read(scopedCoursesProvider).valueOrNull ?? const <AcademicCourse>[];
+  Future<void> _openEditor(BuildContext context, WidgetRef ref,
+      {required String courseId, AcademicAssignment? existing}) async {
+    final courses =
+        ref.read(scopedCoursesProvider).valueOrNull ?? const <AcademicCourse>[];
     final course = courses.where((c) => c.id == courseId).firstOrNull;
     if (course == null) return;
     final saved = await showDialog<bool>(
       context: context,
-      builder: (_) => _AssignmentEditorDialog(course: course, existing: existing),
+      builder: (_) =>
+          _AssignmentEditorDialog(course: course, existing: existing),
     );
     if (saved == true) ref.invalidate(_assignmentsOfCourseProvider(courseId));
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, AcademicAssignment assignment) async {
+  Future<void> _delete(BuildContext context, WidgetRef ref,
+      AcademicAssignment assignment) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Supprimer ce devoir ?'),
-        content: Text('« ${assignment.title} » disparaîtra pour tous les étudiants du cours.'),
+        content: Text(
+            '« ${assignment.title} » disparaîtra pour tous les étudiants du cours.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -199,7 +233,9 @@ class AssignmentsManagementScreen extends ConsumerWidget {
         showFeedback(
           context,
           message: 'Suppression refusée.',
-          detail: e.code == 401 ? 'Seul l\'auteur du devoir peut le supprimer.' : e.message,
+          detail: e.code == 401
+              ? 'Seul l\'auteur du devoir peut le supprimer.'
+              : e.message,
           success: false,
         );
       }
@@ -207,7 +243,8 @@ class AssignmentsManagementScreen extends ConsumerWidget {
   }
 
   void _openSubmissions(BuildContext context, AcademicAssignment assignment) {
-    Navigator.of(context).push(softRoute(_SubmissionsScreen(assignment: assignment)));
+    Navigator.of(context)
+        .push(softRoute(_SubmissionsScreen(assignment: assignment)));
   }
 }
 
@@ -245,31 +282,42 @@ class _AssignmentCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: (overdue ? AppColors.textMuted : AppColors.primaryBlue).withValues(alpha: 0.10),
+              color: (overdue ? AppColors.textMuted : AppColors.primaryBlue)
+                  .withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.task_outlined, color: overdue ? AppColors.textMuted : AppColors.primaryBlue),
+            child: Icon(Icons.task_outlined,
+                color: overdue ? AppColors.textMuted : AppColors.primaryBlue),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(assignment.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppTextStyles.h3),
+                Text(assignment.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.h3),
                 const SizedBox(height: 4),
                 Text(
                   [
                     assignment.courseCode,
                     if (due != null) 'À rendre le ${_formatDateTime(due)}',
-                    if (assignment.status != null && assignment.status!.isNotEmpty) assignment.status!,
+                    if (assignment.status != null &&
+                        assignment.status!.isNotEmpty)
+                      assignment.status!,
                   ].join('  ·  '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall.copyWith(color: overdue ? AppColors.danger : null),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: overdue ? AppColors.danger : null),
                 ),
                 if ((assignment.description ?? '').isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(assignment.description!, maxLines: 3, overflow: TextOverflow.ellipsis, style: AppTextStyles.body),
+                  Text(assignment.description!,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.body),
                 ],
               ],
             ),
@@ -279,9 +327,19 @@ class _AssignmentCard extends StatelessWidget {
             Wrap(
               spacing: 2,
               children: [
-                IconButton(tooltip: 'Rendus et correction', onPressed: onSubmissions, icon: const Icon(Icons.fact_check_outlined, size: 20)),
-                IconButton(tooltip: 'Modifier', onPressed: onEdit, icon: const Icon(Icons.edit_outlined, size: 20)),
-                IconButton(tooltip: 'Supprimer', onPressed: onDelete, icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textMuted)),
+                IconButton(
+                    tooltip: 'Rendus et correction',
+                    onPressed: onSubmissions,
+                    icon: const Icon(Icons.fact_check_outlined, size: 20)),
+                IconButton(
+                    tooltip: 'Modifier',
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined, size: 20)),
+                IconButton(
+                    tooltip: 'Supprimer',
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline,
+                        size: 20, color: AppColors.textMuted)),
               ],
             ),
         ],
@@ -296,15 +354,20 @@ class _AssignmentEditorDialog extends ConsumerStatefulWidget {
   const _AssignmentEditorDialog({required this.course, this.existing});
 
   @override
-  ConsumerState<_AssignmentEditorDialog> createState() => _AssignmentEditorDialogState();
+  ConsumerState<_AssignmentEditorDialog> createState() =>
+      _AssignmentEditorDialogState();
 }
 
-class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog> {
+class _AssignmentEditorDialogState
+    extends ConsumerState<_AssignmentEditorDialog> {
   late final _title = TextEditingController(text: widget.existing?.title ?? '');
-  late final _description = TextEditingController(text: widget.existing?.description ?? '');
+  late final _description =
+      TextEditingController(text: widget.existing?.description ?? '');
   late final _maxScore = TextEditingController(text: '20');
   late DateTime _due = DateTime.tryParse(widget.existing?.dueDate ?? '') ??
-      DateTime.now().add(const Duration(days: 7)).copyWith(hour: 23, minute: 59);
+      DateTime.now()
+          .add(const Duration(days: 7))
+          .copyWith(hour: 23, minute: 59);
   String _type = 'DEVOIR';
   bool _allowLate = false;
   bool _busy = false;
@@ -326,8 +389,10 @@ class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog
       lastDate: DateTime.now().add(const Duration(days: 730)),
     );
     if (date == null || !mounted) return;
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_due));
-    setState(() => _due = DateTime(date.year, date.month, date.day, time?.hour ?? 23, time?.minute ?? 59));
+    final time = await showTimePicker(
+        context: context, initialTime: TimeOfDay.fromDateTime(_due));
+    setState(() => _due = DateTime(
+        date.year, date.month, date.day, time?.hour ?? 23, time?.minute ?? 59));
   }
 
   Future<void> _save() async {
@@ -356,11 +421,16 @@ class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog
       if (widget.existing == null) {
         await api.create(draft, teacherId: user.id, teacherName: user.name);
       } else {
-        final data = draft.toData(teacherId: user.id, teacherName: user.name)..remove('publishedAt')..remove('status');
+        final data = draft.toData(teacherId: user.id, teacherName: user.name)
+          ..remove('publishedAt')
+          ..remove('status');
         await api.update(widget.existing!.id, data);
       }
       if (!mounted) return;
-      showFeedback(context, message: widget.existing == null ? 'Devoir publié.' : 'Devoir mis à jour.');
+      showFeedback(context,
+          message: widget.existing == null
+              ? 'Devoir publié.'
+              : 'Devoir mis à jour.');
       Navigator.pop(context, true);
     } on AppwriteException catch (e) {
       setState(() {
@@ -375,7 +445,9 @@ class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing == null ? 'Nouveau devoir · ${widget.course.code}' : 'Modifier le devoir'),
+      title: Text(widget.existing == null
+          ? 'Nouveau devoir · ${widget.course.code}'
+          : 'Modifier le devoir'),
       content: SizedBox(
         width: 480,
         child: SingleChildScrollView(
@@ -383,12 +455,16 @@ class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(controller: _title, autofocus: true, decoration: const InputDecoration(labelText: 'Titre')),
+              TextField(
+                  controller: _title,
+                  autofocus: true,
+                  decoration: const InputDecoration(labelText: 'Titre')),
               const SizedBox(height: 12),
               TextField(
                 controller: _description,
                 maxLines: 4,
-                decoration: const InputDecoration(labelText: 'Consignes', alignLabelWithHint: true),
+                decoration: const InputDecoration(
+                    labelText: 'Consignes', alignLabelWithHint: true),
               ),
               const SizedBox(height: 12),
               Row(
@@ -398,9 +474,12 @@ class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog
                       initialValue: _type,
                       decoration: const InputDecoration(labelText: 'Type'),
                       items: const [
-                        DropdownMenuItem(value: 'DEVOIR', child: Text('Devoir')),
-                        DropdownMenuItem(value: 'TP', child: Text('Travaux pratiques')),
-                        DropdownMenuItem(value: 'PROJET', child: Text('Projet')),
+                        DropdownMenuItem(
+                            value: 'DEVOIR', child: Text('Devoir')),
+                        DropdownMenuItem(
+                            value: 'TP', child: Text('Travaux pratiques')),
+                        DropdownMenuItem(
+                            value: 'PROJET', child: Text('Projet')),
                         DropdownMenuItem(value: 'QUIZ', child: Text('Quiz')),
                       ],
                       onChanged: (v) => setState(() => _type = v ?? 'DEVOIR'),
@@ -422,27 +501,38 @@ class _AssignmentEditorDialogState extends ConsumerState<_AssignmentEditorDialog
                 onTap: _pickDate,
                 borderRadius: BorderRadius.circular(10),
                 child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Date limite', prefixIcon: Icon(Icons.event_outlined, size: 19)),
+                  decoration: const InputDecoration(
+                      labelText: 'Date limite',
+                      prefixIcon: Icon(Icons.event_outlined, size: 19)),
                   child: Text(_formatDateTime(_due)),
                 ),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Accepter les rendus en retard', style: TextStyle(fontSize: 13.5)),
+                title: const Text('Accepter les rendus en retard',
+                    style: TextStyle(fontSize: 13.5)),
                 value: _allowLate,
                 onChanged: (v) => setState(() => _allowLate = v),
               ),
-              if (_error != null) Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12.5)),
+              if (_error != null)
+                Text(_error!,
+                    style: const TextStyle(
+                        color: AppColors.danger, fontSize: 12.5)),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: _busy ? null : () => Navigator.pop(context, false), child: const Text('Annuler')),
+        TextButton(
+            onPressed: _busy ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler')),
         FilledButton(
           onPressed: _busy ? null : _save,
           child: _busy
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2))
               : Text(widget.existing == null ? 'Publier' : 'Enregistrer'),
         ),
       ],
@@ -461,17 +551,23 @@ class _SubmissionsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Rendus · ${assignment.title}', overflow: TextOverflow.ellipsis),
+        title: Text('Rendus · ${assignment.title}',
+            overflow: TextOverflow.ellipsis),
         backgroundColor: AppColors.cardWhite,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
       body: submissions.when(
-        loading: () => const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
-        error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(_submissionsProvider(assignment.id))),
+        loading: () =>
+            const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
+        error: (e, _) => DataErrorView(
+            error: e,
+            onRetry: () => ref.invalidate(_submissionsProvider(assignment.id))),
         data: (items) {
           if (items.isEmpty) {
-            return const DataEmptyView(icon: Icons.inbox_outlined, message: 'Aucun rendu pour l\'instant.');
+            return const DataEmptyView(
+                icon: Icons.inbox_outlined,
+                message: 'Aucun rendu pour l\'instant.');
           }
           return ListView.builder(
             padding: const EdgeInsets.all(28),
@@ -482,7 +578,8 @@ class _SubmissionsScreen extends ConsumerWidget {
                 index: i,
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.cardWhite,
                     borderRadius: BorderRadius.circular(12),
@@ -494,12 +591,19 @@ class _SubmissionsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(s.studentName.isEmpty ? s.studentId : s.studentName, style: const TextStyle(fontWeight: FontWeight.w700)),
+                            Text(
+                                s.studentName.isEmpty
+                                    ? s.studentId
+                                    : s.studentName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700)),
                             Text(
                               [
-                                if (s.submittedAt != null) 'Rendu le ${_formatDateTime(s.submittedAt!)}',
+                                if (s.submittedAt != null)
+                                  'Rendu le ${_formatDateTime(s.submittedAt!)}',
                                 s.status,
-                                if (s.score != null) '${s.score} / ${assignment.title.isEmpty ? 20 : 20}',
+                                if (s.score != null)
+                                  '${s.score} / ${assignment.title.isEmpty ? 20 : 20}',
                               ].join('  ·  '),
                               style: AppTextStyles.bodySmall,
                             ),
@@ -509,12 +613,15 @@ class _SubmissionsScreen extends ConsumerWidget {
                       if (s.fileId.isNotEmpty)
                         IconButton(
                           tooltip: 'Ouvrir le fichier',
-                          onPressed: () => launchUrl(Uri.parse(ref.read(appwriteServiceProvider).fileViewUrl(s.fileId))),
+                          onPressed: () => launchUrl(Uri.parse(ref
+                              .read(appwriteServiceProvider)
+                              .fileViewUrl(s.fileId))),
                           icon: const Icon(Icons.attach_file, size: 20),
                         ),
                       FilledButton.tonal(
                         onPressed: () => _grade(context, ref, s),
-                        child: Text(s.score == null ? 'Noter' : 'Modifier la note'),
+                        child: Text(
+                            s.score == null ? 'Noter' : 'Modifier la note'),
                       ),
                     ],
                   ),
@@ -527,8 +634,10 @@ class _SubmissionsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _grade(BuildContext context, WidgetRef ref, SubmissionInfo submission) async {
-    final scoreController = TextEditingController(text: submission.score?.toString() ?? '');
+  Future<void> _grade(
+      BuildContext context, WidgetRef ref, SubmissionInfo submission) async {
+    final scoreController =
+        TextEditingController(text: submission.score?.toString() ?? '');
     final feedbackController = TextEditingController(text: submission.feedback);
     final ok = await showDialog<bool>(
       context: context,
@@ -539,15 +648,26 @@ class _SubmissionsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: scoreController, autofocus: true, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Note')),
+              TextField(
+                  controller: scoreController,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Note')),
               const SizedBox(height: 12),
-              TextField(controller: feedbackController, maxLines: 3, decoration: const InputDecoration(labelText: 'Commentaire')),
+              TextField(
+                  controller: feedbackController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(labelText: 'Commentaire')),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Enregistrer')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Enregistrer')),
         ],
       ),
     );
@@ -558,7 +678,8 @@ class _SubmissionsScreen extends ConsumerWidget {
       return;
     }
     try {
-      await ref.read(assignmentsApiProvider).gradeSubmission(submission.id, score: score, feedback: feedbackController.text);
+      await ref.read(assignmentsApiProvider).gradeSubmission(submission.id,
+          score: score, feedback: feedbackController.text);
       ref.invalidate(_submissionsProvider(assignment.id));
       if (context.mounted) showFeedback(context, message: 'Note enregistrée.');
     } on AppwriteException catch (e) {
@@ -580,7 +701,8 @@ class _SubmissionsScreen extends ConsumerWidget {
 // Notes
 // ---------------------------------------------------------------------------
 
-final _rosterProvider = FutureProvider.family<GradeRoster, String>((ref, courseId) {
+final _rosterProvider =
+    FutureProvider.family<GradeRoster, String>((ref, courseId) {
   return ref.watch(gradesApiProvider).roster(courseId);
 });
 
@@ -618,21 +740,32 @@ class GradesManagementScreen extends ConsumerWidget {
               ),
           ],
         ),
-        const Padding(padding: EdgeInsets.fromLTRB(28, 18, 28, 0), child: Align(alignment: Alignment.centerLeft, child: _CoursePicker())),
+        const Padding(
+            padding: EdgeInsets.fromLTRB(28, 18, 28, 0),
+            child:
+                Align(alignment: Alignment.centerLeft, child: _CoursePicker())),
         Expanded(
           child: courseId == null
-              ? const DataEmptyView(icon: Icons.grade_outlined, message: 'Aucun cours dans votre périmètre.')
+              ? const DataEmptyView(
+                  icon: Icons.grade_outlined,
+                  message: 'Aucun cours dans votre périmètre.')
               : ref.watch(_rosterProvider(courseId)).when(
-                  loading: () => const Padding(padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
-                  error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(_rosterProvider(courseId))),
-                  data: (roster) => _GradeGrid(roster: roster),
-                ),
+                    loading: () => const Padding(
+                        padding: EdgeInsets.all(28),
+                        child: TableSkeleton(rows: 8)),
+                    error: (e, _) => DataErrorView(
+                        error: e,
+                        onRetry: () =>
+                            ref.invalidate(_rosterProvider(courseId))),
+                    data: (roster) => _GradeGrid(roster: roster),
+                  ),
         ),
       ],
     );
   }
 
-  Future<void> _addEvaluation(BuildContext context, WidgetRef ref, String courseId) async {
+  Future<void> _addEvaluation(
+      BuildContext context, WidgetRef ref, String courseId) async {
     final title = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
@@ -643,23 +776,31 @@ class GradesManagementScreen extends ConsumerWidget {
           child: TextField(
             controller: title,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'Intitulé (CC1, TP, Examen…)'),
+            decoration:
+                const InputDecoration(labelText: 'Intitulé (CC1, TP, Examen…)'),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Ajouter')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Ajouter')),
         ],
       ),
     );
     if (ok != true || title.text.trim().isEmpty) return;
-    ref.read(_pendingEvaluationsProvider(courseId).notifier).update((s) => {...s, title.text.trim()});
+    ref
+        .read(_pendingEvaluationsProvider(courseId).notifier)
+        .update((s) => {...s, title.text.trim()});
   }
 }
 
 /// Colonnes ajoutées mais encore vides : elles n'existent côté serveur qu'à
 /// la première note saisie.
-final _pendingEvaluationsProvider = StateProvider.family<Set<String>, String>((ref, _) => <String>{});
+final _pendingEvaluationsProvider =
+    StateProvider.family<Set<String>, String>((ref, _) => <String>{});
 
 class _GradeGrid extends ConsumerWidget {
   final GradeRoster roster;
@@ -668,9 +809,14 @@ class _GradeGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pending = ref.watch(_pendingEvaluationsProvider(roster.courseId));
-    final titles = [...roster.evaluationTitles, ...pending.where((p) => !roster.evaluationTitles.contains(p))];
+    final titles = [
+      ...roster.evaluationTitles,
+      ...pending.where((p) => !roster.evaluationTitles.contains(p))
+    ];
     if (roster.students.isEmpty) {
-      return const DataEmptyView(icon: Icons.people_outline, message: 'Aucun apprenant inscrit à ce cours.');
+      return const DataEmptyView(
+          icon: Icons.people_outline,
+          message: 'Aucun apprenant inscrit à ce cours.');
     }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -683,7 +829,10 @@ class _GradeGrid extends ConsumerWidget {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
-            headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textSecondary, fontSize: 12),
+            headingTextStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+                fontSize: 12),
             columns: [
               const DataColumn(label: Text('Apprenant')),
               for (final t in titles) DataColumn(label: Text(t)),
@@ -692,13 +841,17 @@ class _GradeGrid extends ConsumerWidget {
             rows: [
               for (var i = 0; i < roster.students.length; i++)
                 DataRow(cells: [
-                  DataCell(Text('${roster.students[i].name}${roster.students[i].matricule.isNotEmpty ? ' · ${roster.students[i].matricule}' : ''}')),
+                  DataCell(Text(
+                      '${roster.students[i].name}${roster.students[i].matricule.isNotEmpty ? ' · ${roster.students[i].matricule}' : ''}')),
                   for (final t in titles)
                     DataCell(
-                      _GradeCell(grade: roster.gradeOf(roster.students[i].userId, t)),
-                      onTap: () => _edit(context, ref, roster.students[i], t, roster.gradeOf(roster.students[i].userId, t)),
+                      _GradeCell(
+                          grade: roster.gradeOf(roster.students[i].userId, t)),
+                      onTap: () => _edit(context, ref, roster.students[i], t,
+                          roster.gradeOf(roster.students[i].userId, t)),
                     ),
-                  DataCell(Text(_average(roster.students[i].userId), style: const TextStyle(fontWeight: FontWeight.w700))),
+                  DataCell(Text(_average(roster.students[i].userId),
+                      style: const TextStyle(fontWeight: FontWeight.w700))),
                 ]),
             ],
           ),
@@ -708,7 +861,8 @@ class _GradeGrid extends ConsumerWidget {
   }
 
   String _average(String studentId) {
-    final grades = roster.grades.where((g) => g.studentId == studentId).toList();
+    final grades =
+        roster.grades.where((g) => g.studentId == studentId).toList();
     if (grades.isEmpty) return '—';
     var weighted = 0.0;
     var coefficients = 0.0;
@@ -719,10 +873,14 @@ class _GradeGrid extends ConsumerWidget {
     return (weighted / coefficients).toStringAsFixed(2);
   }
 
-  Future<void> _edit(BuildContext context, WidgetRef ref, RosterStudent student, String title, AcademicGrade? existing) async {
-    final score = TextEditingController(text: existing == null ? '' : existing.score.toStringAsFixed(0));
-    final max = TextEditingController(text: existing == null ? '20' : existing.maxScore.toStringAsFixed(0));
-    final coefficient = TextEditingController(text: existing == null ? '1' : existing.coefficient.toStringAsFixed(0));
+  Future<void> _edit(BuildContext context, WidgetRef ref, RosterStudent student,
+      String title, AcademicGrade? existing) async {
+    final score = TextEditingController(
+        text: existing == null ? '' : existing.score.toStringAsFixed(0));
+    final max = TextEditingController(
+        text: existing == null ? '20' : existing.maxScore.toStringAsFixed(0));
+    final coefficient = TextEditingController(
+        text: existing == null ? '1' : existing.coefficient.toStringAsFixed(0));
     final action = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -731,11 +889,24 @@ class _GradeGrid extends ConsumerWidget {
           width: 360,
           child: Row(
             children: [
-              Expanded(child: TextField(controller: score, autofocus: true, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Note'))),
+              Expanded(
+                  child: TextField(
+                      controller: score,
+                      autofocus: true,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Note'))),
               const SizedBox(width: 10),
-              Expanded(child: TextField(controller: max, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Sur'))),
+              Expanded(
+                  child: TextField(
+                      controller: max,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Sur'))),
               const SizedBox(width: 10),
-              Expanded(child: TextField(controller: coefficient, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Coef.'))),
+              Expanded(
+                  child: TextField(
+                      controller: coefficient,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Coef.'))),
             ],
           ),
         ),
@@ -743,10 +914,15 @@ class _GradeGrid extends ConsumerWidget {
           if (existing != null)
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, 'delete'),
-              child: const Text('Supprimer', style: TextStyle(color: AppColors.danger)),
+              child: const Text('Supprimer',
+                  style: TextStyle(color: AppColors.danger)),
             ),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, null), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, 'save'), child: const Text('Enregistrer')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, null),
+              child: const Text('Annuler')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, 'save'),
+              child: const Text('Enregistrer')),
         ],
       ),
     );
@@ -754,13 +930,19 @@ class _GradeGrid extends ConsumerWidget {
     final api = ref.read(gradesApiProvider);
     try {
       if (action == 'delete' && existing != null) {
-        await api.delete(courseId: roster.courseId, studentId: student.userId, gradeId: existing.id);
+        await api.delete(
+            courseId: roster.courseId,
+            studentId: student.userId,
+            gradeId: existing.id);
         if (context.mounted) showFeedback(context, message: 'Note supprimée.');
       } else {
         final value = int.tryParse(score.text.trim());
         final maxValue = int.tryParse(max.text.trim()) ?? 20;
         if (value == null || value < 0 || value > maxValue) {
-          if (context.mounted) showFeedback(context, message: 'Note invalide (entier entre 0 et $maxValue).', success: false);
+          if (context.mounted)
+            showFeedback(context,
+                message: 'Note invalide (entier entre 0 et $maxValue).',
+                success: false);
           return;
         }
         await api.upsert(
@@ -771,11 +953,17 @@ class _GradeGrid extends ConsumerWidget {
           maxScore: maxValue,
           coefficient: int.tryParse(coefficient.text.trim()) ?? 1,
         );
-        if (context.mounted) showFeedback(context, message: 'Note enregistrée pour ${student.name}.');
+        if (context.mounted)
+          showFeedback(context,
+              message: 'Note enregistrée pour ${student.name}.');
       }
       ref.invalidate(_rosterProvider(roster.courseId));
     } on ApiException catch (e) {
-      if (context.mounted) showFeedback(context, message: 'Refusé par le serveur.', detail: e.message, success: false);
+      if (context.mounted)
+        showFeedback(context,
+            message: 'Refusé par le serveur.',
+            detail: e.message,
+            success: false);
     }
   }
 }
@@ -793,10 +981,13 @@ class _GradeCell extends StatelessWidget {
     final color = ratio >= 0.5 ? AppColors.success : AppColors.danger;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(6)),
       child: Text(
         '${grade!.score.toStringAsFixed(grade!.score.truncateToDouble() == grade!.score ? 0 : 1)}/${grade!.maxScore.toStringAsFixed(0)}',
-        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
+        style: TextStyle(
+            color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
       ),
     );
   }
@@ -811,14 +1002,20 @@ class _MyGradesView extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const AppTopBar(title: 'Mes notes', subtitle: 'Vos résultats, par cours et par évaluation'),
+        const AppTopBar(
+            title: 'Mes notes',
+            subtitle: 'Vos résultats, par cours et par évaluation'),
         Expanded(
           child: grades.when(
-            loading: () => const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
-            error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(_myGradesProvider)),
+            loading: () => const Padding(
+                padding: EdgeInsets.all(28), child: TableSkeleton()),
+            error: (e, _) => DataErrorView(
+                error: e, onRetry: () => ref.invalidate(_myGradesProvider)),
             data: (items) {
               if (items.isEmpty) {
-                return const DataEmptyView(icon: Icons.grade_outlined, message: 'Aucune note publiée pour l\'instant.');
+                return const DataEmptyView(
+                    icon: Icons.grade_outlined,
+                    message: 'Aucune note publiée pour l\'instant.');
               }
               final byCourse = <String, List<AcademicGrade>>{};
               for (final g in items) {
@@ -851,16 +1048,19 @@ class _MyGradesView extends ConsumerWidget {
                             children: [
                               for (final g in list)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: AppColors.inputFill,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(g.evaluationTitle, style: AppTextStyles.bodySmall),
+                                      Text(g.evaluationTitle,
+                                          style: AppTextStyles.bodySmall),
                                       const SizedBox(height: 2),
                                       _GradeCell(grade: g),
                                     ],
@@ -959,11 +1159,15 @@ class LibraryManagementScreen extends ConsumerWidget {
         ),
         Expanded(
           child: items.when(
-            loading: () => const Padding(padding: EdgeInsets.all(28), child: CardGridSkeleton()),
-            error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(libraryProvider)),
+            loading: () => const Padding(
+                padding: EdgeInsets.all(28), child: CardGridSkeleton()),
+            error: (e, _) => DataErrorView(
+                error: e, onRetry: () => ref.invalidate(libraryProvider)),
             data: (list) {
               if (list.isEmpty) {
-                return const DataEmptyView(icon: Icons.library_books_outlined, message: 'Aucune ressource pour l\'instant.');
+                return const DataEmptyView(
+                    icon: Icons.library_books_outlined,
+                    message: 'Aucune ressource pour l\'instant.');
               }
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(28),
@@ -978,7 +1182,9 @@ class LibraryManagementScreen extends ConsumerWidget {
                           item: list[i],
                           onOpen: list[i].fileId.isEmpty
                               ? null
-                              : () => launchUrl(Uri.parse(ref.read(appwriteServiceProvider).fileViewUrl(list[i].fileId))),
+                              : () => launchUrl(Uri.parse(ref
+                                  .read(appwriteServiceProvider)
+                                  .fileViewUrl(list[i].fileId))),
                         ),
                       ),
                   ],
@@ -994,11 +1200,25 @@ class LibraryManagementScreen extends ConsumerWidget {
   Future<void> _upload(BuildContext context, WidgetRef ref) async {
     final file = await openFile(
       acceptedTypeGroups: const [
-        XTypeGroup(label: 'Documents', extensions: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'zip', 'png', 'jpg', 'jpeg']),
+        XTypeGroup(label: 'Documents', extensions: [
+          'pdf',
+          'doc',
+          'docx',
+          'ppt',
+          'pptx',
+          'xls',
+          'xlsx',
+          'txt',
+          'zip',
+          'png',
+          'jpg',
+          'jpeg'
+        ]),
       ],
     );
     if (file == null || !context.mounted) return;
-    final courses = ref.read(scopedCoursesProvider).valueOrNull ?? const <AcademicCourse>[];
+    final courses =
+        ref.read(scopedCoursesProvider).valueOrNull ?? const <AcademicCourse>[];
     final title = TextEditingController(text: file.name.split('.').first);
     final description = TextEditingController();
     String? courseId = courses.isEmpty ? null : courses.first.id;
@@ -1012,25 +1232,43 @@ class LibraryManagementScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: title, decoration: const InputDecoration(labelText: 'Titre')),
+                TextField(
+                    controller: title,
+                    decoration: const InputDecoration(labelText: 'Titre')),
                 const SizedBox(height: 12),
                 if (courses.isNotEmpty)
                   DropdownButtonFormField<String>(
                     initialValue: courseId,
                     decoration: const InputDecoration(labelText: 'Cours'),
-                    items: [for (final c in courses) DropdownMenuItem(value: c.id, child: Text('${c.code} · ${c.name}', overflow: TextOverflow.ellipsis))],
+                    items: [
+                      for (final c in courses)
+                        DropdownMenuItem(
+                            value: c.id,
+                            child: Text('${c.code} · ${c.name}',
+                                overflow: TextOverflow.ellipsis))
+                    ],
                     onChanged: (v) => setState(() => courseId = v),
                   ),
                 const SizedBox(height: 12),
-                TextField(controller: description, maxLines: 3, decoration: const InputDecoration(labelText: 'Description')),
+                TextField(
+                    controller: description,
+                    maxLines: 3,
+                    decoration:
+                        const InputDecoration(labelText: 'Description')),
                 const SizedBox(height: 8),
-                Align(alignment: Alignment.centerLeft, child: Text(file.name, style: AppTextStyles.bodySmall)),
+                Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(file.name, style: AppTextStyles.bodySmall)),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
-            FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Téléverser')),
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Annuler')),
+            FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Téléverser')),
           ],
         ),
       ),
@@ -1055,7 +1293,9 @@ class LibraryManagementScreen extends ConsumerWidget {
           'title': title.text.trim(),
           'courseId': course?.id ?? '',
           'course': course == null ? '' : '${course.code} · ${course.name}',
-          'type': file.name.contains('.') ? file.name.split('.').last.toUpperCase() : '',
+          'type': file.name.contains('.')
+              ? file.name.split('.').last.toUpperCase()
+              : '',
           'category': 'Support de cours',
           'size': _humanSize(length),
           'description': description.text.trim(),
@@ -1068,9 +1308,14 @@ class LibraryManagementScreen extends ConsumerWidget {
         ],
       );
       ref.invalidate(libraryProvider);
-      if (context.mounted) showFeedback(context, message: 'Ressource publiée.', detail: file.name);
+      if (context.mounted)
+        showFeedback(context, message: 'Ressource publiée.', detail: file.name);
     } on AppwriteException catch (e) {
-      if (context.mounted) showFeedback(context, message: 'Téléversement refusé.', detail: e.message, success: false);
+      if (context.mounted)
+        showFeedback(context,
+            message: 'Téléversement refusé.',
+            detail: e.message,
+            success: false);
     }
   }
 
@@ -1116,38 +1361,61 @@ class _LibraryCard extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(color: AppColors.primary50, borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(
+                      color: AppColors.primary50,
+                      borderRadius: BorderRadius.circular(10)),
                   child: Icon(_icon, color: AppColors.primaryBlue, size: 22),
                 ),
                 const Spacer(),
                 if (item.type.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: AppColors.inputFill, borderRadius: BorderRadius.circular(999)),
-                    child: Text(item.type.toUpperCase(), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                        color: AppColors.inputFill,
+                        borderRadius: BorderRadius.circular(999)),
+                    child: Text(item.type.toUpperCase(),
+                        style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary)),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppTextStyles.h3),
+            Text(item.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.h3),
             const SizedBox(height: 4),
             Text(
-              [if (item.course.isNotEmpty) item.course, if (item.size.isNotEmpty) item.size].join('  ·  '),
+              [
+                if (item.course.isNotEmpty) item.course,
+                if (item.size.isNotEmpty) item.size
+              ].join('  ·  '),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodySmall,
             ),
             if (item.description.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(item.description, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppTextStyles.body),
+              Text(item.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.body),
             ],
             if (onOpen != null) ...[
               const SizedBox(height: 12),
               const Row(
                 children: [
-                  Icon(Icons.open_in_new, size: 14, color: AppColors.primaryBlue),
+                  Icon(Icons.open_in_new,
+                      size: 14, color: AppColors.primaryBlue),
                   SizedBox(width: 6),
-                  Text('Ouvrir', style: TextStyle(fontSize: 12.5, color: AppColors.primaryBlue, fontWeight: FontWeight.w600)),
+                  Text('Ouvrir',
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.primaryBlue,
+                          fontWeight: FontWeight.w600)),
                 ],
               ),
             ],

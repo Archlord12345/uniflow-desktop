@@ -60,8 +60,8 @@ class LiveKitTokenService {
     };
 
     final signingInput = '${_segment(header)}.${_segment(payload)}';
-    final signature = Hmac(sha256, utf8.encode(apiSecret))
-        .convert(utf8.encode(signingInput));
+    final signature =
+        Hmac(sha256, utf8.encode(apiSecret)).convert(utf8.encode(signingInput));
 
     return '$signingInput.${_base64Url(signature.bytes)}';
   }

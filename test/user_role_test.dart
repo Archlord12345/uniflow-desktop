@@ -80,7 +80,9 @@ void main() {
       expect(parseAccountType('n\'importe quoi'), AccountType.university);
     });
 
-    test('PLATFORM est reconnu (insensible à la casse) et voit l\'établissement', () {
+    test(
+        'PLATFORM est reconnu (insensible à la casse) et voit l\'établissement',
+        () {
       expect(parseAccountType('PLATFORM'), AccountType.platform);
       expect(parseAccountType(' platform '), AccountType.platform);
       expect(AccountType.platform.seesInstitution, isTrue);
@@ -89,14 +91,24 @@ void main() {
       expect(AccountType.platform.wireValue, 'PLATFORM');
     });
 
-    test('la plateforme ouvre les écrans d\'établissement, pas l\'espace personnel', () {
-      expect(canAccess(AppDestination.classrooms,
-          role: UserRole.admin, accountType: AccountType.platform), isTrue);
-      expect(canAccess(AppDestination.accounts,
-          role: UserRole.admin, accountType: AccountType.platform), isTrue);
-      expect(canAccess(AppDestination.personalWorkspace,
-          role: UserRole.admin, accountType: AccountType.platform), isFalse);
-      expect(homeDestination(role: UserRole.admin, accountType: AccountType.platform),
+    test(
+        'la plateforme ouvre les écrans d\'établissement, pas l\'espace personnel',
+        () {
+      expect(
+          canAccess(AppDestination.classrooms,
+              role: UserRole.admin, accountType: AccountType.platform),
+          isTrue);
+      expect(
+          canAccess(AppDestination.accounts,
+              role: UserRole.admin, accountType: AccountType.platform),
+          isTrue);
+      expect(
+          canAccess(AppDestination.personalWorkspace,
+              role: UserRole.admin, accountType: AccountType.platform),
+          isFalse);
+      expect(
+          homeDestination(
+              role: UserRole.admin, accountType: AccountType.platform),
           AppDestination.dashboard);
     });
   });
@@ -151,26 +163,42 @@ void main() {
 
   group('canAccess', () {
     test('un étudiant n\'ouvre pas l\'administration', () {
-      expect(canAccess(AppDestination.teachers,
-          role: UserRole.student, accountType: AccountType.university), isFalse);
-      expect(canAccess(AppDestination.statistics,
-          role: UserRole.student, accountType: AccountType.university), isFalse);
-      expect(canAccess(AppDestination.settings,
-          role: UserRole.student, accountType: AccountType.university), isTrue);
+      expect(
+          canAccess(AppDestination.teachers,
+              role: UserRole.student, accountType: AccountType.university),
+          isFalse);
+      expect(
+          canAccess(AppDestination.statistics,
+              role: UserRole.student, accountType: AccountType.university),
+          isFalse);
+      expect(
+          canAccess(AppDestination.settings,
+              role: UserRole.student, accountType: AccountType.university),
+          isTrue);
     });
 
-    test('un délégué voit les étudiants mais pas les paramètres de l\'établissement', () {
-      expect(canAccess(AppDestination.students,
-          role: UserRole.delegate, accountType: AccountType.university), isTrue);
-      expect(canAccess(AppDestination.teachers,
-          role: UserRole.delegate, accountType: AccountType.university), isFalse);
+    test(
+        'un délégué voit les étudiants mais pas les paramètres de l\'établissement',
+        () {
+      expect(
+          canAccess(AppDestination.students,
+              role: UserRole.delegate, accountType: AccountType.university),
+          isTrue);
+      expect(
+          canAccess(AppDestination.teachers,
+              role: UserRole.delegate, accountType: AccountType.university),
+          isFalse);
     });
 
     test('l\'écran personnel n\'existe que pour les comptes personnels', () {
-      expect(canAccess(AppDestination.personalWorkspace,
-          role: UserRole.student, accountType: AccountType.personal), isTrue);
-      expect(canAccess(AppDestination.personalWorkspace,
-          role: UserRole.student, accountType: AccountType.university), isFalse);
+      expect(
+          canAccess(AppDestination.personalWorkspace,
+              role: UserRole.student, accountType: AccountType.personal),
+          isTrue);
+      expect(
+          canAccess(AppDestination.personalWorkspace,
+              role: UserRole.student, accountType: AccountType.university),
+          isFalse);
     });
 
     test('la règle est la même pour le menu et pour le refus', () {
@@ -220,7 +248,8 @@ void main() {
   group('homeDestination', () {
     test('un compte personnel atterrit sur son espace personnel', () {
       expect(
-        homeDestination(role: UserRole.student, accountType: AccountType.personal),
+        homeDestination(
+            role: UserRole.student, accountType: AccountType.personal),
         AppDestination.personalWorkspace,
       );
     });

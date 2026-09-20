@@ -8,11 +8,13 @@ import '../theme/app_theme.dart';
 /// qui devient bleue au focus), une icône optionnelle à gauche, et un
 /// bouton "œil" pour afficher/masquer le texte si c'est un champ mot de passe.
 class AppTextField extends StatefulWidget {
-  final String label;   // texte affiché au-dessus du champ (ex: "Email")
-  final String hint;    // texte d'exemple affiché en placeholder (ex: "admin@uniflow.edu")
+  final String label; // texte affiché au-dessus du champ (ex: "Email")
+  final String
+      hint; // texte d'exemple affiché en placeholder (ex: "admin@uniflow.edu")
   final bool obscureText; // true = champ mot de passe (texte masqué par défaut)
   final IconData? prefixIcon; // icône optionnelle à gauche du texte saisi
-  final TextEditingController? controller; // pour récupérer/contrôler la valeur saisie
+  final TextEditingController?
+      controller; // pour récupérer/contrôler la valeur saisie
   final TextInputType keyboardType; // type de clavier (texte, email, etc.)
 
   const AppTextField({

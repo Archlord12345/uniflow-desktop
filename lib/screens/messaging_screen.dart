@@ -120,9 +120,8 @@ class _MessagingScreenState extends ConsumerState<MessagingScreen> {
     try {
       final conversation = await ref
           .read(messagingRepositoryProvider)
-          .openByUsername(contact.username.isNotEmpty
-              ? contact.username
-              : contact.email);
+          .openByUsername(
+              contact.username.isNotEmpty ? contact.username : contact.email);
       if (!mounted) return;
       setState(() {
         _selectedId = conversation.id;
@@ -140,7 +139,8 @@ class _MessagingScreenState extends ConsumerState<MessagingScreen> {
   @override
   Widget build(BuildContext context) {
     final conversationsAsync = ref.watch(conversationsProvider);
-    final conversations = conversationsAsync.valueOrNull ?? const <Conversation>[];
+    final conversations =
+        conversationsAsync.valueOrNull ?? const <Conversation>[];
 
     // La version de la liste fait foi dès qu'elle est disponible ; `_pending`
     // ne sert que pendant le rechargement qui suit un envoi ou une ouverture.
@@ -310,7 +310,8 @@ class _ConversationList extends StatelessWidget {
               Text(
                 state.error.toString(),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
@@ -481,7 +482,8 @@ class _Thread extends StatelessWidget {
                           children: [
                             Text(current.name,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 14.5)),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14.5)),
                             if (current.handle.isNotEmpty)
                               Text(
                                 current.handle,
@@ -774,9 +776,12 @@ class _NewConversationDialogState
             size: 36,
           ),
           title: Text(contact.name,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
           subtitle: Text(
-            contact.username.isNotEmpty ? '@${contact.username}' : contact.email,
+            contact.username.isNotEmpty
+                ? '@${contact.username}'
+                : contact.email,
             style: const TextStyle(fontSize: 11, color: AppColors.primaryBlue),
           ),
           onTap: () => Navigator.of(context).pop(contact),

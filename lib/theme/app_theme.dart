@@ -310,7 +310,8 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.cardWhite,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         labelStyle: AppTextStyles.body,
         hintStyle: AppTextStyles.body.copyWith(color: AppColors.textMuted),
         helperStyle: AppTextStyles.bodySmall,
@@ -327,7 +328,8 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusCard),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+          borderSide:
+              const BorderSide(color: AppColors.primaryBlue, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusCard),

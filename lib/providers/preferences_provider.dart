@@ -98,6 +98,7 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   }
 }
 
-final preferencesProvider = StateNotifierProvider<PreferencesNotifier, AppPreferences>((ref) {
+final preferencesProvider =
+    StateNotifierProvider<PreferencesNotifier, AppPreferences>((ref) {
   return PreferencesNotifier();
 });

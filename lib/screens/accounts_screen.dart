@@ -31,7 +31,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   String? _level;
   String _search = '';
 
-  ({String? program, String? level}) get _filter => (program: _program, level: _level);
+  ({String? program, String? level}) get _filter =>
+      (program: _program, level: _level);
 
   Future<void> _refresh() async {
     ref.invalidate(managedAccountsProvider(_filter));
@@ -69,7 +70,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               SizedBox(
                 width: 260,
                 child: TextField(
-                  onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
+                  onChanged: (v) =>
+                      setState(() => _search = v.trim().toLowerCase()),
                   decoration: const InputDecoration(
                     isDense: true,
                     prefixIcon: Icon(Icons.search, size: 18),
@@ -86,13 +88,17 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 }),
                 onLevelChanged: (v) => setState(() => _level = v),
               ),
-              IconButton(tooltip: 'Actualiser', onPressed: _refresh, icon: const Icon(Icons.refresh)),
+              IconButton(
+                  tooltip: 'Actualiser',
+                  onPressed: _refresh,
+                  icon: const Icon(Icons.refresh)),
             ],
           ),
         ),
         Expanded(
           child: accounts.when(
-            loading: () => const Padding(padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
+            loading: () => const Padding(
+                padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
             error: (error, _) => DataErrorView(error: error, onRetry: _refresh),
             data: (items) {
               final filtered = items.where((a) {
@@ -128,7 +134,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     );
   }
 
-  Future<void> _openEditor(BuildContext context, {ManagedAccount? existing}) async {
+  Future<void> _openEditor(BuildContext context,
+      {ManagedAccount? existing}) async {
     final saved = await showDialog<bool>(
       context: context,
       builder: (_) => _AccountEditorDialog(existing: existing),
@@ -147,7 +154,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           'passez-le alors en SUSPENDED.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -162,9 +171,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
       if (mounted) showFeedback(context, message: 'Compte supprimé.');
       _refresh();
     } on ApiException catch (e) {
-      if (mounted) showFeedback(context, message: 'Suppression refusée.', detail: e.message, success: false);
+      if (mounted)
+        showFeedback(context,
+            message: 'Suppression refusée.', detail: e.message, success: false);
     } catch (e) {
-      if (mounted) showFeedback(context, message: 'Suppression impossible.', detail: '$e', success: false);
+      if (mounted)
+        showFeedback(context,
+            message: 'Suppression impossible.', detail: '$e', success: false);
     }
   }
 }
@@ -200,8 +213,11 @@ class _AccountTile extends StatelessWidget {
             radius: 20,
             backgroundColor: AppColors.primary50,
             child: Text(
-              account.name.isEmpty ? '?' : account.name.characters.first.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primaryBlue),
+              account.name.isEmpty
+                  ? '?'
+                  : account.name.characters.first.toUpperCase(),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w700, color: AppColors.primaryBlue),
             ),
           ),
           const SizedBox(width: 14),
@@ -216,14 +232,16 @@ class _AccountTile extends StatelessWidget {
                         account.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                     ),
                     const SizedBox(width: 8),
                     _Badge(text: role.label, color: AppColors.primaryBlue),
                     if (account.isSuperAdmin) ...[
                       const SizedBox(width: 6),
-                      const _Badge(text: 'Superadmin', color: AppColors.tealDark),
+                      const _Badge(
+                          text: 'Superadmin', color: AppColors.tealDark),
                     ],
                     if (suspended) ...[
                       const SizedBox(width: 6),
@@ -236,7 +254,8 @@ class _AccountTile extends StatelessWidget {
                   [
                     account.email,
                     if (account.matricule.isNotEmpty) account.matricule,
-                    if (account.program.isNotEmpty) '${account.program}${account.level.isNotEmpty ? ' · ${account.level}' : ''}',
+                    if (account.program.isNotEmpty)
+                      '${account.program}${account.level.isNotEmpty ? ' · ${account.level}' : ''}',
                     if (account.university.isNotEmpty) account.university,
                   ].join('  ·  '),
                   maxLines: 1,
@@ -247,16 +266,21 @@ class _AccountTile extends StatelessWidget {
             ),
           ),
           if (canEdit) ...[
-            IconButton(tooltip: 'Modifier', onPressed: onEdit, icon: const Icon(Icons.edit_outlined, size: 19)),
+            IconButton(
+                tooltip: 'Modifier',
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 19)),
             IconButton(
               tooltip: 'Supprimer',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, size: 19, color: AppColors.textMuted),
+              icon: const Icon(Icons.delete_outline,
+                  size: 19, color: AppColors.textMuted),
             ),
           ] else
             const Tooltip(
               message: 'Réservé à l\'administrateur de la plateforme',
-              child: Icon(Icons.lock_outline, size: 18, color: AppColors.textMuted),
+              child: Icon(Icons.lock_outline,
+                  size: 18, color: AppColors.textMuted),
             ),
         ],
       ),
@@ -276,7 +300,9 @@ class _Badge extends StatelessWidget {
           color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+        child: Text(text,
+            style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w700, color: color)),
       );
 }
 
@@ -286,19 +312,25 @@ class _AccountEditorDialog extends ConsumerStatefulWidget {
   const _AccountEditorDialog({this.existing});
 
   @override
-  ConsumerState<_AccountEditorDialog> createState() => _AccountEditorDialogState();
+  ConsumerState<_AccountEditorDialog> createState() =>
+      _AccountEditorDialogState();
 }
 
 class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
   late final _name = TextEditingController(text: widget.existing?.name ?? '');
   late final _email = TextEditingController(text: widget.existing?.email ?? '');
-  late final _matricule = TextEditingController(text: widget.existing?.matricule ?? '');
-  late final _university = TextEditingController(text: widget.existing?.university ?? '');
+  late final _matricule =
+      TextEditingController(text: widget.existing?.matricule ?? '');
+  late final _university =
+      TextEditingController(text: widget.existing?.university ?? '');
   final _password = TextEditingController();
 
   late String _role = widget.existing?.role ?? 'STUDENT';
-  late String? _program = (widget.existing?.program ?? '').isEmpty ? null : widget.existing!.program;
-  late String? _level = (widget.existing?.level ?? '').isEmpty ? null : widget.existing!.level;
+  late String? _program = (widget.existing?.program ?? '').isEmpty
+      ? null
+      : widget.existing!.program;
+  late String? _level =
+      (widget.existing?.level ?? '').isEmpty ? null : widget.existing!.level;
   late String _status = widget.existing?.status ?? 'ACTIVE';
   bool _busy = false;
   String? _error;
@@ -320,11 +352,13 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
       return;
     }
     if (!_isEdit && _password.text.length < 8) {
-      setState(() => _error = 'Le mot de passe initial doit contenir au moins 8 caractères.');
+      setState(() => _error =
+          'Le mot de passe initial doit contenir au moins 8 caractères.');
       return;
     }
     if (_isLearner && (_program == null || _level == null)) {
-      setState(() => _error = 'Filière et niveau sont requis pour un apprenant.');
+      setState(
+          () => _error = 'Filière et niveau sont requis pour un apprenant.');
       return;
     }
     setState(() {
@@ -344,7 +378,9 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
     );
     try {
       final api = ref.read(adminDirectoryApiProvider);
-      final result = _isEdit ? await api.update(widget.existing!.userId, draft) : await api.create(draft);
+      final result = _isEdit
+          ? await api.update(widget.existing!.userId, draft)
+          : await api.create(draft);
       if (!mounted) return;
       final enrollments = result['enrollments'];
       showFeedback(
@@ -382,7 +418,8 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
     final levels = reference?.levelsOf(_program) ?? const <String>[];
 
     return AlertDialog(
-      title: Text(_isEdit ? 'Modifier le compte' : 'Créer un compte universitaire'),
+      title: Text(
+          _isEdit ? 'Modifier le compte' : 'Créer un compte universitaire'),
       content: SizedBox(
         width: 460,
         child: SingleChildScrollView(
@@ -390,7 +427,9 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nom complet')),
+              TextField(
+                  controller: _name,
+                  decoration: const InputDecoration(labelText: 'Nom complet')),
               const SizedBox(height: 12),
               TextField(
                 controller: _email,
@@ -404,7 +443,8 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'Mot de passe initial',
-                    helperText: 'À communiquer à la personne ; elle pourra le changer.',
+                    helperText:
+                        'À communiquer à la personne ; elle pourra le changer.',
                   ),
                 ),
               ],
@@ -415,7 +455,8 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
                 decoration: const InputDecoration(labelText: 'Rôle'),
                 items: [
                   for (final r in roles)
-                    DropdownMenuItem(value: r, child: Text(parseUserRole(r).label)),
+                    DropdownMenuItem(
+                        value: r, child: Text(parseUserRole(r).label)),
                 ],
                 onChanged: (v) => setState(() => _role = v ?? 'STUDENT'),
               ),
@@ -439,7 +480,9 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
                     for (final code in programs)
                       DropdownMenuItem(
                         value: code,
-                        child: Text(reference?.programByCode(code)?.displayName ?? code, overflow: TextOverflow.ellipsis),
+                        child: Text(
+                            reference?.programByCode(code)?.displayName ?? code,
+                            overflow: TextOverflow.ellipsis),
                       ),
                   ],
                   onChanged: (v) => setState(() {
@@ -450,19 +493,28 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
               else
                 TextField(
                   controller: TextEditingController(text: _program ?? ''),
-                  onChanged: (v) => _program = v.trim().isEmpty ? null : v.trim(),
-                  decoration: const InputDecoration(labelText: 'Code de filière'),
+                  onChanged: (v) =>
+                      _program = v.trim().isEmpty ? null : v.trim(),
+                  decoration:
+                      const InputDecoration(labelText: 'Code de filière'),
                 ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 key: ValueKey('level-$_level-$_program'),
                 initialValue: levels.contains(_level) ? _level : null,
                 decoration: const InputDecoration(labelText: 'Niveau'),
-                items: [for (final l in levels) DropdownMenuItem(value: l, child: Text(l))],
-                onChanged: levels.isEmpty ? null : (v) => setState(() => _level = v),
+                items: [
+                  for (final l in levels)
+                    DropdownMenuItem(value: l, child: Text(l))
+                ],
+                onChanged:
+                    levels.isEmpty ? null : (v) => setState(() => _level = v),
               ),
               const SizedBox(height: 12),
-              TextField(controller: _matricule, decoration: const InputDecoration(labelText: 'Matricule (facultatif)')),
+              TextField(
+                  controller: _matricule,
+                  decoration: const InputDecoration(
+                      labelText: 'Matricule (facultatif)')),
               if (_isEdit) ...[
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -470,7 +522,8 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
                   decoration: const InputDecoration(labelText: 'Statut'),
                   items: const [
                     DropdownMenuItem(value: 'ACTIVE', child: Text('Actif')),
-                    DropdownMenuItem(value: 'SUSPENDED', child: Text('Suspendu')),
+                    DropdownMenuItem(
+                        value: 'SUSPENDED', child: Text('Suspendu')),
                     DropdownMenuItem(value: 'INACTIVE', child: Text('Inactif')),
                   ],
                   onChanged: (v) => setState(() => _status = v ?? 'ACTIVE'),
@@ -478,18 +531,25 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
               ],
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12.5)),
+                Text(_error!,
+                    style: const TextStyle(
+                        color: AppColors.danger, fontSize: 12.5)),
               ],
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: _busy ? null : () => Navigator.pop(context, false), child: const Text('Annuler')),
+        TextButton(
+            onPressed: _busy ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler')),
         FilledButton(
           onPressed: _busy ? null : _save,
           child: _busy
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2))
               : Text(_isEdit ? 'Enregistrer' : 'Créer'),
         ),
       ],

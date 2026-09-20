@@ -113,7 +113,8 @@ class Conversation {
       messages: rawMessages is List
           ? rawMessages
               .whereType<Map>()
-              .map((item) => ChatMessage.fromJson(Map<String, dynamic>.from(item)))
+              .map((item) =>
+                  ChatMessage.fromJson(Map<String, dynamic>.from(item)))
               .toList()
           : const [],
     );
@@ -175,7 +176,8 @@ class MessagingRepository {
   /// Marque comme lus les messages reçus et renvoie le nombre effectivement
   /// mis à jour.
   Future<int> markRead(String conversationId) async {
-    final data = await _invoke({'action': 'read', 'conversationId': conversationId});
+    final data =
+        await _invoke({'action': 'read', 'conversationId': conversationId});
     return data['markedRead'] ?? 0;
   }
 
@@ -188,7 +190,8 @@ class MessagingRepository {
     });
     final conversation = data['conversation'];
     if (conversation is! Map) {
-      throw MessagingException('Message envoyé, mais la conversation est illisible.');
+      throw MessagingException(
+          'Message envoyé, mais la conversation est illisible.');
     }
     return Conversation.fromJson(Map<String, dynamic>.from(conversation));
   }

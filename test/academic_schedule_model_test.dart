@@ -34,7 +34,8 @@ void main() {
     expect(s.type, 'TD Gr1');
   });
 
-  test('ancien document : champs absents ou d\'un autre type → chaînes vides', () {
+  test('ancien document : champs absents ou d\'un autre type → chaînes vides',
+      () {
     final s = AcademicSchedule.fromData('s2', {
       'courseId': 'c2',
       'dayOfWeek': 'Mardi',

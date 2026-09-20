@@ -29,15 +29,16 @@ class UniFlowApp extends ConsumerWidget {
 
     return MaterialApp(
       title: 'UniFlow',
-      debugShowCheckedModeBanner: false, // masque le bandeau "DEBUG" rouge en haut à droite
-      theme: AppTheme.lightTheme, // thème centralisé défini dans theme/app_theme.dart
+      debugShowCheckedModeBanner:
+          false, // masque le bandeau "DEBUG" rouge en haut à droite
+      theme: AppTheme
+          .lightTheme, // thème centralisé défini dans theme/app_theme.dart
       home: session.when(
         loading: () => const _SplashScreen(),
         // Un échec de résolution (Appwrite injoignable) ne doit pas bloquer
         // l'app : on laisse l'utilisateur tenter de se connecter.
         error: (_, __) => const LoginScreen(),
-        data: (_) =>
-            user == null ? const LoginScreen() : const MainShell(),
+        data: (_) => user == null ? const LoginScreen() : const MainShell(),
       ),
     );
   }

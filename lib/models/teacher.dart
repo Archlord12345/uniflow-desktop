@@ -18,11 +18,12 @@ class TeacherHistoryEvent {
 /// page de détail. Construit depuis l'annuaire académique Appwrite
 /// (voir [Teacher.fromDirectory]).
 class Teacher {
-  final String id;         // ex: "TCH001"
-  final String fullName;   // ex: "Youssef El Khatabi" (le "Pr." est ajouté à l'affichage)
+  final String id; // ex: "TCH001"
+  final String
+      fullName; // ex: "Youssef El Khatabi" (le "Pr." est ajouté à l'affichage)
   final String email;
   final String departement;
-  final String statut;     // "Actif" | "Inactif"
+  final String statut; // "Actif" | "Inactif"
   final Color statutColor;
   final Color avatarColor;
 
@@ -85,7 +86,11 @@ class Teacher {
 
   /// Initiales calculées à partir du nom complet (ex: "Youssef El Khatabi" -> "YE")
   String get initials {
-    final parts = fullName.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final parts = fullName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
     if (parts.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();

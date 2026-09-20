@@ -22,7 +22,14 @@ class StudentDetailScreen extends StatefulWidget {
 
 class _StudentDetailScreenState extends State<StudentDetailScreen> {
   int _selectedTab = 0;
-  static const _tabs = ['Informations', 'Parcours', 'Présences', 'Notes', 'Emploi du temps', 'Activité'];
+  static const _tabs = [
+    'Informations',
+    'Parcours',
+    'Présences',
+    'Notes',
+    'Emploi du temps',
+    'Activité'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +57,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         SimpleTabBar(
                           tabs: _tabs,
                           selectedIndex: _selectedTab,
-                          onTabSelected: (i) => setState(() => _selectedTab = i),
+                          onTabSelected: (i) =>
+                              setState(() => _selectedTab = i),
                         ),
                         const SizedBox(height: 20),
                         if (_selectedTab == 0) ...[
@@ -62,7 +70,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                                   child: _InfoCard(
                                     title: 'Informations personnelles',
                                     rows: [
-                                      ('Date de naissance', student.dateNaissance),
+                                      (
+                                        'Date de naissance',
+                                        student.dateNaissance
+                                      ),
                                       ('Email', student.email),
                                       ('Téléphone', student.telephone),
                                       ('Adresse', student.adresse),
@@ -81,7 +92,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                                       ('Semestre', student.semestre),
                                       ('Spécialité', student.specialite),
                                       ('Groupe', student.groupe),
-                                      ('Date inscription', student.dateInscriptionLongue),
+                                      (
+                                        'Date inscription',
+                                        student.dateInscriptionLongue
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -101,7 +115,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                             ),
                             child: Text(
                               '${_tabs[_selectedTab]} — contenu à venir',
-                              style: const TextStyle(color: AppColors.textMuted),
+                              style:
+                                  const TextStyle(color: AppColors.textMuted),
                             ),
                           ),
                       ],
@@ -136,11 +151,15 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(color: student.avatarColor, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                    color: student.avatarColor, shape: BoxShape.circle),
                 alignment: Alignment.center,
                 child: Text(
                   student.initials,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryBlue),
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryBlue),
                 ),
               ),
               const SizedBox(width: 16),
@@ -148,13 +167,19 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(student.fullName, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                    Text(student.fullName,
+                        style: const TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         Text(student.matricule, style: AppTextStyles.body),
                         const SizedBox(width: 8),
-                        StatusBadge(label: student.statut, backgroundColor: student.statutColor),
+                        StatusBadge(
+                            label: student.statut,
+                            backgroundColor: student.statutColor),
                       ],
                     ),
                   ],
@@ -169,8 +194,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textPrimary,
                   side: const BorderSide(color: AppColors.inputBorder),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -178,12 +205,16 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 onPressed: () {
                   // TODO: confirmer puis supprimer l'étudiant
                 },
-                icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.danger),
-                label: const Text('Supprimer', style: TextStyle(color: AppColors.danger)),
+                icon: const Icon(Icons.delete_outline,
+                    size: 16, color: AppColors.danger),
+                label: const Text('Supprimer',
+                    style: TextStyle(color: AppColors.danger)),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFF6C6C6)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -195,13 +226,16 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   // l'administrateur de confirmer le bon interlocuteur.
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => MessagingScreen(initialQuery: student.fullName),
+                      builder: (_) =>
+                          MessagingScreen(initialQuery: student.fullName),
                     ),
                   );
                 },
                 icon: const Icon(Icons.mail_outline, size: 16),
                 label: const Text('Envoyer un message'),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13)),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 13)),
               ),
             ],
           ),
@@ -240,7 +274,11 @@ class _InfoCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(row.$1, style: AppTextStyles.body),
-                  Text(row.$2, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text(row.$2,
+                      style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary)),
                 ],
               ),
             ),
@@ -279,7 +317,8 @@ class _HistoryCard extends StatelessWidget {
             const Text(
               'Aucun événement de dossier enregistré. Cet historique se '
               'remplira quand une collection de journalisation sera ajoutée.',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
+              style: TextStyle(
+                  color: AppColors.textMuted, fontSize: 13, height: 1.5),
             )
           else
             for (final event in historique)
@@ -290,15 +329,23 @@ class _HistoryCard extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 5),
-                      child: Container(width: 8, height: 8, decoration: BoxDecoration(color: event.dotColor, shape: BoxShape.circle)),
+                      child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                              color: event.dotColor, shape: BoxShape.circle)),
                     ),
                     const SizedBox(width: 12),
                     SizedBox(
                       width: 150,
-                      child: Text(event.dateLabel, style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                      child: Text(event.dateLabel,
+                          style: const TextStyle(
+                              fontSize: 12.5, color: AppColors.textMuted)),
                     ),
                     Expanded(
-                      child: Text(event.description, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary)),
+                      child: Text(event.description,
+                          style: const TextStyle(
+                              fontSize: 13.5, color: AppColors.textPrimary)),
                     ),
                   ],
                 ),

@@ -17,8 +17,8 @@ enum SessionType {
 class ScheduleEvent {
   final String title;
   final SessionType type;
-  final int dayIndex;      // 0 = Lundi ... 5 = Samedi
-  final double startHour;  // ex: 8.0 pour 08h00, 12.5 pour 12h30
+  final int dayIndex; // 0 = Lundi ... 5 = Samedi
+  final double startHour; // ex: 8.0 pour 08h00, 12.5 pour 12h30
   final double endHour;
   final String salle;
   final String enseignant;
@@ -60,14 +60,31 @@ class ScheduleWeek {
     this.unplacedCount = 0,
   });
 
-  static const List<String> _dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  static const List<String> _dayNames = [
+    'Lun',
+    'Mar',
+    'Mer',
+    'Jeu',
+    'Ven',
+    'Sam'
+  ];
 
   /// Nombre de colonnes de la grille (lundi → samedi).
   static const int dayCount = 6;
 
   static const List<String> _monthNames = [
-    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre',
   ];
 
   /// Libellés des colonnes (« Lun 13 », « Mar 14 »…) pour la semaine affichée.

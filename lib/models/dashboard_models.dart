@@ -12,8 +12,18 @@ class MonthlyCount {
   const MonthlyCount({required this.month, required this.count});
 
   static const List<String> _shortMonths = [
-    'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
-    'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc',
+    'Jan',
+    'Fév',
+    'Mar',
+    'Avr',
+    'Mai',
+    'Juin',
+    'Juil',
+    'Août',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Déc',
   ];
 
   /// Libellé d'axe, ex. « Mai ».

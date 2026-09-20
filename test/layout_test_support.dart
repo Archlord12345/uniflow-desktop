@@ -125,14 +125,18 @@ List<Override> _overrides() => [
       // neutralisation, le test de mise en page lancerait un appel réseau.
       teamMembersProvider.overrideWith((ref) async => equipeDeTest()),
       scheduleWeekProvider.overrideWith(
-        (ref) async => ScheduleWeek(weekStart: DateTime(2026, 9, 14), events: const []),
+        (ref) async =>
+            ScheduleWeek(weekStart: DateTime(2026, 9, 14), events: const []),
       ),
-      studentAttendanceProvider.overrideWith((ref) async => <StudentAttendance>[]),
+      studentAttendanceProvider
+          .overrideWith((ref) async => <StudentAttendance>[]),
       gradeStatsProvider.overrideWith((ref) async => null),
       conversationsProvider.overrideWith((ref) async => <Conversation>[]),
-      activeConferencesProvider.overrideWith((ref) async => <DiscoveredConference>[]),
+      activeConferencesProvider
+          .overrideWith((ref) async => <DiscoveredConference>[]),
       dashboardStatsProvider.overrideWith((ref) async => <String, dynamic>{}),
-      dashboardEnrollmentsProvider.overrideWith((ref) async => <MonthlyCount>[]),
+      dashboardEnrollmentsProvider
+          .overrideWith((ref) async => <MonthlyCount>[]),
       dashboardAttendanceProvider.overrideWith((ref) async => null),
       dashboardActivityProvider.overrideWith((ref) async => <ActivityEntry>[]),
       personalSubjectsProvider.overrideWith((ref) async => <PersonalSubject>[]),
@@ -140,16 +144,25 @@ List<Override> _overrides() => [
       enrollmentsProvider.overrideWith((ref) async => <AcademicEnrollment>[]),
       notificationsProvider.overrideWith((ref) async => <AppNotification>[]),
       libraryProvider.overrideWith((ref) async => <LibraryItem>[]),
-      programOptionsProvider.overrideWith((ref) async => ProgramOptions.fromCourses(const [])),
-      managedAccountsProvider.overrideWith((ref, filter) async => <ManagedAccount>[]),
+      programOptionsProvider
+          .overrideWith((ref) async => ProgramOptions.fromCourses(const [])),
+      managedAccountsProvider
+          .overrideWith((ref, filter) async => <ManagedAccount>[]),
       // Référentiel avec une cascade complète : l'inscription doit être mesurée
       // avec ses quatre listes déroulantes, pas avec la saisie libre de secours.
-      academicReferenceProvider.overrideWith((ref) async => referentielDeTest()),
+      academicReferenceProvider
+          .overrideWith((ref) async => referentielDeTest()),
     ];
 
 AcademicReference referentielDeTest() => const AcademicReference(
-      universities: [University(id: 'u', code: 'UY1', name: 'Université de test', shortName: 'UT')],
-      faculties: [Faculty(id: 'f', universityCode: 'UY1', code: 'FS', name: 'Faculté de test')],
+      universities: [
+        University(
+            id: 'u', code: 'UY1', name: 'Université de test', shortName: 'UT')
+      ],
+      faculties: [
+        Faculty(
+            id: 'f', universityCode: 'UY1', code: 'FS', name: 'Faculté de test')
+      ],
       programs: [
         AcademicProgram(
           id: 'p',
@@ -161,7 +174,12 @@ AcademicReference referentielDeTest() => const AcademicReference(
         ),
       ],
       classrooms: [
-        ClassroomRef(id: 'c', universityCode: 'UY1', code: 'A101', name: 'Salle de test', capacity: 40),
+        ClassroomRef(
+            id: 'c',
+            universityCode: 'UY1',
+            code: 'A101',
+            name: 'Salle de test',
+            capacity: 40),
       ],
     );
 
@@ -180,7 +198,8 @@ class FakeAcademicRepository extends AcademicRepository {
   Future<List<AcademicGrade>> getAllGrades() async => <AcademicGrade>[];
 
   @override
-  Future<List<AcademicAssignment>> getAssignments() async => <AcademicAssignment>[];
+  Future<List<AcademicAssignment>> getAssignments() async =>
+      <AcademicAssignment>[];
 
   @override
   Future<Map<String, dynamic>> getGlobalStats() async => <String, dynamic>{};
@@ -190,7 +209,9 @@ class FakeAcademicRepository extends AcademicRepository {
       <MonthlyCount>[];
 
   @override
-  Future<AttendanceBreakdown?> getAttendanceBreakdown({int limit = 5000}) async => null;
+  Future<AttendanceBreakdown?> getAttendanceBreakdown(
+          {int limit = 5000}) async =>
+      null;
 
   @override
   Future<List<ActivityEntry>> getRecentActivity({int limit = 6}) async =>
@@ -202,7 +223,8 @@ class FakeMessagingRepository extends MessagingRepository {
   FakeMessagingRepository(super.api);
 
   @override
-  Future<List<ChatContact>> searchContacts(String query) async => <ChatContact>[];
+  Future<List<ChatContact>> searchContacts(String query) async =>
+      <ChatContact>[];
 
   @override
   Future<int> markRead(String conversationId) async => 0;
@@ -221,8 +243,10 @@ Widget host(Widget child) {
     overrides: [
       ..._overrides(),
       appwriteServiceProvider.overrideWithValue(service),
-      academicRepositoryProvider.overrideWithValue(FakeAcademicRepository(service)),
-      messagingRepositoryProvider.overrideWithValue(FakeMessagingRepository(UniFlowApi(service))),
+      academicRepositoryProvider
+          .overrideWithValue(FakeAcademicRepository(service)),
+      messagingRepositoryProvider
+          .overrideWithValue(FakeMessagingRepository(UniFlowApi(service))),
     ],
     child: MaterialApp(
       theme: AppTheme.lightTheme,

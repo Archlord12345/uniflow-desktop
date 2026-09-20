@@ -46,8 +46,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
-      setState(() => _errorMessage = 'Saisissez votre email et votre mot de passe.');
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      setState(
+          () => _errorMessage = 'Saisissez votre email et votre mot de passe.');
       return;
     }
     setState(() {
@@ -64,7 +66,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (user == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Session ouverte, mais le compte n\'a pas pu être relu. '
+          _errorMessage =
+              'Session ouverte, mais le compte n\'a pas pu être relu. '
               'Vérifiez la connexion réseau et réessayez.';
         });
         return;
@@ -82,16 +85,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ? 'Ce compte est un compte indépendant : ouverture de votre espace personnel.'
             : 'Ce compte est rattaché à un établissement : ouverture de votre espace universitaire.';
       } else if (user.isPlatform) {
-        _notice = 'Administration de la plateforme : tous les établissements sont visibles.';
+        _notice =
+            'Administration de la plateforme : tous les établissements sont visibles.';
       }
 
       ref.read(currentUserProvider.notifier).state = user;
       ref.read(currentDestinationProvider.notifier).state = null;
       setState(() => _isLoading = false);
       if (_notice != null) {
-        showFeedback(context, message: _notice!, success: true, duration: const Duration(seconds: 5));
+        showFeedback(context,
+            message: _notice!,
+            success: true,
+            duration: const Duration(seconds: 5));
       } else {
-        showFeedback(context, message: 'Bienvenue, ${user.name}.', detail: user.userRole.scope);
+        showFeedback(context,
+            message: 'Bienvenue, ${user.name}.', detail: user.userRole.scope);
       }
       Navigator.of(context).pushReplacement(softRoute(const MainShell()));
     } on AppwriteException catch (e) {
@@ -186,11 +194,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 18,
                       child: Checkbox(
                         value: _rememberMe,
-                        onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                        onChanged: (v) =>
+                            setState(() => _rememberMe = v ?? false),
                         activeColor: AppColors.primaryBlue,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4)),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -199,7 +209,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         'Rester connecté',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 13, color: AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -216,7 +227,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Mot de passe oublié ?', style: AppTextStyles.link),
+              child: const Text('Mot de passe oublié ?',
+                  style: AppTextStyles.link),
             ),
           ],
         ),
@@ -232,7 +244,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const Expanded(child: Divider(color: AppColors.inputBorder)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text('Pas encore de compte ?', style: AppTextStyles.body.copyWith(fontSize: 12.5)),
+              child: Text('Pas encore de compte ?',
+                  style: AppTextStyles.body.copyWith(fontSize: 12.5)),
             ),
             const Expanded(child: Divider(color: AppColors.inputBorder)),
           ],
@@ -248,7 +261,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          style:
+              OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
         ),
       ],
     );

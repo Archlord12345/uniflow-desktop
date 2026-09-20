@@ -21,9 +21,6 @@ import '../providers/preferences_provider.dart';
 import '../widgets/motion.dart';
 import 'session_flow.dart';
 
-
-
-
 /// Console d'hébergement des visioconférences.
 ///
 /// Le poste qui ouvre une salle en devient le serveur : il lance un serveur
@@ -54,16 +51,21 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
 
     return _ManagementPage(
       title: 'Gestion des conférences',
-      subtitle: 'Hébergez une séance : ce poste devient le serveur de la réunion',
+      subtitle:
+          'Hébergez une séance : ce poste devient le serveur de la réunion',
       action: host.isRunning ? null : 'Nouvelle conférence',
       icon: Icons.add,
       onAction: _working ? null : _createConference,
       stats: [
         if (host.isRunning) ...[
-          _Metric('État', host.status.label, 'Serveur embarqué', Icons.dns_outlined),
-          _Metric('Code réunion', host.conference!.code, 'À communiquer', Icons.key_outlined),
-          _Metric('Adresse locale', host.localIp ?? '—', 'Réseau de l\'hôte', Icons.lan_outlined),
-          _Metric('Participants max', '${host.conference!.maxParticipants}', 'Capacité de la salle', Icons.groups_outlined),
+          _Metric('État', host.status.label, 'Serveur embarqué',
+              Icons.dns_outlined),
+          _Metric('Code réunion', host.conference!.code, 'À communiquer',
+              Icons.key_outlined),
+          _Metric('Adresse locale', host.localIp ?? '—', 'Réseau de l\'hôte',
+              Icons.lan_outlined),
+          _Metric('Participants max', '${host.conference!.maxParticipants}',
+              'Capacité de la salle', Icons.groups_outlined),
         ],
       ],
       child: Column(
@@ -96,7 +98,6 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
                   'sans passer par une machine centrale. Le serveur média doit '
                   'être installé sur cette machine.',
             ),
-
           if (!host.isRunning && !_working) ...[
             const SizedBox(height: 16),
             Align(
@@ -108,7 +109,6 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
               ),
             ),
           ],
-
           const SizedBox(height: 26),
           _DiscoveredConferences(
             conferences: activeAsync,
@@ -217,7 +217,8 @@ class _RunningConferencePanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              const StatusBadge(label: 'EN ÉCOUTE', backgroundColor: Color(0xFFDFF5E4)),
+              const StatusBadge(
+                  label: 'EN ÉCOUTE', backgroundColor: Color(0xFFDFF5E4)),
               const SizedBox(width: 8),
               StatusBadge(
                 label: conference.mode.label,
@@ -227,9 +228,11 @@ class _RunningConferencePanel extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               if (host.published)
-                const StatusBadge(label: 'PUBLIÉE', backgroundColor: Color(0xFFDFF5E4))
+                const StatusBadge(
+                    label: 'PUBLIÉE', backgroundColor: Color(0xFFDFF5E4))
               else
-                const StatusBadge(label: 'NON PUBLIÉE', backgroundColor: Color(0xFFFFF0DC)),
+                const StatusBadge(
+                    label: 'NON PUBLIÉE', backgroundColor: Color(0xFFFFF0DC)),
             ],
           ),
           const SizedBox(height: 18),
@@ -253,7 +256,8 @@ class _RunningConferencePanel extends StatelessWidget {
             'Les participants rejoignent cette réunion depuis leur propre '
             'application en saisissant le code ci-dessus. Le secret de '
             'signature des jetons ne quitte jamais cette machine.',
-            style: TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.5),
+            style: TextStyle(
+                fontSize: 12.5, color: AppColors.textMuted, height: 1.5),
           ),
           const SizedBox(height: 20),
 
@@ -271,7 +275,8 @@ class _RunningConferencePanel extends StatelessWidget {
                 onPressed: onStop,
                 icon: const Icon(Icons.stop_circle_outlined, size: 17),
                 label: const Text('Terminer la réunion'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
               ),
             ],
           ),
@@ -303,7 +308,8 @@ class _CopyField extends StatelessWidget {
             width: 220,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
           Expanded(
@@ -325,7 +331,8 @@ class _CopyField extends StatelessWidget {
                 SnackBar(content: Text('« $value » copié.')),
               );
             },
-            icon: const Icon(Icons.copy_rounded, size: 17, color: AppColors.textSecondary),
+            icon: const Icon(Icons.copy_rounded,
+                size: 17, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -373,7 +380,8 @@ class _DiscoveredConferences extends StatelessWidget {
               'Aucune réunion publiée pour le moment. Une réunion apparaît ici '
               'quand son hôte l\'a ouverte ; l\'annuaire s\'appuie sur la '
               'collection Appwrite « conference_rooms ».',
-              style: TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.5),
+              style: TextStyle(
+                  fontSize: 13, color: AppColors.textMuted, height: 1.5),
             );
           }
           return Column(
@@ -384,7 +392,8 @@ class _DiscoveredConferences extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
-                      const Icon(Icons.videocam_outlined, size: 20, color: AppColors.primaryBlue),
+                      const Icon(Icons.videocam_outlined,
+                          size: 20, color: AppColors.primaryBlue),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -392,20 +401,25 @@ class _DiscoveredConferences extends StatelessWidget {
                           children: [
                             Text(
                               item.name,
-                              style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               '${item.hostName.isEmpty ? 'Hôte inconnu' : item.hostName} · '
                               '${item.mode.label} · ${item.serverUrl}',
-                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textMuted),
                             ),
                           ],
                         ),
                       ),
                       Text(
                         '${item.maxParticipants} places',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -415,7 +429,8 @@ class _DiscoveredConferences extends StatelessWidget {
                 'Pour rejoindre une réunion, saisissez son code dans votre '
                 'propre application : la jonction se fait directement auprès '
                 'de l\'hôte.',
-                style: TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.5),
+                style: TextStyle(
+                    fontSize: 12.5, color: AppColors.textMuted, height: 1.5),
               ),
             ],
           );
@@ -462,7 +477,8 @@ class _ConferenceNameDialogState extends State<_ConferenceNameDialog> {
           const Text(
             'Ce poste deviendra le serveur de la réunion : gardez '
             'l\'application ouverte pendant toute la séance.',
-            style: TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
+            style: TextStyle(
+                fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
           ),
         ],
       ),
@@ -520,7 +536,8 @@ class _PublicUrlDialogState extends State<_PublicUrlDialog> {
             'Adresse par laquelle un participant hors du réseau local atteint '
             'ce serveur (tunnel ou redirection de port). Les participants déjà '
             'sur le réseau local continuent d\'utiliser l\'adresse locale.',
-            style: TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
+            style: TextStyle(
+                fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
           ),
         ],
       ),
@@ -543,7 +560,6 @@ class _PublicUrlDialogState extends State<_PublicUrlDialog> {
 // L'écran « Communications » statique (annonces codées en dur) a été remplacé
 // par la messagerie réelle : voir lib/screens/messaging_screen.dart, branchée
 // sur AppDestination.messaging dans main_shell.dart.
-
 
 /// Statistiques académiques, calculées depuis les notes réellement saisies.
 ///
@@ -576,7 +592,8 @@ class StatisticsScreen extends ConsumerWidget {
             return const _InfoPanel(
               icon: Icons.query_stats_outlined,
               title: 'Aucune note saisie',
-              message: 'Les statistiques se calculent à partir de la collection '
+              message:
+                  'Les statistiques se calculent à partir de la collection '
                   '« academic_grades ». Ajoutez des notes pour voir apparaître la '
                   'moyenne générale, le taux de réussite et la répartition.',
             );
@@ -647,7 +664,8 @@ class StatisticsScreen extends ConsumerWidget {
     if (courses.isEmpty) {
       return const _Panel(
         title: 'Meilleures UE par moyenne',
-        child: Text('Aucune UE notée pour le moment.', style: AppTextStyles.body),
+        child:
+            Text('Aucune UE notée pour le moment.', style: AppTextStyles.body),
       );
     }
     return _DataTableCard(
@@ -741,34 +759,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: current, obscureText: true, autofocus: true, decoration: const InputDecoration(labelText: 'Mot de passe actuel')),
+              TextField(
+                  controller: current,
+                  obscureText: true,
+                  autofocus: true,
+                  decoration:
+                      const InputDecoration(labelText: 'Mot de passe actuel')),
               const SizedBox(height: 12),
-              TextField(controller: next, obscureText: true, decoration: const InputDecoration(labelText: 'Nouveau mot de passe (8 min.)')),
+              TextField(
+                  controller: next,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                      labelText: 'Nouveau mot de passe (8 min.)')),
               const SizedBox(height: 12),
-              TextField(controller: confirm, obscureText: true, decoration: const InputDecoration(labelText: 'Confirmer')),
+              TextField(
+                  controller: confirm,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Confirmer')),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Changer')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Changer')),
         ],
       ),
     );
     if (ok != true || !context.mounted) return;
     if (next.text.length < 8 || next.text != confirm.text) {
-      showFeedback(context, message: 'Nouveau mot de passe invalide ou différent de la confirmation.', success: false);
+      showFeedback(context,
+          message:
+              'Nouveau mot de passe invalide ou différent de la confirmation.',
+          success: false);
       return;
     }
     try {
-      await ref.read(appwriteServiceProvider).account.updatePassword(password: next.text, oldPassword: current.text);
-      if (context.mounted) showFeedback(context, message: 'Mot de passe changé.');
+      await ref
+          .read(appwriteServiceProvider)
+          .account
+          .updatePassword(password: next.text, oldPassword: current.text);
+      if (context.mounted)
+        showFeedback(context, message: 'Mot de passe changé.');
     } on AppwriteException catch (e) {
       if (context.mounted) {
         showFeedback(
           context,
           message: 'Changement refusé.',
-          detail: e.code == 401 ? 'Le mot de passe actuel est incorrect.' : e.message,
+          detail: e.code == 401
+              ? 'Le mot de passe actuel est incorrect.'
+              : e.message,
           success: false,
         );
       }
@@ -796,27 +839,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   _SettingRow(
                     title: 'Bandeaux de notification',
-                    subtitle: 'Afficher un bandeau à l\'arrivée d\'une notification',
+                    subtitle:
+                        'Afficher un bandeau à l\'arrivée d\'une notification',
                     value: prefs.notificationBanners,
-                    onChanged: ref.read(preferencesProvider.notifier).setNotificationBanners,
+                    onChanged: ref
+                        .read(preferencesProvider.notifier)
+                        .setNotificationBanners,
                   ),
                   _SettingRow(
                     title: 'Rester connecté',
-                    subtitle: 'Conserver la session d\'une ouverture à l\'autre',
+                    subtitle:
+                        'Conserver la session d\'une ouverture à l\'autre',
                     value: prefs.keepSession,
-                    onChanged: ref.read(preferencesProvider.notifier).setKeepSession,
+                    onChanged:
+                        ref.read(preferencesProvider.notifier).setKeepSession,
                   ),
                   _SettingRow(
                     title: 'Réduire les animations',
                     subtitle: 'Cascades et transitions désactivées',
                     value: prefs.reduceMotion,
-                    onChanged: ref.read(preferencesProvider.notifier).setReduceMotion,
+                    onChanged:
+                        ref.read(preferencesProvider.notifier).setReduceMotion,
                   ),
                   _SettingRow(
                     title: 'Barre latérale compacte',
                     subtitle: 'Icônes seules au démarrage',
                     value: prefs.compactSidebar,
-                    onChanged: ref.read(preferencesProvider.notifier).setCompactSidebar,
+                    onChanged: ref
+                        .read(preferencesProvider.notifier)
+                        .setCompactSidebar,
                   ),
                 ],
               ),
@@ -827,10 +878,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Changez votre mot de passe ; la session reste ouverte.', style: AppTextStyles.body),
+                  Text('Changez votre mot de passe ; la session reste ouverte.',
+                      style: AppTextStyles.body),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: currentUser == null ? null : () => _changePassword(context),
+                    onPressed: currentUser == null
+                        ? null
+                        : () => _changePassword(context),
                     icon: const Icon(Icons.lock_reset_outlined, size: 18),
                     label: const Text('Changer le mot de passe'),
                   ),
@@ -841,123 +895,127 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         right: _Panel(
           title: 'Profil utilisateur',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _PhotoAvatar(
-                            initials: currentUser == null
-                                ? '?'
-                                : initialsOf(currentUser.name),
-                            avatarFileId: currentUser?.avatarFileId,
-                            uploading: _uploading,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  currentUser?.name ?? 'Utilisateur non connecté',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700, fontSize: 15),
-                                ),
-                                const SizedBox(height: 4),
-                                // Le pseudo identifie le compte ; l'email ne
-                                // sert que de repli tant que le backfill n'a pas
-                                // couvert tous les documents.
-                                Text(
-                                  currentUser == null
-                                      ? '---'
-                                      : (currentUser.username == null ||
-                                              currentUser.username!.isEmpty
-                                          ? currentUser.email
-                                          : '@${currentUser.username} · ${currentUser.email}'),
-                                  style: AppTextStyles.body,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Rôle : ${currentUser?.role ?? '---'} · Type de compte : ${currentUser?.accountType ?? '---'}',
-                                  style: AppTextStyles.body,
-                                ),
-                                if (currentUser?.university != null) ...[
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Université : ${currentUser!.university}',
-                                    style: AppTextStyles.body,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (currentUser != null) ...[
-                        const SizedBox(height: 16),
-                        // `Wrap` et non `Row` : dans une fenêtre étroite les
-                        // deux panneaux tiennent encore côte à côte, et le
-                        // panneau « Profil » ne dispose plus que de 135 px.
-                        // « Ajouter une photo » et « Retirer » en réclament 300
-                        // à eux deux — la `Row` débordait de 166 px (236 px en
-                        // texte agrandi). Ici le second bouton descend.
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: _uploading ? null : _pickAndUpload,
-                              icon: const Icon(Icons.photo_camera_outlined, size: 17),
-                              label: Text(
-                                  hasPhoto ? 'Changer la photo' : 'Ajouter une photo'),
-                            ),
-                            if (hasPhoto)
-                              TextButton(
-                                onPressed: _uploading ? null : _removePhoto,
-                                child: const Text('Retirer',
-                                    style: TextStyle(color: Colors.red)),
-                              ),
-                          ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _PhotoAvatar(
+                    initials: currentUser == null
+                        ? '?'
+                        : initialsOf(currentUser.name),
+                    avatarFileId: currentUser?.avatarFileId,
+                    uploading: _uploading,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentUser?.name ?? 'Utilisateur non connecté',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 15),
+                        ),
+                        const SizedBox(height: 4),
+                        // Le pseudo identifie le compte ; l'email ne
+                        // sert que de repli tant que le backfill n'a pas
+                        // couvert tous les documents.
+                        Text(
+                          currentUser == null
+                              ? '---'
+                              : (currentUser.username == null ||
+                                      currentUser.username!.isEmpty
+                                  ? currentUser.email
+                                  : '@${currentUser.username} · ${currentUser.email}'),
+                          style: AppTextStyles.body,
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'JPEG, PNG ou WebP · 5 Mo maximum',
-                          style: AppTextStyles.body.copyWith(fontSize: 11.5),
+                          'Rôle : ${currentUser?.role ?? '---'} · Type de compte : ${currentUser?.accountType ?? '---'}',
+                          style: AppTextStyles.body,
                         ),
-                        if (_photoError != null) ...[
-                          const SizedBox(height: 10),
+                        if (currentUser?.university != null) ...[
+                          const SizedBox(height: 6),
                           Text(
-                            _photoError!,
-                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                            'Université : ${currentUser!.university}',
+                            style: AppTextStyles.body,
                           ),
                         ],
                       ],
-                      const SizedBox(height: 26),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 8,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () => signOutToLogin(context, ref),
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                            icon: const Icon(Icons.logout_rounded, size: 18),
-                            label: const Text('Se déconnecter'),
-                          ),
-                          if (currentUser != null)
-                            OutlinedButton.icon(
-                              key: const Key('delete-account-open'),
-                              onPressed: () => showDeleteAccountFlow(context, ref),
-                              style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
-                              icon: const Icon(Icons.delete_forever_outlined, size: 18),
-                              label: const Text('Supprimer mon compte'),
-                            ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
+                ],
+              ),
+              if (currentUser != null) ...[
+                const SizedBox(height: 16),
+                // `Wrap` et non `Row` : dans une fenêtre étroite les
+                // deux panneaux tiennent encore côte à côte, et le
+                // panneau « Profil » ne dispose plus que de 135 px.
+                // « Ajouter une photo » et « Retirer » en réclament 300
+                // à eux deux — la `Row` débordait de 166 px (236 px en
+                // texte agrandi). Ici le second bouton descend.
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: _uploading ? null : _pickAndUpload,
+                      icon: const Icon(Icons.photo_camera_outlined, size: 17),
+                      label: Text(
+                          hasPhoto ? 'Changer la photo' : 'Ajouter une photo'),
+                    ),
+                    if (hasPhoto)
+                      TextButton(
+                        onPressed: _uploading ? null : _removePhoto,
+                        child: const Text('Retirer',
+                            style: TextStyle(color: Colors.red)),
+                      ),
+                  ],
                 ),
+                const SizedBox(height: 6),
+                Text(
+                  'JPEG, PNG ou WebP · 5 Mo maximum',
+                  style: AppTextStyles.body.copyWith(fontSize: 11.5),
+                ),
+                if (_photoError != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _photoError!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ],
+              ],
+              const SizedBox(height: 26),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => signOutToLogin(context, ref),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white),
+                    icon: const Icon(Icons.logout_rounded, size: 18),
+                    label: const Text('Se déconnecter'),
+                  ),
+                  if (currentUser != null)
+                    OutlinedButton.icon(
+                      key: const Key('delete-account-open'),
+                      onPressed: () => showDeleteAccountFlow(context, ref),
+                      style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red)),
+                      icon: const Icon(Icons.delete_forever_outlined, size: 18),
+                      label: const Text('Supprimer mon compte'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1005,7 +1063,8 @@ class _PhotoAvatar extends StatelessWidget {
             child: const SizedBox(
               width: 22,
               height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white),
             ),
           ),
         ],
@@ -1013,11 +1072,16 @@ class _PhotoAvatar extends StatelessWidget {
     );
   }
 }
+
 class _SettingRow extends StatelessWidget {
   final String title, subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
-  const _SettingRow({required this.title, required this.subtitle, required this.value, required this.onChanged});
+  const _SettingRow(
+      {required this.title,
+      required this.subtitle,
+      required this.value,
+      required this.onChanged});
   // Le `Material` transparent évite l'assertion « ListTile background color
   // or ink splashes may be invisible » : le panneau parent est un `Container`
   // coloré, et le test de mise en page échouait sur les dix variantes Réglages.
@@ -1026,7 +1090,8 @@ class _SettingRow extends StatelessWidget {
         color: Colors.transparent,
         child: SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(subtitle),
           value: value,
           activeThumbColor: AppColors.primaryBlue,
@@ -1130,7 +1195,12 @@ class _ManagementPage extends StatelessWidget {
     );
   }
 }
-class _Metric { final String label, value, detail; final IconData icon; const _Metric(this.label, this.value, this.detail, this.icon); }
+
+class _Metric {
+  final String label, value, detail;
+  final IconData icon;
+  const _Metric(this.label, this.value, this.detail, this.icon);
+}
 
 /// Deux panneaux côte à côte tant que la fenêtre le permet, empilés sinon.
 ///
@@ -1173,8 +1243,50 @@ class _ResponsivePanels extends StatelessWidget {
     );
   }
 }
-class _Panel extends StatelessWidget { final String title; final Widget child; const _Panel({required this.title, required this.child}); @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.inputBorder)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [Text(title, style: AppTextStyles.h2.copyWith(fontSize: 16)), const SizedBox(height: 14), child])); }
-class _DataTableCard extends StatelessWidget { final String title; final List<String> columns; final List<List<String>> rows; const _DataTableCard({required this.title, required this.columns, required this.rows}); @override Widget build(BuildContext context) => _Panel(title: title, child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textSecondary, fontSize: 12), dataTextStyle: const TextStyle(fontSize: 12.5, color: AppColors.textPrimary), columns: columns.map((c) => DataColumn(label: Text(c))).toList(), rows: rows.map((r) => DataRow(cells: r.map((v) => DataCell(Text(v))).toList())).toList()))); }
+
+class _Panel extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _Panel({required this.title, required this.child});
+  @override
+  Widget build(BuildContext context) => Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+          color: AppColors.cardWhite,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.inputBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(title, style: AppTextStyles.h2.copyWith(fontSize: 16)),
+        const SizedBox(height: 14),
+        child
+      ]));
+}
+
+class _DataTableCard extends StatelessWidget {
+  final String title;
+  final List<String> columns;
+  final List<List<String>> rows;
+  const _DataTableCard(
+      {required this.title, required this.columns, required this.rows});
+  @override
+  Widget build(BuildContext context) => _Panel(
+      title: title,
+      child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+              headingTextStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                  fontSize: 12),
+              dataTextStyle:
+                  const TextStyle(fontSize: 12.5, color: AppColors.textPrimary),
+              columns: columns.map((c) => DataColumn(label: Text(c))).toList(),
+              rows: rows
+                  .map((r) =>
+                      DataRow(cells: r.map((v) => DataCell(Text(v))).toList()))
+                  .toList())));
+}
+
 /// Histogramme vertical. La hauteur des barres est mise à l'échelle du plus
 /// grand effectif : sans cette normalisation, un effectif de quelques centaines
 /// ferait déborder le cadre.
@@ -1185,13 +1297,15 @@ class _ChartPanel extends StatelessWidget {
   /// Libellés sous les barres ; à défaut, « S1 », « S2 »…
   final List<String> labels;
 
-  const _ChartPanel({required this.title, required this.values, this.labels = const []});
+  const _ChartPanel(
+      {required this.title, required this.values, this.labels = const []});
 
   static const double _barAreaHeight = 150;
 
   @override
   Widget build(BuildContext context) {
-    final maxValue = values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b);
+    final maxValue =
+        values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b);
 
     return _Panel(
       title: title,
@@ -1205,16 +1319,20 @@ class _ChartPanel extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text('${values[i]}', style: AppTextStyles.body.copyWith(fontSize: 11.5)),
+                  Text('${values[i]}',
+                      style: AppTextStyles.body.copyWith(fontSize: 11.5)),
                   const SizedBox(height: 6),
                   Container(
                     width: 30,
                     // Une barre de hauteur nulle resterait invisible : on garde
                     // 2 px pour matérialiser la tranche même sans effectif.
-                    height: maxValue == 0 ? 2 : (values[i] / maxValue) * _barAreaHeight,
+                    height: maxValue == 0
+                        ? 2
+                        : (values[i] / maxValue) * _barAreaHeight,
                     decoration: BoxDecoration(
                       color: i.isEven ? AppColors.primaryBlue : AppColors.teal,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(6)),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1251,14 +1369,17 @@ class SentinelleManagementScreen extends StatelessWidget {
               title: 'Moniteur Vigie - Flux Vidéo local',
               child: Container(
                 height: 250,
-                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(12)),
                 alignment: Alignment.center,
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.videocam_off, color: Colors.white54, size: 48),
                     SizedBox(height: 12),
-                    Text('Flux sécurisé LAN uniquement', style: TextStyle(color: Colors.white54)),
+                    Text('Flux sécurisé LAN uniquement',
+                        style: TextStyle(color: Colors.white54)),
                   ],
                 ),
               ),
@@ -1291,36 +1412,39 @@ class SentinelleManagementScreen extends StatelessWidget {
 
 class StructureManagementScreen extends StatelessWidget {
   const StructureManagementScreen({super.key});
-  @override Widget build(BuildContext context) => _ManagementPage(
-    title: 'Structure Académique',
-    subtitle: 'Gérez les facultés, départements et niveaux',
-    stats: const [],
-    child: const _InfoPanel(
-      icon: Icons.account_tree_outlined,
-      title: 'Structure non configurée',
-      message: 'Les facultés, départements et niveaux ne sont pas encore '
-          'modélisés côté Appwrite : la hiérarchie s\'affichera ici dès que la '
-          'collection correspondante existera.',
-    ),
-  );
+  @override
+  Widget build(BuildContext context) => _ManagementPage(
+        title: 'Structure Académique',
+        subtitle: 'Gérez les facultés, départements et niveaux',
+        stats: const [],
+        child: const _InfoPanel(
+          icon: Icons.account_tree_outlined,
+          title: 'Structure non configurée',
+          message: 'Les facultés, départements et niveaux ne sont pas encore '
+              'modélisés côté Appwrite : la hiérarchie s\'affichera ici dès que la '
+              'collection correspondante existera.',
+        ),
+      );
 }
 
 class PaymentsManagementScreen extends StatelessWidget {
   const PaymentsManagementScreen({super.key});
-  @override Widget build(BuildContext context) => _ManagementPage(
-    title: 'Gestion des Paiements',
-    subtitle: 'Suivi des abonnements et frais de scolarité',
-    // Pas de recettes affichées : aucun flux de paiement n'alimente
-    // l'application, un montant en dur donnerait une fausse vue des finances.
-    stats: const [],
-    child: const _InfoPanel(
-      icon: Icons.account_balance_wallet_outlined,
-      title: 'Aucun paiement enregistré',
-      message: 'Le suivi des frais de scolarité s\'affichera ici lorsque les '
-          'transactions seront enregistrées dans Appwrite. Aucun montant n\'est '
-          'estimé en attendant.',
-    ),
-  );
+  @override
+  Widget build(BuildContext context) => _ManagementPage(
+        title: 'Gestion des Paiements',
+        subtitle: 'Suivi des abonnements et frais de scolarité',
+        // Pas de recettes affichées : aucun flux de paiement n'alimente
+        // l'application, un montant en dur donnerait une fausse vue des finances.
+        stats: const [],
+        child: const _InfoPanel(
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'Aucun paiement enregistré',
+          message:
+              'Le suivi des frais de scolarité s\'affichera ici lorsque les '
+              'transactions seront enregistrées dans Appwrite. Aucun montant n\'est '
+              'estimé en attendant.',
+        ),
+      );
 }
 
 /// État vide générique : icône, titre, explication de ce qui manque.
@@ -1332,35 +1456,40 @@ class _InfoPanel extends StatelessWidget {
   final String title;
   final String message;
 
-  const _InfoPanel({required this.icon, required this.title, required this.message});
+  const _InfoPanel(
+      {required this.icon, required this.title, required this.message});
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-    decoration: BoxDecoration(
-      color: AppColors.cardWhite,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.inputBorder),
-    ),
-    child: Column(
-      children: [
-        Icon(icon, size: 44, color: AppColors.textMuted),
-        const SizedBox(height: 16),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+        decoration: BoxDecoration(
+          color: AppColors.cardWhite,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.inputBorder),
         ),
-        const SizedBox(height: 10),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.5),
-          ),
+        child: Column(
+          children: [
+            Icon(icon, size: 44, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 10),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textMuted, height: 1.5),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }

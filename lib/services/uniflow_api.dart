@@ -126,7 +126,8 @@ class UniFlowApi {
       throw ApiException(
         error.code == 404
             ? 'La Function « $functionId » n\'est pas déployée sur Appwrite.'
-            : (error.message ?? 'Appwrite a refusé l\'appel (code ${error.code}).'),
+            : (error.message ??
+                'Appwrite a refusé l\'appel (code ${error.code}).'),
         code: 'EXECUTION_FAILED',
         status: error.code,
       );

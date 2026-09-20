@@ -12,18 +12,18 @@ class TeachingUnit {
   /// Identifiant du document `academic_courses`.
   final String id;
 
-  final String code;         // ex: "INF301"
-  final String intitule;     // ex: "Intelligence Artificielle"
-  final String semestre;     // absent de la base -> ''
-  final String departement;  // `program` du cours
-  final String niveau;       // ex: "L3"
-  final String type;         // ex: "Cours Magistral" -> '' si non renseigné
-  final String enseignant;   // `teacherName` du cours
+  final String code; // ex: "INF301"
+  final String intitule; // ex: "Intelligence Artificielle"
+  final String semestre; // absent de la base -> ''
+  final String departement; // `program` du cours
+  final String niveau; // ex: "L3"
+  final String type; // ex: "Cours Magistral" -> '' si non renseigné
+  final String enseignant; // `teacherName` du cours
   final int credits;
   final int heures;
-  final int inscrits;        // nombre d'entrées `academic_enrollments`
-  final int placesTotal;     // absent de la base -> 0, donc taux inconnu
-  final String statut;       // absent de la base -> ''
+  final int inscrits; // nombre d'entrées `academic_enrollments`
+  final int placesTotal; // absent de la base -> 0, donc taux inconnu
+  final String statut; // absent de la base -> ''
 
   const TeachingUnit({
     required this.id,

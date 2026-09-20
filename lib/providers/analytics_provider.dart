@@ -6,7 +6,8 @@ import '../repositories/academic_repository.dart';
 import 'auth_provider.dart';
 
 /// Assiduité par étudiant, agrégée depuis les enregistrements de présence.
-final studentAttendanceProvider = FutureProvider<List<StudentAttendance>>((ref) {
+final studentAttendanceProvider =
+    FutureProvider<List<StudentAttendance>>((ref) {
   // Recalculé à chaque changement de compte : les caches du compte précédent
   // survivaient à la déconnexion.
   ref.watch(currentUserProvider.select((u) => u?.id));

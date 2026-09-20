@@ -153,7 +153,9 @@ class ClassroomRef {
         code: _text(doc.data, 'code'),
         name: _text(doc.data, 'name'),
         kind: _text(doc.data, 'kind', 'SALLE'),
-        capacity: (doc.data['capacity'] is num) ? (doc.data['capacity'] as num).toInt() : 0,
+        capacity: (doc.data['capacity'] is num)
+            ? (doc.data['capacity'] as num).toInt()
+            : 0,
         building: _text(doc.data, 'building'),
         active: _active(doc.data),
       );
@@ -193,12 +195,15 @@ class AcademicReference {
       .where((f) => f.active && f.universityCode == universityCode)
       .toList();
 
-  List<AcademicProgram> programsOf(String universityCode, {String? facultyCode}) =>
+  List<AcademicProgram> programsOf(String universityCode,
+          {String? facultyCode}) =>
       programs
           .where((p) =>
               p.active &&
               p.universityCode == universityCode &&
-              (facultyCode == null || facultyCode.isEmpty || p.facultyCode == facultyCode))
+              (facultyCode == null ||
+                  facultyCode.isEmpty ||
+                  p.facultyCode == facultyCode))
           .toList();
 
   AcademicProgram? programByCode(String code) {
@@ -225,7 +230,8 @@ class AcademicReference {
 
   /// Tous les codes de filière, triés.
   List<String> get programCodes =>
-      (programs.where((p) => p.active).map((p) => p.code).toSet().toList()..sort());
+      (programs.where((p) => p.active).map((p) => p.code).toSet().toList()
+        ..sort());
 
   /// Niveaux d'une filière, ou l'union de tous si la filière est inconnue.
   List<String> levelsOf(String? programCode) {

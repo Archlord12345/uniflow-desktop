@@ -38,7 +38,8 @@ class SilhouetteAvatar extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(color: background, borderRadius: radius),
           alignment: Alignment.center,
-          child: Icon(Icons.person_outline, size: size * 0.5, color: foreground),
+          child:
+              Icon(Icons.person_outline, size: size * 0.5, color: foreground),
         );
 
     final url = avatarUrl(avatarFileId);
@@ -59,7 +60,8 @@ class SilhouetteAvatar extends StatelessWidget {
             : Container(
                 width: size,
                 height: size,
-                decoration: BoxDecoration(color: background, borderRadius: radius),
+                decoration:
+                    BoxDecoration(color: background, borderRadius: radius),
               ),
       ),
     );

@@ -75,7 +75,9 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                 onPressed: () => _edit(context),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Ajouter une salle'),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 14)),
               ),
           ],
         ),
@@ -94,9 +96,13 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                     border: Border.all(color: AppColors.inputBorder),
                   ),
                   child: classroomsAsync.when(
-                    loading: () => const Padding(padding: EdgeInsets.all(20), child: TableSkeleton(rows: 5)),
-                    error: (error, _) => DataErrorView(error: error, onRetry: _refresh),
-                    data: (classrooms) => _buildTable(_filtered(classrooms), isAdmin),
+                    loading: () => const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: TableSkeleton(rows: 5)),
+                    error: (error, _) =>
+                        DataErrorView(error: error, onRetry: _refresh),
+                    data: (classrooms) =>
+                        _buildTable(_filtered(classrooms), isAdmin),
                   ),
                 ),
               ],
@@ -141,10 +147,13 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     final reference = ref.read(academicReferenceProvider).valueOrNull;
     final current = existing == null
         ? null
-        : reference?.classrooms.where((c) => c.id == existing.referenceId).firstOrNull;
+        : reference?.classrooms
+            .where((c) => c.id == existing.referenceId)
+            .firstOrNull;
     final saved = await showDialog<bool>(
       context: context,
-      builder: (_) => _ClassroomEditorDialog(existing: current, reference: reference),
+      builder: (_) =>
+          _ClassroomEditorDialog(existing: current, reference: reference),
     );
     if (saved == true) _refresh();
   }
@@ -154,10 +163,13 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Retirer cette salle du catalogue ?'),
-        content: Text('« ${room.nom} » ne sera plus proposée dans les formulaires. '
-            'Les créneaux déjà planifiés qui la citent sont conservés.'),
+        content:
+            Text('« ${room.nom} » ne sera plus proposée dans les formulaires. '
+                'Les créneaux déjà planifiés qui la citent sont conservés.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -168,11 +180,17 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
     if (confirmed != true || !mounted) return;
     try {
-      await ref.read(referenceRepositoryProvider).deleteClassroom(room.referenceId);
+      await ref
+          .read(referenceRepositoryProvider)
+          .deleteClassroom(room.referenceId);
       if (mounted) showFeedback(context, message: 'Salle retirée.');
       _refresh();
     } on AppwriteException catch (e) {
-      if (mounted) showFeedback(context, message: 'Suppression refusée.', detail: _permissionHint(e), success: false);
+      if (mounted)
+        showFeedback(context,
+            message: 'Suppression refusée.',
+            detail: _permissionHint(e),
+            success: false);
     }
   }
 
@@ -182,22 +200,35 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher une salle, un bâtiment...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon:
+            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
         filled: true,
         fillColor: AppColors.cardWhite,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.inputBorder)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.inputBorder)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5)),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+                const BorderSide(color: AppColors.primaryBlue, width: 1.5)),
       ),
     );
   }
 
   Widget _buildTableHeader(bool isAdmin) {
-    const style = TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.3);
+    const style = TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textMuted,
+        letterSpacing: 0.3);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
+      decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
           const Expanded(flex: 3, child: Text('SALLE', style: style)),
@@ -216,7 +247,9 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       child: Row(
         children: [
           Text(
-            classrooms.length <= 1 ? '${classrooms.length} salle' : '${classrooms.length} salles',
+            classrooms.length <= 1
+                ? '${classrooms.length} salle'
+                : '${classrooms.length} salles',
             style: AppTextStyles.body.copyWith(fontSize: 13),
           ),
           const Spacer(),
@@ -260,7 +293,8 @@ class _ClassroomRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
+      decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
           Expanded(
@@ -268,7 +302,9 @@ class _ClassroomRow extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  classroom.isCatalogued ? Icons.meeting_room_outlined : Icons.help_outline,
+                  classroom.isCatalogued
+                      ? Icons.meeting_room_outlined
+                      : Icons.help_outline,
                   size: 18,
                   color: AppColors.textMuted,
                 ),
@@ -279,14 +315,20 @@ class _ClassroomRow extends StatelessWidget {
                     children: [
                       Text(
                         classroom.nom,
-                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         classroom.batiment.isNotEmpty
                             ? classroom.batiment
-                            : (classroom.isCatalogued ? 'Bâtiment non renseigné' : 'Hors catalogue (emploi du temps)'),
-                        style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                            : (classroom.isCatalogued
+                                ? 'Bâtiment non renseigné'
+                                : 'Hors catalogue (emploi du temps)'),
+                        style: const TextStyle(
+                            fontSize: 11.5, color: AppColors.textMuted),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -299,14 +341,16 @@ class _ClassroomRow extends StatelessWidget {
             width: 96,
             child: Text(
               classroom.capacite > 0 ? '${classroom.capacite} places' : '—',
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
           SizedBox(
             width: 96,
             child: Text(
               '${classroom.creneaux} · ${classroom.cours} UE',
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
           Expanded(
@@ -314,8 +358,13 @@ class _ClassroomRow extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: classroom.type.isEmpty
-                  ? const Text('—', style: TextStyle(fontSize: 13, color: AppColors.textMuted))
-                  : StatusBadge(label: classroom.type, backgroundColor: AppColors.inputFill, textColor: AppColors.textSecondary),
+                  ? const Text('—',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.textMuted))
+                  : StatusBadge(
+                      label: classroom.type,
+                      backgroundColor: AppColors.inputFill,
+                      textColor: AppColors.textSecondary),
             ),
           ),
           if (canEdit)
@@ -324,8 +373,15 @@ class _ClassroomRow extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  IconButton(tooltip: 'Modifier', onPressed: onEdit, icon: const Icon(Icons.edit_outlined, size: 18)),
-                  IconButton(tooltip: 'Retirer', onPressed: onDelete, icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.textMuted)),
+                  IconButton(
+                      tooltip: 'Modifier',
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 18)),
+                  IconButton(
+                      tooltip: 'Retirer',
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline,
+                          size: 18, color: AppColors.textMuted)),
                 ],
               ),
             ),
@@ -341,18 +397,26 @@ class _ClassroomEditorDialog extends ConsumerStatefulWidget {
   const _ClassroomEditorDialog({this.existing, this.reference});
 
   @override
-  ConsumerState<_ClassroomEditorDialog> createState() => _ClassroomEditorDialogState();
+  ConsumerState<_ClassroomEditorDialog> createState() =>
+      _ClassroomEditorDialogState();
 }
 
-class _ClassroomEditorDialogState extends ConsumerState<_ClassroomEditorDialog> {
+class _ClassroomEditorDialogState
+    extends ConsumerState<_ClassroomEditorDialog> {
   late final _code = TextEditingController(text: widget.existing?.code ?? '');
   late final _name = TextEditingController(text: widget.existing?.name ?? '');
-  late final _building = TextEditingController(text: widget.existing?.building ?? '');
-  late final _capacity = TextEditingController(text: widget.existing == null ? '' : '${widget.existing!.capacity}');
+  late final _building =
+      TextEditingController(text: widget.existing?.building ?? '');
+  late final _capacity = TextEditingController(
+      text: widget.existing == null ? '' : '${widget.existing!.capacity}');
   late String _kind = widget.existing?.kind ?? 'SALLE';
   late String? _university = widget.existing?.universityCode ??
-      (widget.reference?.universities.length == 1 ? widget.reference!.universities.first.code : null);
-  late String? _faculty = (widget.existing?.facultyCode ?? '').isEmpty ? null : widget.existing!.facultyCode;
+      (widget.reference?.universities.length == 1
+          ? widget.reference!.universities.first.code
+          : null);
+  late String? _faculty = (widget.existing?.facultyCode ?? '').isEmpty
+      ? null
+      : widget.existing!.facultyCode;
   bool _busy = false;
   String? _error;
 
@@ -367,9 +431,11 @@ class _ClassroomEditorDialogState extends ConsumerState<_ClassroomEditorDialog> 
   }
 
   Future<void> _save() async {
-    final universityCode = _university ?? ref.read(currentUserProvider)?.university ?? '';
+    final universityCode =
+        _university ?? ref.read(currentUserProvider)?.university ?? '';
     if (_code.text.trim().isEmpty || universityCode.isEmpty) {
-      setState(() => _error = 'Le code de la salle et l\'université sont requis.');
+      setState(
+          () => _error = 'Le code de la salle et l\'université sont requis.');
       return;
     }
     setState(() {
@@ -394,7 +460,10 @@ class _ClassroomEditorDialogState extends ConsumerState<_ClassroomEditorDialog> 
         await repo.updateClassroom(room);
       }
       if (!mounted) return;
-      showFeedback(context, message: widget.existing == null ? 'Salle ajoutée.' : 'Salle mise à jour.');
+      showFeedback(context,
+          message: widget.existing == null
+              ? 'Salle ajoutée.'
+              : 'Salle mise à jour.');
       Navigator.pop(context, true);
     } on AppwriteException catch (e) {
       setState(() {
@@ -407,10 +476,15 @@ class _ClassroomEditorDialogState extends ConsumerState<_ClassroomEditorDialog> 
   @override
   Widget build(BuildContext context) {
     final reference = widget.reference;
-    final universities = reference?.universities.where((u) => u.active).toList() ?? const <University>[];
-    final faculties = _university == null ? const <Faculty>[] : (reference?.facultiesOf(_university!) ?? const <Faculty>[]);
+    final universities =
+        reference?.universities.where((u) => u.active).toList() ??
+            const <University>[];
+    final faculties = _university == null
+        ? const <Faculty>[]
+        : (reference?.facultiesOf(_university!) ?? const <Faculty>[]);
     return AlertDialog(
-      title: Text(widget.existing == null ? 'Ajouter une salle' : 'Modifier la salle'),
+      title: Text(
+          widget.existing == null ? 'Ajouter une salle' : 'Modifier la salle'),
       content: SizedBox(
         width: 440,
         child: SingleChildScrollView(
@@ -422,7 +496,13 @@ class _ClassroomEditorDialogState extends ConsumerState<_ClassroomEditorDialog> 
                 DropdownButtonFormField<String>(
                   initialValue: _university,
                   decoration: const InputDecoration(labelText: 'Université'),
-                  items: [for (final u in universities) DropdownMenuItem(value: u.code, child: Text(u.displayName, overflow: TextOverflow.ellipsis))],
+                  items: [
+                    for (final u in universities)
+                      DropdownMenuItem(
+                          value: u.code,
+                          child: Text(u.displayName,
+                              overflow: TextOverflow.ellipsis))
+                  ],
                   onChanged: (v) => setState(() {
                     _university = v;
                     _faculty = null;
@@ -433,54 +513,88 @@ class _ClassroomEditorDialogState extends ConsumerState<_ClassroomEditorDialog> 
               if (faculties.isNotEmpty) ...[
                 DropdownButtonFormField<String>(
                   key: ValueKey('faculty-$_university'),
-                  initialValue: faculties.any((f) => f.code == _faculty) ? _faculty : null,
-                  decoration: const InputDecoration(labelText: 'Faculté (facultatif)'),
-                  items: [for (final f in faculties) DropdownMenuItem(value: f.code, child: Text(f.name, overflow: TextOverflow.ellipsis))],
+                  initialValue: faculties.any((f) => f.code == _faculty)
+                      ? _faculty
+                      : null,
+                  decoration:
+                      const InputDecoration(labelText: 'Faculté (facultatif)'),
+                  items: [
+                    for (final f in faculties)
+                      DropdownMenuItem(
+                          value: f.code,
+                          child: Text(f.name, overflow: TextOverflow.ellipsis))
+                  ],
                   onChanged: (v) => setState(() => _faculty = v),
                 ),
                 const SizedBox(height: 12),
               ],
               Row(
                 children: [
-                  Expanded(child: TextField(controller: _code, autofocus: true, decoration: const InputDecoration(labelText: 'Code (ex. A101)'))),
+                  Expanded(
+                      child: TextField(
+                          controller: _code,
+                          autofocus: true,
+                          decoration: const InputDecoration(
+                              labelText: 'Code (ex. A101)'))),
                   const SizedBox(width: 10),
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: _kinds.contains(_kind) ? _kind : 'SALLE',
                       decoration: const InputDecoration(labelText: 'Nature'),
-                      items: [for (final k in _kinds) DropdownMenuItem(value: k, child: Text(k))],
+                      items: [
+                        for (final k in _kinds)
+                          DropdownMenuItem(value: k, child: Text(k))
+                      ],
                       onChanged: (v) => setState(() => _kind = v ?? 'SALLE'),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nom (facultatif)')),
+              TextField(
+                  controller: _name,
+                  decoration:
+                      const InputDecoration(labelText: 'Nom (facultatif)')),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: TextField(controller: _building, decoration: const InputDecoration(labelText: 'Bâtiment'))),
+                  Expanded(
+                      child: TextField(
+                          controller: _building,
+                          decoration:
+                              const InputDecoration(labelText: 'Bâtiment'))),
                   const SizedBox(width: 10),
                   SizedBox(
                     width: 130,
-                    child: TextField(controller: _capacity, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Capacité')),
+                    child: TextField(
+                        controller: _capacity,
+                        keyboardType: TextInputType.number,
+                        decoration:
+                            const InputDecoration(labelText: 'Capacité')),
                   ),
                 ],
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12.5)),
+                Text(_error!,
+                    style: const TextStyle(
+                        color: AppColors.danger, fontSize: 12.5)),
               ],
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: _busy ? null : () => Navigator.pop(context, false), child: const Text('Annuler')),
+        TextButton(
+            onPressed: _busy ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler')),
         FilledButton(
           onPressed: _busy ? null : _save,
           child: _busy
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2))
               : Text(widget.existing == null ? 'Ajouter' : 'Enregistrer'),
         ),
       ],

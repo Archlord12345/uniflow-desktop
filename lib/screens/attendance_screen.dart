@@ -33,11 +33,13 @@ class AttendanceScreen extends ConsumerStatefulWidget {
   ConsumerState<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-final _sessionsProvider = FutureProvider.family<List<AttendanceSessionInfo>, String>((ref, courseId) {
+final _sessionsProvider =
+    FutureProvider.family<List<AttendanceSessionInfo>, String>((ref, courseId) {
   return ref.watch(attendanceApiProvider).sessionsOf(courseId);
 });
 
-final _recordsProvider = FutureProvider.family<List<AttendanceRecordInfo>, String>((ref, sessionId) {
+final _recordsProvider =
+    FutureProvider.family<List<AttendanceRecordInfo>, String>((ref, sessionId) {
   return ref.watch(attendanceApiProvider).recordsOf(sessionId);
 });
 
@@ -49,7 +51,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final role = ref.watch(currentRoleProvider);
-    final canRoll = role == UserRole.teacher || role == UserRole.admin || role == UserRole.delegate;
+    final canRoll = role == UserRole.teacher ||
+        role == UserRole.admin ||
+        role == UserRole.delegate;
     final courseId = ref.watch(selectedCourseIdProvider);
 
     return Column(
@@ -76,8 +80,14 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             children: [
               SegmentedButton<int>(
                 segments: const [
-                  ButtonSegment(value: 0, icon: Icon(Icons.event_note_outlined, size: 16), label: Text('Séances')),
-                  ButtonSegment(value: 1, icon: Icon(Icons.insights_outlined, size: 16), label: Text('Assiduité')),
+                  ButtonSegment(
+                      value: 0,
+                      icon: Icon(Icons.event_note_outlined, size: 16),
+                      label: Text('Séances')),
+                  ButtonSegment(
+                      value: 1,
+                      icon: Icon(Icons.insights_outlined, size: 16),
+                      label: Text('Assiduité')),
                 ],
                 selected: {_tab},
                 onSelectionChanged: (s) => setState(() => _tab = s.first),
@@ -93,8 +103,13 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             transitionBuilder: pageTransition,
             child: _tab == 0
                 ? (courseId == null
-                    ? const DataEmptyView(icon: Icons.event_available_outlined, message: 'Aucun cours dans votre périmètre.')
-                    : _SessionsView(key: ValueKey(courseId), courseId: courseId, canRoll: canRoll))
+                    ? const DataEmptyView(
+                        icon: Icons.event_available_outlined,
+                        message: 'Aucun cours dans votre périmètre.')
+                    : _SessionsView(
+                        key: ValueKey(courseId),
+                        courseId: courseId,
+                        canRoll: canRoll))
                 : const _AttendanceStatsView(key: ValueKey('stats')),
           ),
         ),
@@ -116,11 +131,15 @@ class _CoursePickerInline extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final courses = ref.watch(scopedCoursesProvider).valueOrNull ?? const <AcademicCourse>[];
+    final courses = ref.watch(scopedCoursesProvider).valueOrNull ??
+        const <AcademicCourse>[];
     final selected = ref.watch(selectedCourseIdProvider);
-    final value = courses.any((c) => c.id == selected) ? selected : (courses.isEmpty ? null : courses.first.id);
+    final value = courses.any((c) => c.id == selected)
+        ? selected
+        : (courses.isEmpty ? null : courses.first.id);
     if (value != selected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(selectedCourseIdProvider.notifier).state = value);
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ref.read(selectedCourseIdProvider.notifier).state = value);
     }
     return Container(
       constraints: const BoxConstraints(maxWidth: 340),
@@ -138,7 +157,10 @@ class _CoursePickerInline extends ConsumerWidget {
           style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
           items: [
             for (final c in courses)
-              DropdownMenuItem(value: c.id, child: Text('${c.code} · ${c.name}', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(
+                  value: c.id,
+                  child: Text('${c.code} · ${c.name}',
+                      overflow: TextOverflow.ellipsis)),
           ],
           onChanged: (v) {
             ref.read(selectedCourseIdProvider.notifier).state = v;
@@ -153,15 +175,18 @@ class _CoursePickerInline extends ConsumerWidget {
 class _SessionsView extends ConsumerWidget {
   final String courseId;
   final bool canRoll;
-  const _SessionsView({super.key, required this.courseId, required this.canRoll});
+  const _SessionsView(
+      {super.key, required this.courseId, required this.canRoll});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(_sessionsProvider(courseId));
     final selectedSession = ref.watch(_selectedSessionProvider);
     return sessions.when(
-      loading: () => const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
-      error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(_sessionsProvider(courseId))),
+      loading: () =>
+          const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
+      error: (e, _) => DataErrorView(
+          error: e, onRetry: () => ref.invalidate(_sessionsProvider(courseId))),
       data: (items) {
         if (items.isEmpty) {
           return DataEmptyView(
@@ -171,14 +196,17 @@ class _SessionsView extends ConsumerWidget {
                 : 'Aucune séance enregistrée pour ce cours.',
           );
         }
-        final current = items.any((s) => s.id == selectedSession) ? selectedSession! : items.first.id;
+        final current = items.any((s) => s.id == selectedSession)
+            ? selectedSession!
+            : items.first.id;
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 900;
             final list = _SessionList(
               sessions: items,
               selected: current,
-              onSelect: (id) => ref.read(_selectedSessionProvider.notifier).state = id,
+              onSelect: (id) =>
+                  ref.read(_selectedSessionProvider.notifier).state = id,
             );
             final detail = _SessionDetail(
               key: ValueKey(current),
@@ -200,7 +228,8 @@ class _SessionsView extends ConsumerWidget {
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(28),
-              child: Column(children: [list, const SizedBox(height: 20), detail]),
+              child:
+                  Column(children: [list, const SizedBox(height: 20), detail]),
             );
           },
         );
@@ -213,7 +242,8 @@ class _SessionList extends StatelessWidget {
   final List<AttendanceSessionInfo> sessions;
   final String selected;
   final ValueChanged<String> onSelect;
-  const _SessionList({required this.sessions, required this.selected, required this.onSelect});
+  const _SessionList(
+      {required this.sessions, required this.selected, required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +268,9 @@ class _SessionList extends StatelessWidget {
                 selected: sessions[i].id == selected,
                 selectedTileColor: AppColors.primary50,
                 leading: const Icon(Icons.event_outlined, size: 18),
-                title: Text(_formatDate(sessions[i].date), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                title: Text(_formatDate(sessions[i].date),
+                    style: const TextStyle(
+                        fontSize: 13.5, fontWeight: FontWeight.w600)),
                 onTap: () => onSelect(sessions[i].id),
               ),
             ),
@@ -252,12 +284,14 @@ class _SessionList extends StatelessWidget {
 class _SessionDetail extends ConsumerWidget {
   final AttendanceSessionInfo session;
   final bool canRoll;
-  const _SessionDetail({super.key, required this.session, required this.canRoll});
+  const _SessionDetail(
+      {super.key, required this.session, required this.canRoll});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final records = ref.watch(_recordsProvider(session.id));
-    final directory = ref.watch(directoryProvider).valueOrNull ?? const <AcademicDirectoryEntry>[];
+    final directory = ref.watch(directoryProvider).valueOrNull ??
+        const <AcademicDirectoryEntry>[];
     final names = {for (final e in directory) e.userId: e.name};
 
     return Container(
@@ -275,7 +309,8 @@ class _SessionDetail extends ConsumerWidget {
             runSpacing: 10,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('Séance du ${_formatDate(session.date)}', style: AppTextStyles.h3),
+              Text('Séance du ${_formatDate(session.date)}',
+                  style: AppTextStyles.h3),
               if (canRoll) ...[
                 OutlinedButton.icon(
                   onPressed: () => _issueQr(context, ref),
@@ -286,9 +321,11 @@ class _SessionDetail extends ConsumerWidget {
                   onPressed: () async {
                     final saved = await showDialog<bool>(
                       context: context,
-                      builder: (_) => _RollDialog(courseId: session.courseId, date: session.date),
+                      builder: (_) => _RollDialog(
+                          courseId: session.courseId, date: session.date),
                     );
-                    if (saved == true) ref.invalidate(_recordsProvider(session.id));
+                    if (saved == true)
+                      ref.invalidate(_recordsProvider(session.id));
                   },
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Corriger l\'appel'),
@@ -299,12 +336,15 @@ class _SessionDetail extends ConsumerWidget {
           const SizedBox(height: 14),
           records.when(
             loading: () => const TableSkeleton(rows: 4),
-            error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(_recordsProvider(session.id))),
+            error: (e, _) => DataErrorView(
+                error: e,
+                onRetry: () => ref.invalidate(_recordsProvider(session.id))),
             data: (items) {
               if (items.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text('Aucun émargement pour cette séance.', style: AppTextStyles.body),
+                  child: Text('Aucun émargement pour cette séance.',
+                      style: AppTextStyles.body),
                 );
               }
               final counts = <String, int>{};
@@ -318,8 +358,14 @@ class _SessionDetail extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final status in const ['PRESENT', 'RETARD', 'JUSTIFIE', 'ABSENT'])
-                        if ((counts[status] ?? 0) > 0) _StatusChip(status: status, count: counts[status]!),
+                      for (final status in const [
+                        'PRESENT',
+                        'RETARD',
+                        'JUSTIFIE',
+                        'ABSENT'
+                      ])
+                        if ((counts[status] ?? 0) > 0)
+                          _StatusChip(status: status, count: counts[status]!),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -331,10 +377,15 @@ class _SessionDetail extends ConsumerWidget {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Text(names[items[i].studentId] ?? items[i].studentId, overflow: TextOverflow.ellipsis),
+                              child: Text(
+                                  names[items[i].studentId] ??
+                                      items[i].studentId,
+                                  overflow: TextOverflow.ellipsis),
                             ),
                             Text(
-                              items[i].verificationMethod == 'QR_GEOFENCE' ? 'QR' : 'Manuel',
+                              items[i].verificationMethod == 'QR_GEOFENCE'
+                                  ? 'QR'
+                                  : 'Manuel',
                               style: AppTextStyles.bodySmall,
                             ),
                             const SizedBox(width: 12),
@@ -368,10 +419,15 @@ class _SessionDetail extends ConsumerWidget {
             radiusMeters: position.radius,
           );
       if (!context.mounted) return;
-      await showDialog<void>(context: context, builder: (_) => _QrDialog(qr: qr));
+      await showDialog<void>(
+          context: context, builder: (_) => _QrDialog(qr: qr));
       ref.invalidate(_recordsProvider(session.id));
     } on ApiException catch (e) {
-      if (context.mounted) showFeedback(context, message: 'QR refusé par le serveur.', detail: e.message, success: false);
+      if (context.mounted)
+        showFeedback(context,
+            message: 'QR refusé par le serveur.',
+            detail: e.message,
+            success: false);
     }
   }
 }
@@ -394,9 +450,12 @@ class _OriginDialog extends StatefulWidget {
 }
 
 class _OriginDialogState extends State<_OriginDialog> {
-  late final _lat = TextEditingController(text: widget.initial?.latitude.toString() ?? '');
-  late final _lon = TextEditingController(text: widget.initial?.longitude.toString() ?? '');
-  late final _radius = TextEditingController(text: (widget.initial?.radius ?? 80).toString());
+  late final _lat =
+      TextEditingController(text: widget.initial?.latitude.toString() ?? '');
+  late final _lon =
+      TextEditingController(text: widget.initial?.longitude.toString() ?? '');
+  late final _radius =
+      TextEditingController(text: (widget.initial?.radius ?? 80).toString());
   String? _error;
 
   @override
@@ -412,7 +471,8 @@ class _OriginDialogState extends State<_OriginDialog> {
     final lon = double.tryParse(_lon.text.replaceAll(',', '.'));
     final radius = int.tryParse(_radius.text) ?? 80;
     if (lat == null || lon == null || lat.abs() > 90 || lon.abs() > 180) {
-      setState(() => _error = 'Coordonnées invalides (latitude ±90, longitude ±180).');
+      setState(() =>
+          _error = 'Coordonnées invalides (latitude ±90, longitude ±180).');
       return;
     }
     Navigator.pop(context, _Origin(lat, lon, radius.clamp(20, 250)));
@@ -437,26 +497,40 @@ class _OriginDialogState extends State<_OriginDialog> {
             const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(child: TextField(controller: _lat, autofocus: true, decoration: const InputDecoration(labelText: 'Latitude'))),
+                Expanded(
+                    child: TextField(
+                        controller: _lat,
+                        autofocus: true,
+                        decoration:
+                            const InputDecoration(labelText: 'Latitude'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _lon, decoration: const InputDecoration(labelText: 'Longitude'))),
+                Expanded(
+                    child: TextField(
+                        controller: _lon,
+                        decoration:
+                            const InputDecoration(labelText: 'Longitude'))),
               ],
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _radius,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Rayon autorisé (m, 20 à 250)'),
+              decoration: const InputDecoration(
+                  labelText: 'Rayon autorisé (m, 20 à 250)'),
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12.5)),
+              Text(_error!,
+                  style:
+                      const TextStyle(color: AppColors.danger, fontSize: 12.5)),
             ],
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler')),
         FilledButton(onPressed: _submit, child: const Text('Émettre')),
       ],
     );
@@ -514,22 +588,32 @@ class _QrDialogState extends ConsumerState<_QrDialog> {
               opacity: expired ? 0.25 : 1,
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                child: QrImageView(data: widget.qr.token, size: 260, backgroundColor: Colors.white),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12)),
+                child: QrImageView(
+                    data: widget.qr.token,
+                    size: 260,
+                    backgroundColor: Colors.white),
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              expired ? (_revoked ? 'QR révoqué' : 'QR expiré') : 'Valide encore $mm:$ss',
+              expired
+                  ? (_revoked ? 'QR révoqué' : 'QR expiré')
+                  : 'Valide encore $mm:$ss',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: expired ? AppColors.danger : AppColors.tealDark,
               ),
             ),
             const SizedBox(height: 4),
-            Text('Rayon autorisé : ${widget.qr.radiusMeters} m', style: AppTextStyles.bodySmall),
+            Text('Rayon autorisé : ${widget.qr.radiusMeters} m',
+                style: AppTextStyles.bodySmall),
             const SizedBox(height: 10),
-            SelectableText(widget.qr.token, style: AppTextStyles.bodySmall.copyWith(fontFamily: 'monospace')),
+            SelectableText(widget.qr.token,
+                style:
+                    AppTextStyles.bodySmall.copyWith(fontFamily: 'monospace')),
           ],
         ),
       ),
@@ -549,12 +633,19 @@ class _QrDialogState extends ConsumerState<_QrDialog> {
                 await ref.read(attendanceApiProvider).revoke(widget.qr.token);
                 if (mounted) setState(() => _revoked = true);
               } on ApiException catch (e) {
-                if (mounted) showFeedback(context, message: 'Révocation refusée.', detail: e.message, success: false);
+                if (mounted)
+                  showFeedback(context,
+                      message: 'Révocation refusée.',
+                      detail: e.message,
+                      success: false);
               }
             },
-            child: const Text('Révoquer', style: TextStyle(color: AppColors.danger)),
+            child: const Text('Révoquer',
+                style: TextStyle(color: AppColors.danger)),
           ),
-        FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Fermer')),
+        FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer')),
       ],
     );
   }
@@ -580,10 +671,16 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final students = ref.watch(studentsProvider).valueOrNull ?? const <Student>[];
-    final enrollments = ref.watch(enrollmentsProvider).valueOrNull ?? const <AcademicEnrollment>[];
-    final enrolledIds = enrollments.where((e) => e.courseId == widget.courseId).map((e) => e.studentId).toSet();
-    final roster = students.where((s) => enrolledIds.contains(s.id)).toList()..sort((a, b) => a.fullName.compareTo(b.fullName));
+    final students =
+        ref.watch(studentsProvider).valueOrNull ?? const <Student>[];
+    final enrollments = ref.watch(enrollmentsProvider).valueOrNull ??
+        const <AcademicEnrollment>[];
+    final enrolledIds = enrollments
+        .where((e) => e.courseId == widget.courseId)
+        .map((e) => e.studentId)
+        .toSet();
+    final roster = students.where((s) => enrolledIds.contains(s.id)).toList()
+      ..sort((a, b) => a.fullName.compareTo(b.fullName));
     for (final s in roster) {
       _status.putIfAbsent(s.id, () => 'PRESENT');
     }
@@ -594,7 +691,9 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
         width: 520,
         height: 420,
         child: roster.isEmpty
-            ? const Center(child: Text('Aucun apprenant inscrit à ce cours.', style: AppTextStyles.body))
+            ? const Center(
+                child: Text('Aucun apprenant inscrit à ce cours.',
+                    style: AppTextStyles.body))
             : Column(
                 children: [
                   Row(
@@ -605,8 +704,10 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
                             final picked = await showDatePicker(
                               context: context,
                               initialDate: _date,
-                              firstDate: DateTime.now().subtract(const Duration(days: 180)),
-                              lastDate: DateTime.now().add(const Duration(days: 1)),
+                              firstDate: DateTime.now()
+                                  .subtract(const Duration(days: 180)),
+                              lastDate:
+                                  DateTime.now().add(const Duration(days: 1)),
                             );
                             if (picked != null) setState(() => _date = picked);
                           },
@@ -634,16 +735,24 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           child: Row(
                             children: [
-                              Expanded(child: Text(s.fullName, overflow: TextOverflow.ellipsis)),
+                              Expanded(
+                                  child: Text(s.fullName,
+                                      overflow: TextOverflow.ellipsis)),
                               SegmentedButton<String>(
                                 showSelectedIcon: false,
-                                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                                style: const ButtonStyle(
+                                    visualDensity: VisualDensity.compact),
                                 segments: [
                                   for (final st in _statuses)
-                                    ButtonSegment(value: st, label: Text(_shortStatus(st), style: const TextStyle(fontSize: 11))),
+                                    ButtonSegment(
+                                        value: st,
+                                        label: Text(_shortStatus(st),
+                                            style:
+                                                const TextStyle(fontSize: 11))),
                                 ],
                                 selected: {_status[s.id]!},
-                                onSelectionChanged: (sel) => setState(() => _status[s.id] = sel.first),
+                                onSelectionChanged: (sel) =>
+                                    setState(() => _status[s.id] = sel.first),
                               ),
                             ],
                           ),
@@ -654,17 +763,24 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
                   if (_error != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12.5)),
+                      child: Text(_error!,
+                          style: const TextStyle(
+                              color: AppColors.danger, fontSize: 12.5)),
                     ),
                 ],
               ),
       ),
       actions: [
-        TextButton(onPressed: _busy ? null : () => Navigator.pop(context, false), child: const Text('Annuler')),
+        TextButton(
+            onPressed: _busy ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler')),
         FilledButton(
           onPressed: _busy || roster.isEmpty ? null : _save,
           child: _busy
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2))
               : const Text('Enregistrer l\'appel'),
         ),
       ],
@@ -677,9 +793,11 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
       _error = null;
     });
     try {
-      await ref.read(attendanceApiProvider).roll(courseId: widget.courseId, date: _date, statusByStudent: _status);
+      await ref.read(attendanceApiProvider).roll(
+          courseId: widget.courseId, date: _date, statusByStudent: _status);
       if (!mounted) return;
-      showFeedback(context, message: 'Appel enregistré.', detail: '${_status.length} apprenants');
+      showFeedback(context,
+          message: 'Appel enregistré.', detail: '${_status.length} apprenants');
       Navigator.pop(context, true);
     } on ApiException catch (e) {
       setState(() {
@@ -712,10 +830,13 @@ class _StatusChip extends StatelessWidget {
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999)),
       child: Text(
         count == null ? label : '$label · $count',
-        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(
+            fontSize: 11.5, fontWeight: FontWeight.w700, color: color),
       ),
     );
   }
@@ -729,13 +850,16 @@ class _AttendanceStatsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(studentAttendanceProvider);
     return stats.when(
-      loading: () => const Padding(padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
-      error: (e, _) => DataErrorView(error: e, onRetry: () => ref.invalidate(studentAttendanceProvider)),
+      loading: () => const Padding(
+          padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
+      error: (e, _) => DataErrorView(
+          error: e, onRetry: () => ref.invalidate(studentAttendanceProvider)),
       data: (students) {
         if (students.isEmpty) {
           return const DataEmptyView(
             icon: Icons.insights_outlined,
-            message: 'Aucun émargement enregistré : l\'assiduité se calcule depuis les séances.',
+            message:
+                'Aucun émargement enregistré : l\'assiduité se calcule depuis les séances.',
           );
         }
         final sorted = [...students]..sort((a, b) => a.rate.compareTo(b.rate));
@@ -750,7 +874,10 @@ class _AttendanceStatsView extends ConsumerWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textSecondary, fontSize: 12),
+                headingTextStyle: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    fontSize: 12),
                 columns: const [
                   DataColumn(label: Text('Apprenant')),
                   DataColumn(label: Text('Présent')),
@@ -761,7 +888,9 @@ class _AttendanceStatsView extends ConsumerWidget {
                 rows: [
                   for (final s in sorted)
                     DataRow(cells: [
-                      DataCell(Text(s.matricule.isEmpty ? s.name : '${s.name} · ${s.matricule}')),
+                      DataCell(Text(s.matricule.isEmpty
+                          ? s.name
+                          : '${s.name} · ${s.matricule}')),
                       DataCell(Text('${s.present}')),
                       DataCell(Text('${s.late}')),
                       DataCell(Text('${s.absent}')),
@@ -769,7 +898,9 @@ class _AttendanceStatsView extends ConsumerWidget {
                         s.rateLabel,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          color: s.status == AttendanceStatus.regular ? AppColors.success : AppColors.danger,
+                          color: s.status == AttendanceStatus.regular
+                              ? AppColors.success
+                              : AppColors.danger,
                         ),
                       )),
                     ]),

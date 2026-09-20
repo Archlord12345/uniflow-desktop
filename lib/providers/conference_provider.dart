@@ -19,7 +19,8 @@ final conferenceRegistryProvider = Provider<ConferenceRegistry>((ref) {
 });
 
 /// Réunions en cours, telles qu'un participant peut les découvrir.
-final activeConferencesProvider = FutureProvider<List<DiscoveredConference>>((ref) {
+final activeConferencesProvider =
+    FutureProvider<List<DiscoveredConference>>((ref) {
   return ref.watch(conferenceRegistryProvider).listActive();
 });
 
@@ -109,8 +110,10 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
       // 3. Ports libres : l'API de jonction peut cohabiter avec un autre
       //    logiciel, on cherche le premier port disponible.
       final mediaPort = await ConferenceNetwork.findFreePort(defaultMediaPort);
-      final rtcTcpPort = await ConferenceNetwork.findFreePort(defaultRtcTcpPort);
-      final rtcUdpPort = await ConferenceNetwork.findFreePort(defaultRtcUdpPort);
+      final rtcTcpPort =
+          await ConferenceNetwork.findFreePort(defaultRtcTcpPort);
+      final rtcUdpPort =
+          await ConferenceNetwork.findFreePort(defaultRtcUdpPort);
       final joinPort = await ConferenceNetwork.findFreePort(defaultJoinApiPort);
 
       // 4. Identifiants et identité de la salle, générés localement.
@@ -134,7 +137,8 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
       _process = process;
 
       // 6. Ouverture de l'API de jonction, qui signe les jetons.
-      final server = ConferenceHostServer(tokenService: const LiveKitTokenService());
+      final server =
+          ConferenceHostServer(tokenService: const LiveKitTokenService());
       await server.start(port: joinPort);
       _server = server;
 
@@ -157,9 +161,8 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
       // 7. Publication dans l'annuaire : c'est un confort pour les
       //    participants distants, pas une condition de fonctionnement. Un
       //    échec ici n'empêche pas la réunion de se tenir en local.
-      _registryDocumentId = await ref
-          .read(conferenceRegistryProvider)
-          .publish(conference);
+      _registryDocumentId =
+          await ref.read(conferenceRegistryProvider).publish(conference);
 
       state = state.copyWith(
         status: HostState.running,

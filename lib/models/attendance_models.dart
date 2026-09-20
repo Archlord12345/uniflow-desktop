@@ -29,7 +29,8 @@ class StudentAttendance {
   double get rate => total == 0 ? 0 : present / total;
 
   /// Taux formaté à la française, ex. « 92,3% ».
-  String get rateLabel => '${(rate * 100).toStringAsFixed(1).replaceAll('.', ',')}%';
+  String get rateLabel =>
+      '${(rate * 100).toStringAsFixed(1).replaceAll('.', ',')}%';
 
   AttendanceStatus get status {
     if (absent >= alertThreshold) return AttendanceStatus.alert;

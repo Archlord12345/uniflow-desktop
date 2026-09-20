@@ -15,7 +15,8 @@ import 'login_screen.dart';
 /// profond, l'utilisateur colle ce lien dans la seconde étape : on en extrait
 /// les deux paramètres et on termine la réinitialisation ici. Le lien web
 /// reste utilisable tel quel si la page existe côté web.
-Future<void> showForgotPasswordDialog(BuildContext context, {String initialEmail = ''}) {
+Future<void> showForgotPasswordDialog(BuildContext context,
+    {String initialEmail = ''}) {
   return showDialog<void>(
     context: context,
     builder: (_) => _ForgotPasswordDialog(initialEmail: initialEmail),
@@ -27,13 +28,15 @@ class _ForgotPasswordDialog extends ConsumerStatefulWidget {
   const _ForgotPasswordDialog({required this.initialEmail});
 
   @override
-  ConsumerState<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+  ConsumerState<_ForgotPasswordDialog> createState() =>
+      _ForgotPasswordDialogState();
 }
 
 enum _Step { request, complete, done }
 
 class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
-  late final _emailController = TextEditingController(text: widget.initialEmail);
+  late final _emailController =
+      TextEditingController(text: widget.initialEmail);
   final _linkController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -57,7 +60,9 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).requestPasswordRecovery(_emailController.text);
+      await ref
+          .read(authRepositoryProvider)
+          .requestPasswordRecovery(_emailController.text);
       if (!mounted) return;
       setState(() {
         _busy = false;
@@ -67,7 +72,9 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = e.code == 404 ? 'Aucun compte ne porte cet email.' : readableAuthError(e);
+        _error = e.code == 404
+            ? 'Aucun compte ne porte cet email.'
+            : readableAuthError(e);
       });
     } catch (e) {
       if (!mounted) return;
@@ -81,11 +88,13 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
   Future<void> _complete() async {
     final parsed = parseRecoveryLink(_linkController.text);
     if (parsed == null) {
-      setState(() => _error = 'Le lien collé ne contient pas userId et secret.');
+      setState(
+          () => _error = 'Le lien collé ne contient pas userId et secret.');
       return;
     }
     if (_passwordController.text.length < 8) {
-      setState(() => _error = 'Le nouveau mot de passe doit contenir au moins 8 caractères.');
+      setState(() => _error =
+          'Le nouveau mot de passe doit contenir au moins 8 caractères.');
       return;
     }
     if (_passwordController.text != _confirmController.text) {
@@ -136,29 +145,42 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
       ),
       actions: switch (_step) {
         _Step.request => [
-            TextButton(onPressed: _busy ? null : () => Navigator.pop(context), child: const Text('Annuler')),
             TextButton(
-              onPressed: _busy ? null : () => setState(() => _step = _Step.complete),
+                onPressed: _busy ? null : () => Navigator.pop(context),
+                child: const Text('Annuler')),
+            TextButton(
+              onPressed:
+                  _busy ? null : () => setState(() => _step = _Step.complete),
               child: const Text('J\'ai déjà le lien'),
             ),
             FilledButton(
               onPressed: _busy ? null : _sendEmail,
               child: _busy
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : const Text('Envoyer l\'email'),
             ),
           ],
         _Step.complete => [
-            TextButton(onPressed: _busy ? null : () => Navigator.pop(context), child: const Text('Annuler')),
+            TextButton(
+                onPressed: _busy ? null : () => Navigator.pop(context),
+                child: const Text('Annuler')),
             FilledButton(
               onPressed: _busy ? null : _complete,
               child: _busy
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : const Text('Changer le mot de passe'),
             ),
           ],
         _Step.done => [
-            FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Se connecter')),
+            FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Se connecter')),
           ],
       },
     );
@@ -183,7 +205,10 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(labelText: 'Email du compte'),
             ),
-            if (_error != null) ...[const SizedBox(height: 12), ErrorBanner(message: _error!)],
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              ErrorBanner(message: _error!)
+            ],
           ],
         );
       case _Step.complete:
@@ -200,21 +225,27 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
             TextField(
               controller: _linkController,
               autofocus: true,
-              decoration: const InputDecoration(labelText: 'Lien reçu par email'),
+              decoration:
+                  const InputDecoration(labelText: 'Lien reçu par email'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
+              decoration:
+                  const InputDecoration(labelText: 'Nouveau mot de passe'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _confirmController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirmer le mot de passe'),
+              decoration:
+                  const InputDecoration(labelText: 'Confirmer le mot de passe'),
             ),
-            if (_error != null) ...[const SizedBox(height: 12), ErrorBanner(message: _error!)],
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              ErrorBanner(message: _error!)
+            ],
           ],
         );
       case _Step.done:

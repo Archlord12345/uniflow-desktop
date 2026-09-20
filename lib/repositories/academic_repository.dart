@@ -49,7 +49,8 @@ class AcademicRepository {
   }
 
   /// Nombre total de documents répondant aux filtres, sans les charger.
-  Future<int> count(String collectionId, {List<String> queries = const []}) async {
+  Future<int> count(String collectionId,
+      {List<String> queries = const []}) async {
     final page = await _service.databases.listDocuments(
       databaseId: _service.databaseId,
       collectionId: collectionId,
@@ -64,7 +65,8 @@ class AcademicRepository {
   }
 
   /// UE d'une filière et d'un niveau, lues directement par filtre serveur.
-  Future<List<AcademicCourse>> getCoursesFor({required String program, String? level}) async {
+  Future<List<AcademicCourse>> getCoursesFor(
+      {required String program, String? level}) async {
     final documents = await listAll('academic_courses', queries: [
       Query.equal('program', program),
       if (level != null && level.isNotEmpty) Query.equal('level', level),
@@ -146,7 +148,8 @@ class AcademicRepository {
       if (room.isEmpty) continue;
       final aggregate = byRoom.putIfAbsent(room, () => _RoomAggregate());
       aggregate.creneaux++;
-      if (schedule.courseId.isNotEmpty) aggregate.courseIds.add(schedule.courseId);
+      if (schedule.courseId.isNotEmpty)
+        aggregate.courseIds.add(schedule.courseId);
       final type = (schedule.type ?? '').trim();
       if (type.isNotEmpty) aggregate.types.add(type);
     }
@@ -156,7 +159,8 @@ class AcademicRepository {
               nom: entry.key,
               creneaux: entry.value.creneaux,
               cours: entry.value.courseIds.length,
-              type: entry.value.types.length == 1 ? entry.value.types.first : '',
+              type:
+                  entry.value.types.length == 1 ? entry.value.types.first : '',
             ))
         .toList()
       ..sort((a, b) => a.nom.toLowerCase().compareTo(b.nom.toLowerCase()));
@@ -170,7 +174,8 @@ class AcademicRepository {
 
   /// Séances d'une filière et d'un niveau, par l'index `schedule_program_level`
   /// (schéma du 2026-09-20) : une grille se lit sans joindre les cours.
-  Future<List<AcademicSchedule>> getSchedulesFor({required String program, required String level}) async {
+  Future<List<AcademicSchedule>> getSchedulesFor(
+      {required String program, required String level}) async {
     final documents = await listAll('academic_schedules', queries: [
       Query.equal('program', program),
       Query.equal('level', level),
@@ -180,12 +185,15 @@ class AcademicRepository {
 
   /// Séances de plusieurs cours, par lots : `Query.equal` accepte une liste
   /// de valeurs, on la découpe pour rester sous la limite d'une requête.
-  Future<List<AcademicSchedule>> getSchedulesForCourses(Iterable<String> courseIds) async {
+  Future<List<AcademicSchedule>> getSchedulesForCourses(
+      Iterable<String> courseIds) async {
     final ids = courseIds.where((id) => id.isNotEmpty).toSet().toList();
     final result = <AcademicSchedule>[];
     for (var i = 0; i < ids.length; i += kAppwritePageSize) {
-      final batch = ids.sublist(i, (i + kAppwritePageSize).clamp(0, ids.length));
-      final documents = await listAll('academic_schedules', queries: [Query.equal('courseId', batch)]);
+      final batch =
+          ids.sublist(i, (i + kAppwritePageSize).clamp(0, ids.length));
+      final documents = await listAll('academic_schedules',
+          queries: [Query.equal('courseId', batch)]);
       result.addAll(documents.map(AcademicSchedule.fromDocument));
     }
     return result;
@@ -198,7 +206,9 @@ class AcademicRepository {
 
   Future<List<AcademicAssignment>> getAssignments() async {
     final documents = await listAll('academic_assignments');
-    return documents.map((doc) => AcademicAssignment.fromDocument(doc)).toList();
+    return documents
+        .map((doc) => AcademicAssignment.fromDocument(doc))
+        .toList();
   }
 
   Future<Map<String, dynamic>> getGlobalStats() async {
@@ -281,7 +291,8 @@ class AcademicRepository {
   /// Renvoie `null` — et non une répartition à zéro — si la collection est
   /// absente ou refuse la lecture : le tableau de bord doit pouvoir distinguer
   /// « aucune donnée » d'un taux réellement nul.
-  Future<AttendanceBreakdown?> getAttendanceBreakdown({int limit = 5000}) async {
+  Future<AttendanceBreakdown?> getAttendanceBreakdown(
+      {int limit = 5000}) async {
     try {
       final response = await _service.databases.listDocuments(
         databaseId: _service.databaseId,
@@ -337,7 +348,8 @@ class AcademicRepository {
           final created = DateTime.tryParse(doc.$createdAt);
           final subject = subjectOf(doc.data).trim();
           if (created == null || subject.isEmpty) continue;
-          entries.add(ActivityEntry(kind: kind, subject: subject, createdAt: created));
+          entries.add(
+              ActivityEntry(kind: kind, subject: subject, createdAt: created));
         }
       } catch (_) {
         // Ignoré volontairement : voir le contrat de la méthode.
@@ -360,7 +372,8 @@ class AcademicRepository {
   ///
   /// Une collection de présences absente ou illisible renvoie une liste vide :
   /// l'écran affiche alors l'absence de données plutôt qu'un tableau inventé.
-  Future<List<StudentAttendance>> getStudentAttendance({int limit = 5000}) async {
+  Future<List<StudentAttendance>> getStudentAttendance(
+      {int limit = 5000}) async {
     final tallies = <String, _AttendanceTally>{};
     try {
       final response = await _service.databases.listDocuments(
@@ -442,7 +455,8 @@ class AcademicRepository {
       final double maxScore = grade.maxScore > 0 ? grade.maxScore : 20.0;
       final on20 = (grade.score / maxScore) * 20;
       // `: 1` (int) ferait déduire `num` au ternaire, refusé par `add(double, double)`.
-      final double coefficient = grade.coefficient > 0 ? grade.coefficient : 1.0;
+      final double coefficient =
+          grade.coefficient > 0 ? grade.coefficient : 1.0;
 
       weightedSum += on20 * coefficient;
       weightTotal += coefficient;

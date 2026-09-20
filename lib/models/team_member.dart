@@ -127,19 +127,26 @@ class TeamAccentStyle {
 TeamAccentStyle teamAccentStyle(TeamAccent accent) {
   switch (accent) {
     case TeamAccent.blue:
-      return const TeamAccentStyle(Color(0xFFDBEAFE), AppColors.primaryBlue, Color(0xFFBFDBFE));
+      return const TeamAccentStyle(
+          Color(0xFFDBEAFE), AppColors.primaryBlue, Color(0xFFBFDBFE));
     case TeamAccent.purple:
-      return const TeamAccentStyle(Color(0xFFF3E8FF), Color(0xFF5B21B6), Color(0xFFE9D5FF));
+      return const TeamAccentStyle(
+          Color(0xFFF3E8FF), Color(0xFF5B21B6), Color(0xFFE9D5FF));
     case TeamAccent.emerald:
-      return const TeamAccentStyle(Color(0xFFD1FAE5), Color(0xFF065F46), Color(0xFFA7F3D0));
+      return const TeamAccentStyle(
+          Color(0xFFD1FAE5), Color(0xFF065F46), Color(0xFFA7F3D0));
     case TeamAccent.amber:
-      return const TeamAccentStyle(Color(0xFFFEF3C7), Color(0xFF92400E), Color(0xFFFDE68A));
+      return const TeamAccentStyle(
+          Color(0xFFFEF3C7), Color(0xFF92400E), Color(0xFFFDE68A));
     case TeamAccent.rose:
-      return const TeamAccentStyle(Color(0xFFFFE4E6), Color(0xFF9F1239), Color(0xFFFECDD3));
+      return const TeamAccentStyle(
+          Color(0xFFFFE4E6), Color(0xFF9F1239), Color(0xFFFECDD3));
     case TeamAccent.cyan:
-      return const TeamAccentStyle(Color(0xFFCFFAFE), Color(0xFF155E75), Color(0xFFA5F3FC));
+      return const TeamAccentStyle(
+          Color(0xFFCFFAFE), Color(0xFF155E75), Color(0xFFA5F3FC));
     case TeamAccent.indigo:
-      return const TeamAccentStyle(Color(0xFFE0E7FF), Color(0xFF3730A3), Color(0xFFC7D2FE));
+      return const TeamAccentStyle(
+          Color(0xFFE0E7FF), Color(0xFF3730A3), Color(0xFFC7D2FE));
   }
 }
 

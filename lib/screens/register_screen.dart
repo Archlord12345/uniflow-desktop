@@ -92,7 +92,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       university: university,
       program: program,
       level: _type == AccountType.university ? _level : null,
-      country: _countryController.text.trim().isEmpty ? null : _countryController.text,
+      country: _countryController.text.trim().isEmpty
+          ? null
+          : _countryController.text,
     );
     final invalid = validateRegistration(request);
     if (invalid != null) {
@@ -122,7 +124,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = e is ArgumentError ? e.message.toString() : 'Inscription impossible : $e';
+        _error = e is ArgumentError
+            ? e.message.toString()
+            : 'Inscription impossible : $e';
       });
     }
   }
@@ -130,8 +134,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _openWebRegistration() async {
     final base = ref.read(appwriteServiceProvider).webAppUrl;
     final uri = Uri.parse('$base/register');
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted) {
-      showFeedback(context, message: 'Impossible d\'ouvrir $uri', success: false);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      showFeedback(context,
+          message: 'Impossible d\'ouvrir $uri', success: false);
     }
   }
 
@@ -200,7 +206,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           value: _type,
           onChanged: _busy ? (_) {} : (type) => setState(() => _type = type),
         ),
-        if (_error != null) ...[const SizedBox(height: 14), ErrorBanner(message: _error!)],
+        if (_error != null) ...[
+          const SizedBox(height: 14),
+          ErrorBanner(message: _error!)
+        ],
         const SizedBox(height: 18),
         AppTextField(
           label: 'Nom complet',
@@ -265,7 +274,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     'L\'inscription crée un compte étudiant. Les comptes enseignant, '
                     'délégué et administration sont créés par l\'administration de '
                     'votre établissement.',
-                    style: TextStyle(fontSize: 12, color: AppColors.tealDark, height: 1.35),
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.tealDark, height: 1.35),
                   ),
                 ),
               ],
@@ -282,7 +292,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         TextButton.icon(
           onPressed: _busy ? null : _openWebRegistration,
           icon: const Icon(Icons.open_in_new, size: 16),
-          label: const Text('S\'inscrire sur le web', style: AppTextStyles.link),
+          label:
+              const Text('S\'inscrire sur le web', style: AppTextStyles.link),
         ),
       ],
     );
@@ -296,11 +307,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Shimmer(height: 48, borderRadius: BorderRadius.all(Radius.circular(10))),
+          Shimmer(
+              height: 48, borderRadius: BorderRadius.all(Radius.circular(10))),
           SizedBox(height: 14),
-          Shimmer(height: 48, borderRadius: BorderRadius.all(Radius.circular(10))),
+          Shimmer(
+              height: 48, borderRadius: BorderRadius.all(Radius.circular(10))),
           SizedBox(height: 14),
-          Shimmer(height: 48, borderRadius: BorderRadius.all(Radius.circular(10))),
+          Shimmer(
+              height: 48, borderRadius: BorderRadius.all(Radius.circular(10))),
         ],
       );
     }
@@ -345,11 +359,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     final universities = reference.universities.where((u) => u.active).toList();
-    final faculties = _universityCode == null ? const <Faculty>[] : reference.facultiesOf(_universityCode!);
+    final faculties = _universityCode == null
+        ? const <Faculty>[]
+        : reference.facultiesOf(_universityCode!);
     final programs = _universityCode == null
         ? const <AcademicProgram>[]
         : reference.programsOf(_universityCode!, facultyCode: _facultyCode);
-    final levels = _programCode == null ? const <String>[] : reference.levelsOf(_programCode);
+    final levels = _programCode == null
+        ? const <String>[]
+        : reference.levelsOf(_programCode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -362,7 +380,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             for (final u in universities)
               DropdownMenuItem(
                 value: u.code,
-                child: Text(u.displayName, maxLines: 1, overflow: TextOverflow.ellipsis),
+                child: Text(u.displayName,
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: (value) => setState(() {
@@ -382,7 +401,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               for (final f in faculties)
                 DropdownMenuItem(
                   value: f.code,
-                  child: Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  child: Text(f.name,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
             ],
             onChanged: (value) => setState(() {
@@ -396,12 +416,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         AuthDropdown<String>(
           label: 'Filière',
           value: _programCode,
-          hint: _universityCode == null ? 'Choisissez d\'abord l\'université' : 'Choisir votre filière',
+          hint: _universityCode == null
+              ? 'Choisissez d\'abord l\'université'
+              : 'Choisir votre filière',
           items: [
             for (final p in programs)
               DropdownMenuItem(
                 value: p.code,
-                child: Text(p.displayName, maxLines: 1, overflow: TextOverflow.ellipsis),
+                child: Text(p.displayName,
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: programs.isEmpty
@@ -415,9 +438,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         AuthDropdown<String>(
           label: 'Niveau',
           value: _level,
-          hint: _programCode == null ? 'Choisissez d\'abord la filière' : 'Choisir votre niveau',
-          items: [for (final l in levels) DropdownMenuItem(value: l, child: Text(l))],
-          onChanged: levels.isEmpty ? null : (value) => setState(() => _level = value),
+          hint: _programCode == null
+              ? 'Choisissez d\'abord la filière'
+              : 'Choisir votre niveau',
+          items: [
+            for (final l in levels) DropdownMenuItem(value: l, child: Text(l))
+          ],
+          onChanged:
+              levels.isEmpty ? null : (value) => setState(() => _level = value),
         ),
       ],
     );

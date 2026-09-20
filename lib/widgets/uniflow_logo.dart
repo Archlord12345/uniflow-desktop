@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-
 /// Widget séparé de [UniFlowLogo] pour pouvoir l'utiliser seule
 /// (ex: petite icône dans la sidebar une fois repliée, favicon web, etc.)
 class UniFlowIcon extends StatelessWidget {
@@ -82,7 +81,8 @@ class UniFlowLogo extends StatelessWidget {
       children: [
         // Icône + texte "UniFlow" alignés horizontalement
         Row(
-          mainAxisSize: MainAxisSize.min, // la Row ne prend que la place nécessaire (pas toute la largeur)
+          mainAxisSize: MainAxisSize
+              .min, // la Row ne prend que la place nécessaire (pas toute la largeur)
           children: [
             UniFlowIcon(size: iconSize),
             const SizedBox(width: 10),

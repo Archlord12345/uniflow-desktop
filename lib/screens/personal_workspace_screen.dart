@@ -27,10 +27,14 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
       children: [
         AppTopBar(
           title: 'Espace personnel',
-          subtitle: user == null ? null : 'Vos matières et votre organisation, ${user.name}',
+          subtitle: user == null
+              ? null
+              : 'Vos matières et votre organisation, ${user.name}',
           actions: [
             FilledButton.icon(
-              onPressed: user == null ? null : () => _addSubject(context, ref, user.id),
+              onPressed: user == null
+                  ? null
+                  : () => _addSubject(context, ref, user.id),
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Nouvelle matière'),
             ),
@@ -50,7 +54,8 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
               if (items.isEmpty) {
                 return const DataEmptyView(
                   icon: Icons.auto_awesome_outlined,
-                  message: 'Aucune matière pour l\'instant. Ajoutez votre première '
+                  message:
+                      'Aucune matière pour l\'instant. Ajoutez votre première '
                       'matière pour organiser votre travail.',
                 );
               }
@@ -65,7 +70,8 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
                         index: i,
                         child: _SubjectCard(
                           subject: items[i],
-                          onDelete: () => _deleteSubject(context, ref, items[i]),
+                          onDelete: () =>
+                              _deleteSubject(context, ref, items[i]),
                         ),
                       ),
                   ],
@@ -78,7 +84,8 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _addSubject(BuildContext context, WidgetRef ref, String ownerId) async {
+  Future<void> _addSubject(
+      BuildContext context, WidgetRef ref, String ownerId) async {
     final nameController = TextEditingController();
     final codeController = TextEditingController();
     final instructorController = TextEditingController();
@@ -94,30 +101,38 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
               TextField(
                 controller: nameController,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Nom de la matière'),
+                decoration:
+                    const InputDecoration(labelText: 'Nom de la matière'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: codeController,
-                decoration: const InputDecoration(labelText: 'Code (facultatif)'),
+                decoration:
+                    const InputDecoration(labelText: 'Code (facultatif)'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: instructorController,
-                decoration: const InputDecoration(labelText: 'Intervenant (facultatif)'),
+                decoration: const InputDecoration(
+                    labelText: 'Intervenant (facultatif)'),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Ajouter')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Ajouter')),
         ],
       ),
     );
     if (confirmed != true || !context.mounted) return;
     if (nameController.text.trim().isEmpty) {
-      showFeedback(context, message: 'Le nom de la matière est requis.', success: false);
+      showFeedback(context,
+          message: 'Le nom de la matière est requis.', success: false);
       return;
     }
     try {
@@ -131,19 +146,23 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
       if (context.mounted) showFeedback(context, message: 'Matière ajoutée.');
     } catch (error) {
       if (context.mounted) {
-        showFeedback(context, message: 'Ajout impossible.', detail: '$error', success: false);
+        showFeedback(context,
+            message: 'Ajout impossible.', detail: '$error', success: false);
       }
     }
   }
 
-  Future<void> _deleteSubject(BuildContext context, WidgetRef ref, PersonalSubject subject) async {
+  Future<void> _deleteSubject(
+      BuildContext context, WidgetRef ref, PersonalSubject subject) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Supprimer la matière ?'),
         content: Text('« ${subject.name} » sera retirée de votre espace.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annuler')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -159,7 +178,10 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
       if (context.mounted) showFeedback(context, message: 'Matière supprimée.');
     } catch (error) {
       if (context.mounted) {
-        showFeedback(context, message: 'Suppression impossible.', detail: '$error', success: false);
+        showFeedback(context,
+            message: 'Suppression impossible.',
+            detail: '$error',
+            success: false);
       }
     }
   }
@@ -197,7 +219,8 @@ class _SubjectCard extends StatelessWidget {
               Container(
                 width: 12,
                 height: 12,
-                decoration: BoxDecoration(color: _accent, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: _accent, shape: BoxShape.circle),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -211,7 +234,8 @@ class _SubjectCard extends StatelessWidget {
               IconButton(
                 tooltip: 'Supprimer',
                 onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.textMuted),
+                icon: const Icon(Icons.delete_outline,
+                    size: 18, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -219,7 +243,9 @@ class _SubjectCard extends StatelessWidget {
             Text(subject.code!, style: AppTextStyles.bodySmall),
           const SizedBox(height: 8),
           Text(
-            (subject.instructor ?? '').isEmpty ? 'Sans intervenant' : subject.instructor!,
+            (subject.instructor ?? '').isEmpty
+                ? 'Sans intervenant'
+                : subject.instructor!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.body,

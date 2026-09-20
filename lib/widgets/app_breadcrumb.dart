@@ -35,7 +35,8 @@ class AppBreadcrumb extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   // dernier élément = page actuelle -> gras et foncé
-                  fontWeight: i == items.length - 1 ? FontWeight.w700 : FontWeight.w400,
+                  fontWeight:
+                      i == items.length - 1 ? FontWeight.w700 : FontWeight.w400,
                   color: i == items.length - 1
                       ? AppColors.textPrimary
                       : AppColors.textSecondary,

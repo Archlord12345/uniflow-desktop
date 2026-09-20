@@ -36,13 +36,18 @@ class ProgramFilter extends ConsumerWidget {
       ..sort();
     final levels = <String>{
       if (reference != null) ...reference.levelsOf(program),
-      if (options != null) ...(program == null ? options.levels : options.levelsByProgram[program] ?? options.levels),
+      if (options != null)
+        ...(program == null
+            ? options.levels
+            : options.levelsByProgram[program] ?? options.levels),
     }.toList()
       ..sort();
 
     String labelOf(String code) {
       final entry = reference?.programByCode(code);
-      return entry == null || entry.name.isEmpty ? code : '${entry.name} ($code)';
+      return entry == null || entry.name.isEmpty
+          ? code
+          : '${entry.name} ($code)';
     }
 
     return Wrap(
@@ -55,9 +60,12 @@ class ProgramFilter extends ConsumerWidget {
           hint: 'Toutes les filières',
           value: program,
           items: [
-            const DropdownMenuItem<String?>(value: null, child: Text('Toutes les filières')),
+            const DropdownMenuItem<String?>(
+                value: null, child: Text('Toutes les filières')),
             for (final code in programs)
-              DropdownMenuItem<String?>(value: code, child: Text(labelOf(code), overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem<String?>(
+                  value: code,
+                  child: Text(labelOf(code), overflow: TextOverflow.ellipsis)),
           ],
           onChanged: onProgramChanged,
         ),
@@ -66,8 +74,10 @@ class ProgramFilter extends ConsumerWidget {
           hint: 'Tous les niveaux',
           value: levels.contains(level) ? level : null,
           items: [
-            const DropdownMenuItem<String?>(value: null, child: Text('Tous les niveaux')),
-            for (final l in levels) DropdownMenuItem<String?>(value: l, child: Text(l)),
+            const DropdownMenuItem<String?>(
+                value: null, child: Text('Tous les niveaux')),
+            for (final l in levels)
+              DropdownMenuItem<String?>(value: l, child: Text(l)),
           ],
           onChanged: onLevelChanged,
         ),
@@ -106,9 +116,11 @@ class _Chip<T> extends StatelessWidget {
           value: value,
           isDense: true,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textMuted),
+          icon: const Icon(Icons.keyboard_arrow_down,
+              size: 18, color: AppColors.textMuted),
           style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
-          hint: Text(hint, style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+          hint: Text(hint,
+              style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
           items: items,
           onChanged: (v) => onChanged(v as T),
           selectedItemBuilder: (context) => [
@@ -119,7 +131,8 @@ class _Chip<T> extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: DefaultTextStyle(
-                      style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textPrimary),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       child: item.child,

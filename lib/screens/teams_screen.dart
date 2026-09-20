@@ -44,10 +44,12 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
   ];
 
   Future<void> _ouvrir(String url) async {
-    final opened = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    final opened =
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune application ne peut ouvrir ce lien.')),
+        const SnackBar(
+            content: Text('Aucune application ne peut ouvrir ce lien.')),
       );
     }
   }
@@ -65,7 +67,8 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
         ),
         Expanded(
           child: equipeAsync.when(
-            loading: () => const DataLoadingView(label: 'Chargement de l\'équipe…'),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement de l\'équipe…'),
             error: (error, _) => DataErrorView(
               error: error,
               onRetry: () => ref.invalidate(teamMembersProvider),
@@ -132,13 +135,15 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
                 _Grille(
                   membres: visibles,
                   colonnes: colonnes,
-                  onGithub: (membre) => _ouvrir('https://github.com/${membre.github}'),
+                  onGithub: (membre) =>
+                      _ouvrir('https://github.com/${membre.github}'),
                   onMail: (membre) => _ouvrir('mailto:${membre.email}'),
                 ),
               const SizedBox(height: 24),
               const _BandeauTechnologies(technologies: _technologies),
               const SizedBox(height: 18),
-              _AppelGithub(onTap: () => _ouvrir('https://github.com/KERNEL-FORGE-G')),
+              _AppelGithub(
+                  onTap: () => _ouvrir('https://github.com/KERNEL-FORGE-G')),
             ],
           ),
         );
@@ -170,7 +175,8 @@ class _Grille extends StatelessWidget {
   Widget build(BuildContext context) {
     final lignes = <Widget>[];
     for (var i = 0; i < membres.length; i += colonnes) {
-      final tranche = membres.sublist(i, (i + colonnes).clamp(0, membres.length));
+      final tranche =
+          membres.sublist(i, (i + colonnes).clamp(0, membres.length));
       lignes.add(
         IntrinsicHeight(
           child: Row(
@@ -246,7 +252,8 @@ class _CarteMembre extends StatelessWidget {
               if (membre.badge.isNotEmpty)
                 Flexible(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                     decoration: BoxDecoration(
                       color: accent.background,
                       borderRadius: BorderRadius.circular(9),
@@ -255,7 +262,8 @@ class _CarteMembre extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(teamMemberIcon(membre), size: 12, color: accent.foreground),
+                        Icon(teamMemberIcon(membre),
+                            size: 12, color: accent.foreground),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -304,7 +312,8 @@ class _CarteMembre extends StatelessWidget {
               membre.subTeam,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+              style:
+                  const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
             ),
           ],
           const SizedBox(height: 14),
@@ -342,7 +351,8 @@ class _BoutonLien extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _BoutonLien({required this.icone, required this.label, required this.onTap});
+  const _BoutonLien(
+      {required this.icone, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -384,7 +394,8 @@ class _BoutonIcone extends StatelessWidget {
   final String tooltip;
   final VoidCallback onTap;
 
-  const _BoutonIcone({required this.icone, required this.tooltip, required this.onTap});
+  const _BoutonIcone(
+      {required this.icone, required this.tooltip, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -415,7 +426,8 @@ class _PastilleFiltre extends StatelessWidget {
   final bool actif;
   final VoidCallback onTap;
 
-  const _PastilleFiltre({required this.label, required this.actif, required this.onTap});
+  const _PastilleFiltre(
+      {required this.label, required this.actif, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +441,8 @@ class _PastilleFiltre extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: actif ? AppColors.primaryBlue : AppColors.inputBorder),
+            border: Border.all(
+                color: actif ? AppColors.primaryBlue : AppColors.inputBorder),
           ),
           child: Text(
             label,
@@ -472,7 +485,8 @@ class _Intro extends StatelessWidget {
               // et peut élider.
               Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.primary50,
                     borderRadius: BorderRadius.circular(20),
@@ -524,11 +538,14 @@ class _Statistiques extends StatelessWidget {
     // « 9 », « 5 », « 3 », « 1 », et ces chiffres seraient devenus faux dès le
     // premier ajout de membre depuis l'administration.
     final tuiles = <Widget>[
-      _tuile('Membres au total', membres.length, Icons.groups_outlined, AppColors.primaryBlue),
-      _tuile('Ingénieurs Frontend', _compter('Frontend'), Icons.laptop_outlined, AppColors.purple),
-      _tuile('Ingénieurs Backend & BD', _compter('Backend'), Icons.dns_outlined, AppColors.teal),
-      _tuile('Lead & Architecture', _compter('Leadership'), Icons.workspace_premium_outlined,
-          AppColors.warning),
+      _tuile('Membres au total', membres.length, Icons.groups_outlined,
+          AppColors.primaryBlue),
+      _tuile('Ingénieurs Frontend', _compter('Frontend'), Icons.laptop_outlined,
+          AppColors.purple),
+      _tuile('Ingénieurs Backend & BD', _compter('Backend'), Icons.dns_outlined,
+          AppColors.teal),
+      _tuile('Lead & Architecture', _compter('Leadership'),
+          Icons.workspace_premium_outlined, AppColors.warning),
     ];
 
     return LayoutBuilder(
@@ -537,11 +554,14 @@ class _Statistiques extends StatelessWidget {
         // c'est le `grid-cols-2 sm:grid-cols-4` du web.
         final parLigne = contraintes.maxWidth >= 640 ? 4 : 2;
         const espacement = 12.0;
-        final largeur = (contraintes.maxWidth - espacement * (parLigne - 1)) / parLigne;
+        final largeur =
+            (contraintes.maxWidth - espacement * (parLigne - 1)) / parLigne;
         return Wrap(
           spacing: espacement,
           runSpacing: espacement,
-          children: tuiles.map((tuile) => SizedBox(width: largeur, child: tuile)).toList(),
+          children: tuiles
+              .map((tuile) => SizedBox(width: largeur, child: tuile))
+              .toList(),
         );
       },
     );
@@ -583,7 +603,8 @@ class _Statistiques extends StatelessWidget {
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 11, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -618,14 +639,16 @@ class _BandeauTechnologies extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Text('Conçu avec les meilleures technologies web', style: AppTextStyles.h3),
+          const Text('Conçu avec les meilleures technologies web',
+              style: AppTextStyles.h3),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: technologies
                 .map((technologie) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 11, vertical: 7),
                       decoration: BoxDecoration(
                         color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(11),
@@ -634,7 +657,8 @@ class _BandeauTechnologies extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check_circle_outline, size: 13, color: AppColors.teal),
+                          const Icon(Icons.check_circle_outline,
+                              size: 13, color: AppColors.teal),
                           const SizedBox(width: 5),
                           // `Flexible` : même correctif que sur le mobile, où
                           // « SQLite / IndexedDB » débordait de sa pastille à
@@ -684,13 +708,15 @@ class _AppelGithub extends StatelessWidget {
           const Text(
             'Rejoignez l\'organisation KERNEL FORGE',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
+            style: TextStyle(
+                fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(
             'Projet open source développé avec passion pour la communauté académique.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.85)),
+            style: TextStyle(
+                fontSize: 12, color: Colors.white.withValues(alpha: 0.85)),
           ),
           const SizedBox(height: 14),
           Material(
@@ -723,7 +749,8 @@ class _AppelGithub extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 6),
-                    Icon(Icons.open_in_new, size: 13, color: AppColors.primaryBlue),
+                    Icon(Icons.open_in_new,
+                        size: 13, color: AppColors.primaryBlue),
                   ],
                 ),
               ),

@@ -153,7 +153,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   children: [
                     _RoundIconButton(
                       icon: Icons.chevron_left,
-                      onTap: () => ref.read(weekOffsetProvider.notifier).state--,
+                      onTap: () =>
+                          ref.read(weekOffsetProvider.notifier).state--,
                     ),
                     Flexible(
                       child: Padding(
@@ -165,17 +166,22 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           week?.rangeLabel ?? '—',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary),
                         ),
                       ),
                     ),
                     _RoundIconButton(
                       icon: Icons.chevron_right,
-                      onTap: () => ref.read(weekOffsetProvider.notifier).state++,
+                      onTap: () =>
+                          ref.read(weekOffsetProvider.notifier).state++,
                     ),
                     if (week != null && _offsetOf(week) != 0)
                       TextButton(
-                        onPressed: () => ref.read(weekOffsetProvider.notifier).state = 0,
+                        onPressed: () =>
+                            ref.read(weekOffsetProvider.notifier).state = 0,
                         child: const Text('Aujourd\'hui'),
                       ),
                   ],
@@ -199,26 +205,32 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   onPressed: () {
                     // TODO: exporter l'emploi du temps en PDF
                   },
-                  icon: const Icon(Icons.download_outlined, size: 16, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.download_outlined,
+                      size: 16, color: AppColors.textSecondary),
                   label: const Text('Export PDF'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textSecondary,
                     side: const BorderSide(color: AppColors.inputBorder),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
                     // TODO: imprimer l'emploi du temps
                   },
-                  icon: const Icon(Icons.print_outlined, size: 16, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.print_outlined,
+                      size: 16, color: AppColors.textSecondary),
                   label: const Text('Imprimer'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textSecondary,
                     side: const BorderSide(color: AppColors.inputBorder),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 ElevatedButton.icon(
@@ -227,7 +239,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   },
                   icon: const Icon(Icons.auto_awesome, size: 16),
                   label: const Text('Auto-générer'),
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13)),
+                  style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 13)),
                 ),
               ],
             ),
@@ -239,8 +253,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
 
   int _offsetOf(ScheduleWeek week) {
     final currentMonday = DateTime.now();
-    final today = DateTime(currentMonday.year, currentMonday.month, currentMonday.day);
-    final thisMonday = today.subtract(Duration(days: today.weekday - DateTime.monday));
+    final today =
+        DateTime(currentMonday.year, currentMonday.month, currentMonday.day);
+    final thisMonday =
+        today.subtract(Duration(days: today.weekday - DateTime.monday));
     return week.weekStart.difference(thisMonday).inDays ~/ 7;
   }
 
@@ -263,9 +279,15 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 10, height: 10, decoration: BoxDecoration(color: type.color, shape: BoxShape.circle)),
+                Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                        color: type.color, shape: BoxShape.circle)),
                 const SizedBox(width: 6),
-                Text(type.label, style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary)),
+                Text(type.label,
+                    style: const TextStyle(
+                        fontSize: 12.5, color: AppColors.textSecondary)),
               ],
             ),
         ],
@@ -288,7 +310,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final gridWidth = constraints.maxWidth;
-          final dayColumnWidth = (gridWidth - _hourColumnWidth) / ScheduleWeek.dayCount;
+          final dayColumnWidth =
+              (gridWidth - _hourColumnWidth) / ScheduleWeek.dayCount;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -303,7 +326,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       child: Text(
                         day,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary),
                       ),
                     ),
                 ],
@@ -327,14 +353,18 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                                 height: _hourHeight,
                                 child: Text(
                                   '${(_startHour + h).toInt().toString().padLeft(2, '0')}h00',
-                                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                                  style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: AppColors.textMuted),
                                 ),
                               ),
                               Expanded(
                                 child: Container(
                                   height: _hourHeight,
                                   decoration: const BoxDecoration(
-                                    border: Border(top: BorderSide(color: AppColors.inputBorder)),
+                                    border: Border(
+                                        top: BorderSide(
+                                            color: AppColors.inputBorder)),
                                   ),
                                 ),
                               ),
@@ -351,7 +381,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                             Container(
                               width: dayColumnWidth,
                               decoration: const BoxDecoration(
-                                border: Border(left: BorderSide(color: AppColors.inputBorder)),
+                                border: Border(
+                                    left: BorderSide(
+                                        color: AppColors.inputBorder)),
                               ),
                             ),
                         ],
@@ -360,7 +392,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                     // Événements positionnés selon jour/horaire
                     for (final event in week.events)
                       Positioned(
-                        left: _hourColumnWidth + event.dayIndex * dayColumnWidth + 3,
+                        left: _hourColumnWidth +
+                            event.dayIndex * dayColumnWidth +
+                            3,
                         top: (event.startHour - _startHour) * _hourHeight,
                         width: dayColumnWidth - 6,
                         height: event.durationHours * _hourHeight - 4,
@@ -401,7 +435,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 const Text('Cours sélectionné', style: AppTextStyles.h2),
                 InkWell(
                   onTap: () => setState(() => _selectedKey = null),
-                  child: const Icon(Icons.close, size: 20, color: AppColors.textMuted),
+                  child: const Icon(Icons.close,
+                      size: 20, color: AppColors.textMuted),
                 ),
               ],
             ),
@@ -412,13 +447,20 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               textColor: event.type.color,
             ),
             const SizedBox(height: 10),
-            Text(event.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+            Text(event.title,
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary)),
             const SizedBox(height: 18),
             _DetailField(label: 'Enseignant', value: event.enseignant),
-            _DetailField(label: 'Salle', value: event.salle.isEmpty ? '—' : event.salle),
+            _DetailField(
+                label: 'Salle', value: event.salle.isEmpty ? '—' : event.salle),
             _DetailField(label: 'Groupe', value: event.groupe),
             _DetailField(label: 'Type', value: event.type.label),
-            _DetailField(label: 'Description', value: event.description.isEmpty ? '—' : event.description),
+            _DetailField(
+                label: 'Description',
+                value: event.description.isEmpty ? '—' : event.description),
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
@@ -430,7 +472,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   foregroundColor: AppColors.textPrimary,
                   side: const BorderSide(color: AppColors.inputBorder),
                   padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
                 child: const Text('Voir les étudiants'),
               ),
@@ -442,7 +485,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 onPressed: () {
                   // TODO: ajouter ce cours au calendrier personnel
                 },
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 13)),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 13)),
                 child: const Text('Ajouter au calendrier'),
               ),
             ),
@@ -466,35 +510,41 @@ class _EmptyWeek extends StatelessWidget {
     // bas. Ici il défile au lieu de déborder.
     return SingleChildScrollView(
       child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.event_busy_outlined, size: 44, color: AppColors.textMuted),
-            const SizedBox(height: 14),
-            const Text(
-              'Aucun créneau pour cette semaine',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Semaine du ${weekStart.day}/${weekStart.month}/${weekStart.year} — aucun '
-              'créneau à afficher.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Les créneaux proviennent de la collection « academic_schedules ». '
-              'Ajoutez-y des séances (jour, heure de début et de fin, salle) pour '
-              'les voir apparaître ici.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.45),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.event_busy_outlined,
+                  size: 44, color: AppColors.textMuted),
+              const SizedBox(height: 14),
+              const Text(
+                'Aucun créneau pour cette semaine',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Semaine du ${weekStart.day}/${weekStart.month}/${weekStart.year} — aucun '
+                'créneau à afficher.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Les créneaux proviennent de la collection « academic_schedules ». '
+                'Ajoutez-y des séances (jour, heure de début et de fin, salle) pour '
+                'les voir apparaître ici.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 13, color: AppColors.textMuted, height: 1.45),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -514,17 +564,22 @@ class _ScheduleError extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_outlined, size: 44, color: AppColors.textMuted),
+            const Icon(Icons.cloud_off_outlined,
+                size: 44, color: AppColors.textMuted),
             const SizedBox(height: 14),
             const Text(
               'Emploi du temps indisponible',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
               '$error',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
+              style: const TextStyle(
+                  fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
@@ -552,9 +607,16 @@ class _DetailField extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.3)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted,
+                  letterSpacing: 0.3)),
           const SizedBox(height: 3),
-          Text(value, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary, height: 1.35)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 13.5, color: AppColors.textPrimary, height: 1.35)),
         ],
       ),
     );
@@ -568,7 +630,8 @@ class _EventBlock extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _EventBlock({required this.event, required this.isSelected, required this.onTap});
+  const _EventBlock(
+      {required this.event, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -586,9 +649,14 @@ class _EventBlock extends StatelessWidget {
           decoration: BoxDecoration(
             color: event.type.color,
             borderRadius: BorderRadius.circular(8),
-            border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
+            border:
+                isSelected ? Border.all(color: Colors.white, width: 2) : null,
             boxShadow: isSelected
-                ? [BoxShadow(color: event.type.color.withValues(alpha: 0.5), blurRadius: 8)]
+                ? [
+                    BoxShadow(
+                        color: event.type.color.withValues(alpha: 0.5),
+                        blurRadius: 8)
+                  ]
                 : null,
           ),
           child: Column(
@@ -599,13 +667,17 @@ class _EventBlock extends StatelessWidget {
                 event.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white),
               ),
               Text(
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 10.5, color: Colors.white.withValues(alpha: 0.9)),
+                style: TextStyle(
+                    fontSize: 10.5, color: Colors.white.withValues(alpha: 0.9)),
               ),
             ],
           ),
@@ -629,7 +701,9 @@ class _RoundIconButton extends StatelessWidget {
       child: Container(
         width: 32,
         height: 32,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.inputBorder)),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.inputBorder)),
         child: Icon(icon, size: 18, color: AppColors.textSecondary),
       ),
     );
@@ -645,7 +719,9 @@ class _FilterDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(border: Border.all(color: AppColors.inputBorder), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+          border: Border.all(color: AppColors.inputBorder),
+          borderRadius: BorderRadius.circular(8)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -654,11 +730,13 @@ class _FilterDropdown extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textMuted),
+          const Icon(Icons.keyboard_arrow_down,
+              size: 16, color: AppColors.textMuted),
         ],
       ),
     );
@@ -680,7 +758,8 @@ class _ViewToggleState extends State<_ViewToggle> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: AppColors.inputFill, borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(
+          color: AppColors.inputFill, borderRadius: BorderRadius.circular(10)),
       // `FittedBox` : les trois libellés et leurs marges réclament 105 px de
       // plus que la place laissée par la rangée à 420 px de large — soit 162 px
       // en texte agrandi. Le sélecteur se réduit d'un cran plutôt que de
@@ -696,9 +775,12 @@ class _ViewToggleState extends State<_ViewToggle> {
                 onTap: () => setState(() => _selected = i),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: _selected == i ? AppColors.primaryBlue : Colors.transparent,
+                    color: _selected == i
+                        ? AppColors.primaryBlue
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -706,7 +788,9 @@ class _ViewToggleState extends State<_ViewToggle> {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: _selected == i ? Colors.white : AppColors.textSecondary,
+                      color: _selected == i
+                          ? Colors.white
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),

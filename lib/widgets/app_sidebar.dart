@@ -86,10 +86,12 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
           children: [
             // ----- En-tête : logo -----
             Padding(
-              padding: EdgeInsets.fromLTRB(collapsed ? 0 : 20, 24, collapsed ? 0 : 20, 18),
+              padding: EdgeInsets.fromLTRB(
+                  collapsed ? 0 : 20, 24, collapsed ? 0 : 20, 18),
               child: Row(
-                mainAxisAlignment:
-                    collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                mainAxisAlignment: collapsed
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
                 children: [
                   const UniFlowIcon(size: 34),
                   if (!collapsed) ...[
@@ -115,8 +117,9 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
             Padding(
               padding: EdgeInsets.symmetric(horizontal: collapsed ? 0 : 20),
               child: Row(
-                mainAxisAlignment:
-                    collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                mainAxisAlignment: collapsed
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
                 children: [
                   Tooltip(
                     message: user == null
@@ -150,7 +153,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
                           ),
                           const SizedBox(height: 2),
                           // Le pseudo prime : c'est le référent de la messagerie.
-                          if (user?.username != null && user!.username!.isNotEmpty)
+                          if (user?.username != null &&
+                              user!.username!.isNotEmpty)
                             Text(
                               '@${user.username}',
                               maxLines: 1,
@@ -207,7 +211,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
                       )
                     else
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 14),
                         child: Divider(
                           color: Colors.white.withValues(alpha: 0.08),
                           height: 1,
@@ -230,12 +235,17 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
             ),
             if (user != null)
               Padding(
-                padding: EdgeInsets.fromLTRB(collapsed ? 0 : 12, 4, collapsed ? 0 : 12, 12),
+                padding: EdgeInsets.fromLTRB(
+                    collapsed ? 0 : 12, 4, collapsed ? 0 : 12, 12),
                 child: collapsed
-                    ? Center(child: SignOutButton(compact: true, color: Colors.white.withValues(alpha: 0.7)))
+                    ? Center(
+                        child: SignOutButton(
+                            compact: true,
+                            color: Colors.white.withValues(alpha: 0.7)))
                     : Align(
                         alignment: Alignment.centerLeft,
-                        child: SignOutButton(color: Colors.white.withValues(alpha: 0.7)),
+                        child: SignOutButton(
+                            color: Colors.white.withValues(alpha: 0.7)),
                       ),
               ),
           ],
@@ -294,7 +304,8 @@ class _Cascade extends StatelessWidget {
     final start = (index * 0.045).clamp(0.0, 0.6);
     final curve = CurvedAnimation(
       parent: controller,
-      curve: Interval(start, (start + 0.4).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+      curve: Interval(start, (start + 0.4).clamp(0.0, 1.0),
+          curve: Curves.easeOutCubic),
     );
     return FadeTransition(
       opacity: curve,
@@ -371,8 +382,9 @@ class _SidebarTileState extends State<_SidebarTile> {
                   : null,
             ),
             child: Row(
-              mainAxisAlignment:
-                  collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment: collapsed
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: [
                 if (!collapsed) ...[
                   AnimatedContainer(
@@ -402,7 +414,8 @@ class _SidebarTileState extends State<_SidebarTile> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13.5,
-                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight:
+                            isActive ? FontWeight.w700 : FontWeight.w500,
                         color: highlighted
                             ? Colors.white
                             : Colors.white.withValues(alpha: 0.75),

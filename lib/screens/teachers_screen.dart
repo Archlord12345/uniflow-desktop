@@ -117,13 +117,15 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
           onPressed: () {
             // TODO: ouvrir le panneau de filtres avancés
           },
-          icon: const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
+          icon:
+              const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
           label: const Text('Filtres avancés'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.textSecondary,
             side: const BorderSide(color: AppColors.inputBorder),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
         ElevatedButton.icon(
@@ -132,7 +134,9 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
           },
           icon: const Icon(Icons.add, size: 18),
           label: const Text('Ajouter enseignant'),
-          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
+          style: ElevatedButton.styleFrom(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
         ),
       ],
     );
@@ -144,22 +148,35 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher un enseignant...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon:
+            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
         filled: true,
         fillColor: AppColors.cardWhite,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.inputBorder)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.inputBorder)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5)),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+                const BorderSide(color: AppColors.primaryBlue, width: 1.5)),
       ),
     );
   }
 
   Widget _buildTableHeader() {
-    const style = TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.3);
+    const style = TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textMuted,
+        letterSpacing: 0.3);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
+      decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: const Row(
         children: [
           Expanded(flex: 3, child: Text('NOM COMPLET', style: style)),
@@ -211,7 +228,8 @@ class _TeacherRow extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
+      decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
       child: Row(
         children: [
           Expanded(
@@ -227,7 +245,10 @@ class _TeacherRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     teacher.fullName.isEmpty ? '—' : 'Pr. ${teacher.fullName}',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -247,10 +268,19 @@ class _TeacherRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Expanded(flex: 2, child: Text(teacher.departement.isEmpty ? '—' : teacher.departement, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+          Expanded(
+              flex: 2,
+              child: Text(
+                  teacher.departement.isEmpty ? '—' : teacher.departement,
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary))),
           Expanded(
             flex: 2,
-            child: Align(alignment: Alignment.centerLeft, child: StatusBadge(label: teacher.statut, backgroundColor: teacher.statutColor)),
+            child: Align(
+                alignment: Alignment.centerLeft,
+                child: StatusBadge(
+                    label: teacher.statut,
+                    backgroundColor: teacher.statutColor)),
           ),
           SizedBox(
             width: 90,
@@ -260,11 +290,14 @@ class _TeacherRow extends StatelessWidget {
                   icon: const Icon(Icons.remove_red_eye_outlined, size: 17),
                   color: AppColors.primaryBlue,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  constraints:
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
                   tooltip: 'Voir la fiche',
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => TeacherDetailScreen(teacher: teacher)),
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              TeacherDetailScreen(teacher: teacher)),
                     );
                   },
                 ),
@@ -272,7 +305,8 @@ class _TeacherRow extends StatelessWidget {
                   icon: const Icon(Icons.edit_outlined, size: 16),
                   color: const Color(0xFFF5A623),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                  constraints:
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
                   tooltip: 'Modifier',
                   onPressed: () {
                     // TODO: ouvrir le formulaire d'édition

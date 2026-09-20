@@ -80,11 +80,15 @@ class TeacherDetailScreen extends StatelessWidget {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(color: teacher.avatarColor, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                    color: teacher.avatarColor, shape: BoxShape.circle),
                 alignment: Alignment.center,
                 child: Text(
                   teacher.initials,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryBlue),
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryBlue),
                 ),
               ),
               const SizedBox(width: 16),
@@ -94,14 +98,19 @@ class TeacherDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Pr. ${teacher.fullName}',
-                      style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         Text(teacher.id, style: AppTextStyles.body),
                         const SizedBox(width: 8),
-                        StatusBadge(label: teacher.statut, backgroundColor: teacher.statutColor),
+                        StatusBadge(
+                            label: teacher.statut,
+                            backgroundColor: teacher.statutColor),
                       ],
                     ),
                   ],
@@ -116,8 +125,10 @@ class TeacherDetailScreen extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textPrimary,
                   side: const BorderSide(color: AppColors.inputBorder),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -129,13 +140,16 @@ class TeacherDetailScreen extends StatelessWidget {
                   // l'administrateur de confirmer le bon interlocuteur.
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => MessagingScreen(initialQuery: teacher.fullName),
+                      builder: (_) =>
+                          MessagingScreen(initialQuery: teacher.fullName),
                     ),
                   );
                 },
                 icon: const Icon(Icons.mail_outline, size: 16),
                 label: const Text('Envoyer un message'),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13)),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 13)),
               ),
             ],
           ),
@@ -172,9 +186,12 @@ class _InfoCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _FieldValue(label: rows[i].$1, value: rows[i].$2)),
+                  Expanded(
+                      child: _FieldValue(label: rows[i].$1, value: rows[i].$2)),
                   if (i + 1 < rows.length)
-                    Expanded(child: _FieldValue(label: rows[i + 1].$1, value: rows[i + 1].$2))
+                    Expanded(
+                        child: _FieldValue(
+                            label: rows[i + 1].$1, value: rows[i + 1].$2))
                   else
                     const Expanded(child: SizedBox()),
                 ],
@@ -199,10 +216,15 @@ class _FieldValue extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.3),
+          style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 0.3),
         ),
         const SizedBox(height: 6),
-        Text(value, style: const TextStyle(fontSize: 14, color: AppColors.textPrimary)),
+        Text(value,
+            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary)),
       ],
     );
   }
@@ -231,7 +253,8 @@ class _HistoryCard extends StatelessWidget {
             const Text(
               'Aucun événement enregistré pour cet enseignant. Cet historique '
               'se remplira quand une collection de journalisation sera ajoutée.',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
+              style: TextStyle(
+                  color: AppColors.textMuted, fontSize: 13, height: 1.5),
             )
           else
             for (final event in historique)
@@ -242,15 +265,23 @@ class _HistoryCard extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 5),
-                      child: Container(width: 8, height: 8, decoration: BoxDecoration(color: event.dotColor, shape: BoxShape.circle)),
+                      child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                              color: event.dotColor, shape: BoxShape.circle)),
                     ),
                     const SizedBox(width: 12),
                     SizedBox(
                       width: 150,
-                      child: Text(event.dateLabel, style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                      child: Text(event.dateLabel,
+                          style: const TextStyle(
+                              fontSize: 12.5, color: AppColors.textMuted)),
                     ),
                     Expanded(
-                      child: Text(event.description, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary)),
+                      child: Text(event.description,
+                          style: const TextStyle(
+                              fontSize: 13.5, color: AppColors.textPrimary)),
                     ),
                   ],
                 ),

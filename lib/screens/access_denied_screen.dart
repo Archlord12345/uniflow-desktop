@@ -30,7 +30,8 @@ class AccessDeniedScreen extends StatelessWidget {
     return ResultView(
       success: false,
       title: 'Accès refusé',
-      message: '${refusalReason(destination, role: role, accountType: accountType)}\n\n'
+      message:
+          '${refusalReason(destination, role: role, accountType: accountType)}\n\n'
           'Vous êtes connecté avec le rôle ${role.label}'
           '${accountType == AccountType.personal ? ' (compte personnel)' : ''}. '
           '${role.scope}',

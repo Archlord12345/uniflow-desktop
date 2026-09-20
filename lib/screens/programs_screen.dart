@@ -42,7 +42,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     super.dispose();
   }
 
-  static String _keyOf(FacultyNode faculty, DepartmentNode department, ProgramNode program) =>
+  static String _keyOf(FacultyNode faculty, DepartmentNode department,
+          ProgramNode program) =>
       '${faculty.name}|${department.name}|${program.code}';
 
   @override
@@ -57,7 +58,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           subtitle: 'Hiérarchie des universités, filières et niveaux',
           actions: [
             TopBarIconButton(icon: Icons.search),
-            TopBarIconButton(icon: Icons.notifications_none_rounded, showDot: true),
+            TopBarIconButton(
+                icon: Icons.notifications_none_rounded, showDot: true),
             ElevatedButton.icon(
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -68,7 +70,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Ajouter programme'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
               ),
             ),
           ],
@@ -86,7 +89,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 return const _Message(
                   icon: Icons.account_tree_outlined,
                   title: 'Aucune UE enregistrée',
-                  message: 'L\'arborescence se construit à partir de la collection '
+                  message:
+                      'L\'arborescence se construit à partir de la collection '
                       '« academic_courses » : chaque UE y porte une université, une '
                       'filière et un niveau. Ajoutez des UE pour voir la hiérarchie '
                       'apparaître ici.',
@@ -125,12 +129,14 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                       ? const Center(
                           child: Text(
                             'Aucun résultat pour cette recherche.',
-                            style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                            style: TextStyle(
+                                fontSize: 13, color: AppColors.textMuted),
                           ),
                         )
                       : ListView(
                           children: [
-                            for (final faculty in visible) _buildFacultyNode(faculty),
+                            for (final faculty in visible)
+                              _buildFacultyNode(faculty),
                           ],
                         ),
                 ),
@@ -172,7 +178,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 program.code.toLowerCase().contains(query))
             .toList();
         if (programs.isNotEmpty) {
-          departments.add(DepartmentNode(name: department.name, programs: programs));
+          departments
+              .add(DepartmentNode(name: department.name, programs: programs));
         }
       }
       if (departments.isNotEmpty) {
@@ -204,7 +211,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher une filière, un niveau...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon:
+            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
         suffixIcon: _query.isEmpty
             ? null
             : IconButton(
@@ -227,7 +235,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
+          borderSide:
+              const BorderSide(color: AppColors.primaryBlue, width: 1.5),
         ),
       ),
     );
@@ -260,17 +269,23 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             child: Row(
               children: [
                 Icon(
-                  isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                  isExpanded
+                      ? Icons.keyboard_arrow_down
+                      : Icons.keyboard_arrow_right,
                   size: 18,
                   color: AppColors.textMuted,
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.account_balance_outlined, size: 18, color: AppColors.primaryBlue),
+                const Icon(Icons.account_balance_outlined,
+                    size: 18, color: AppColors.primaryBlue),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     faculty.name,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary),
                   ),
                 ),
               ],
@@ -312,7 +327,9 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             child: Row(
               children: [
                 Icon(
-                  isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                  isExpanded
+                      ? Icons.keyboard_arrow_down
+                      : Icons.keyboard_arrow_right,
                   size: 16,
                   color: AppColors.textMuted,
                 ),
@@ -320,7 +337,10 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 Expanded(
                   child: Text(
                     department.name,
-                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary),
                   ),
                 ),
               ],
@@ -344,11 +364,13 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
 
   /// Feuille de l'arborescence : un niveau cliquable qui met à jour le panneau
   /// de détail. Mis en surbrillance s'il est le niveau affiché.
-  Widget _buildProgramLeaf(FacultyNode faculty, DepartmentNode department, ProgramNode program) {
+  Widget _buildProgramLeaf(
+      FacultyNode faculty, DepartmentNode department, ProgramNode program) {
     final isSelected = _selectedKey == _keyOf(faculty, department, program);
 
     return InkWell(
-      onTap: () => setState(() => _selectedKey = _keyOf(faculty, department, program)),
+      onTap: () =>
+          setState(() => _selectedKey = _keyOf(faculty, department, program)),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 2),
@@ -374,7 +396,9 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                  color: isSelected ? AppColors.primaryBlue : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primaryBlue
+                      : AppColors.textSecondary,
                 ),
               ),
             ),
@@ -427,12 +451,16 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
           children: [
             Text(
               '${program.program} — ${program.name}',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                const StatusBadge(label: 'NIVEAU', backgroundColor: Color(0xFFDFF5E4)),
+                const StatusBadge(
+                    label: 'NIVEAU', backgroundColor: Color(0xFFDFF5E4)),
                 const SizedBox(width: 8),
                 Text('• Code : ${program.code}', style: AppTextStyles.body),
               ],
@@ -518,7 +546,11 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
   }
 
   Widget _buildModulesTable(List<CurriculumModule> modules) {
-    const headerStyle = TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.4);
+    const headerStyle = TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textMuted,
+        letterSpacing: 0.4);
 
     return Container(
       decoration: BoxDecoration(
@@ -536,7 +568,9 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
                 Expanded(flex: 4, child: Text('MODULE', style: headerStyle)),
                 Expanded(flex: 2, child: Text('CODE', style: headerStyle)),
                 Expanded(flex: 2, child: Text('TYPE', style: headerStyle)),
-                Expanded(child: Text('CRÉDITS', style: headerStyle, textAlign: TextAlign.right)),
+                Expanded(
+                    child: Text('CRÉDITS',
+                        style: headerStyle, textAlign: TextAlign.right)),
               ],
             ),
             const SizedBox(height: 12),
@@ -547,24 +581,33 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
                   children: [
                     Expanded(
                       flex: 4,
-                      child: Text(module.name, style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary)),
+                      child: Text(module.name,
+                          style: const TextStyle(
+                              fontSize: 13.5, color: AppColors.textPrimary)),
                     ),
                     Expanded(
                       flex: 2,
-                      child: Text(module.code, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                      child: Text(module.code,
+                          style: const TextStyle(
+                              fontSize: 13, color: AppColors.textSecondary)),
                     ),
                     Expanded(
                       flex: 2,
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: StatusBadge(label: module.type, backgroundColor: module.typeColor),
+                        child: StatusBadge(
+                            label: module.type,
+                            backgroundColor: module.typeColor),
                       ),
                     ),
                     Expanded(
                       child: Text(
                         module.credits.toString(),
                         textAlign: TextAlign.right,
-                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary),
                       ),
                     ),
                   ],
@@ -609,13 +652,17 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
                         color: AppColors.inputFill,
                         borderRadius: BorderRadius.circular(9),
                       ),
-                      child: const Icon(Icons.person_outline, size: 17, color: AppColors.textSecondary),
+                      child: const Icon(Icons.person_outline,
+                          size: 17, color: AppColors.textSecondary),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         teacher,
-                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary),
                       ),
                     ),
                   ],
@@ -636,7 +683,11 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.4),
+        style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMuted,
+            letterSpacing: 0.4),
       );
 }
 
@@ -674,7 +725,10 @@ class _DetailRow extends StatelessWidget {
           Text(label, style: AppTextStyles.body),
           Text(
             value,
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary),
           ),
         ],
       ),
@@ -699,9 +753,15 @@ class _StatBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 12.5, color: AppColors.textSecondary)),
           const SizedBox(height: 6),
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary)),
         ],
       ),
     );
@@ -714,7 +774,8 @@ class _Message extends StatelessWidget {
   final String title;
   final String message;
 
-  const _Message({required this.icon, required this.title, required this.message});
+  const _Message(
+      {required this.icon, required this.title, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -733,7 +794,10 @@ class _Message extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             ConstrainedBox(
@@ -741,7 +805,8 @@ class _Message extends StatelessWidget {
               child: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.5),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textMuted, height: 1.5),
               ),
             ),
           ],
