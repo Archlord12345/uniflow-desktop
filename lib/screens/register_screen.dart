@@ -181,13 +181,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               onPressed: _busy ? null : () => Navigator.of(context).pop(false),
               icon: const Icon(Icons.arrow_back),
             ),
-            const Expanded(
+            Expanded(
               child: Text(
                 'Créer un compte',
+                key: const Key('auth-title'),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.h1,
+                style: AppTextStyles.h1
+                    .copyWith(fontSize: AuthScale.of(context).title),
               ),
             ),
             const SizedBox(width: 48),

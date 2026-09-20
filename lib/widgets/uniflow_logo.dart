@@ -36,10 +36,16 @@ class UniFlowIcon extends StatelessWidget {
     // l'écran. Vérifié sur les deux fonds où elle apparaît — le marine de la
     // sidebar (#151E32) et le voile bleu→teal de la connexion — elle y reste
     // lisible.
+    // `cacheWidth` à la taille réelle × DPR et `FilterQuality.high` : sans
+    // eux, l'écusson 512 px réduit à 34 px par le filtre par défaut sortait
+    // crénelé (« images floues ou mal stylisées », retour du 2026-09-20).
+    final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
     return Image.asset(
       _logoAssetPath,
       width: size,
       height: size,
+      cacheWidth: (size * dpr).round(),
+      filterQuality: FilterQuality.high,
       // `contain` : la marque est carrée, elle remplit donc le carré sans être
       // rognée. Si l'écusson venait à être remplacé par une image non carrée,
       // elle serait réduite au lieu d'être tronquée — `cover`, lui, rogne.

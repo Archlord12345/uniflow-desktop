@@ -33,11 +33,17 @@ void main() {
     await tester.pump();
 
     final image = tester.widget<Image>(find.byType(Image));
+    // `cacheWidth` enveloppe l'asset dans un `ResizeImage` : c'est voulu,
+    // l'écusson 512 px réduit sans rééchantillonnage sortait crénelé.
+    final provider = image.image;
+    expect(provider, isA<ResizeImage>());
+    final asset = (provider as ResizeImage).imageProvider;
     expect(
-      (image.image as AssetImage).assetName,
+      (asset as AssetImage).assetName,
       _ecusson,
       reason: 'le logotype horizontal rogné dans un carré ne doit pas revenir',
     );
+    expect(image.filterQuality, FilterQuality.high);
     // `cover` rognait l'image ; `contain` la réduit sans jamais la tronquer.
     expect(image.fit, BoxFit.contain);
     expect(tester.takeException(), isNull);

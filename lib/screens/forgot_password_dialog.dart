@@ -135,8 +135,10 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
         _Step.complete => 'Terminer la réinitialisation',
         _Step.done => 'Mot de passe modifié',
       }),
+      // Largeur suivant la fenêtre : 420 px fixes faisaient déborder le
+      // dialogue sur une fenêtre étroite et paraissaient minuscules en 4K.
       content: SizedBox(
-        width: 420,
+        width: (MediaQuery.sizeOf(context).width * 0.9).clamp(280.0, 520.0),
         child: AnimatedSwitcher(
           duration: kMotionMedium,
           transitionBuilder: pageTransition,

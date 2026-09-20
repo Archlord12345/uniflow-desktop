@@ -132,22 +132,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _form() {
+    return Builder(builder: (context) {
+      final scale = AuthScale.of(context);
+      return _formBody(scale);
+    });
+  }
+
+  Widget _formBody(AuthScale scale) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Se connecter',
+          key: const Key('auth-title'),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.h1,
+          style: AppTextStyles.h1.copyWith(fontSize: scale.title),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Connectez-vous à votre compte UniFlow',
           textAlign: TextAlign.center,
-          style: AppTextStyles.body,
+          style: AppTextStyles.body.copyWith(fontSize: scale.body),
         ),
         const SizedBox(height: 22),
         AccountTypeSelector(
@@ -261,8 +269,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          style:
-              OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          style: OutlinedButton.styleFrom(
+              minimumSize: Size.fromHeight(scale.field - 4)),
         ),
       ],
     );

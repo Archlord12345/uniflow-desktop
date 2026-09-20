@@ -107,6 +107,14 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
+  /// Dégradé du panneau d'authentification, identique au web
+  /// (`from-[#1e3a8a] via-[#2d4fa8] to-[#0d9488]`).
+  static const LinearGradient authHeroGradient = LinearGradient(
+    colors: [Color(0xFF1E3A8A), Color(0xFF2D4FA8), Color(0xFF0D9488)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   /// Dégradé des en-têtes (`admin-header-gradient` du web).
   static const LinearGradient headerGradient = LinearGradient(
     colors: [primaryBlue, deepBlue, Color(0xFF0D1F4F)],

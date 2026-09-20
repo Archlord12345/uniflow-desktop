@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -65,13 +67,20 @@ class _CascadeInState extends State<CascadeIn>
       return;
     }
     final delay = widget.step * widget.index.clamp(0, 12);
-    Future<void>.delayed(delay, () {
+    // `Timer` annulable plutôt que `Future.delayed` : un écran démonté avant
+    // la fin de la cascade (navigation rapide, test de mise en page qui ne
+    // pompe que 50 ms) laissait un minuteur orphelin — « A Timer is still
+    // pending even after the widget tree was disposed ».
+    _delay = Timer(delay, () {
       if (mounted) _controller.forward();
     });
   }
 
+  Timer? _delay;
+
   @override
   void dispose() {
+    _delay?.cancel();
     _controller.dispose();
     super.dispose();
   }

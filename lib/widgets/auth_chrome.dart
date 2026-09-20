@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/user_role.dart';
 import '../theme/app_theme.dart';
 import 'motion.dart';
-import 'uniflow_logo.dart';
 
 /// Habillage commun des écrans d'authentification (connexion, inscription) :
 /// fond « mesh », carte blanche, panneau visuel à gauche et formulaire à
@@ -17,17 +16,97 @@ import 'uniflow_logo.dart';
 /// fond rouge très clair : le rouge d'alerte manque de contraste en lecture.
 const Color kDangerInk = Color(0xFFB91C1C);
 
-/// Au-dessous de cette largeur, l'image passe au-dessus du formulaire.
-const double kAuthSideBySideBreakpoint = 760;
+/// Au-dessous de cette largeur, une seule colonne : bandeau de marque compact
+/// en haut, formulaire dessous. Au-dessus, deux colonnes plein écran comme le
+/// web (`lg:` de Tailwind ≈ 1024 ; 900 ici parce qu'une fenêtre desktop
+/// « moitié d'écran » fait souvent 960).
+const double kAuthTwoColumnBreakpoint = 900;
 
-/// Au-dessus de cette largeur, la colonne du formulaire s'élargit.
-const double kAuthWideBreakpoint = 1040;
+/// Paliers d'échelle des écrans d'authentification.
+///
+/// Sur une fenêtre 1024×576, la connexion était une carte figée de ~570×320
+/// au milieu d'un grand vide, avec des textes de taille « téléphone » ; en
+/// plein écran 4K, la même carte. Les marges, titres, champs et boutons
+/// suivent désormais la largeur de la fenêtre par paliers.
+class AuthScale {
+  /// Marge autour du formulaire.
+  final double padding;
 
+  /// Taille du titre principal (« Se connecter »).
+  final double title;
+
+  /// Taille du texte courant.
+  final double body;
+
+  /// Hauteur des champs et du bouton principal.
+  final double field;
+
+  /// Facteur appliqué au texte du formulaire (via `MediaQuery.textScaler`).
+  final double textFactor;
+
+  const AuthScale._({
+    required this.padding,
+    required this.title,
+    required this.body,
+    required this.field,
+    required this.textFactor,
+  });
+
+  static const compact =
+      AuthScale._(padding: 24, title: 24, body: 14, field: 48, textFactor: 1.0);
+  static const regular = AuthScale._(
+      padding: 40, title: 30, body: 15, field: 50, textFactor: 1.06);
+  static const large = AuthScale._(
+      padding: 52, title: 34, body: 16, field: 52, textFactor: 1.14);
+  static const huge = AuthScale._(
+      padding: 64, title: 40, body: 17, field: 56, textFactor: 1.26);
+
+  /// Palier pour une largeur de fenêtre : < 900, 900–1400, 1400–1900, ≥ 1900
+  /// (écrans 4K).
+  static AuthScale forWidth(double width) {
+    if (width < kAuthTwoColumnBreakpoint) return compact;
+    if (width < 1400) return regular;
+    if (width < 1900) return large;
+    return huge;
+  }
+
+  /// Largeur du formulaire : ~40 % de la fenêtre, bornée [360, 560], sans
+  /// dépasser 90 % de la colonne qui l'accueille.
+  static double formWidth(double windowWidth, double columnWidth) {
+    final target = (windowWidth * 0.4).clamp(360.0, 560.0);
+    return target.clamp(0.0, columnWidth * 0.9).clamp(0.0, 560.0);
+  }
+
+  static AuthScale of(BuildContext context) =>
+      _AuthScaleScope.of(context)?.scale ??
+      forWidth(MediaQuery.sizeOf(context).width);
+}
+
+class _AuthScaleScope extends InheritedWidget {
+  final AuthScale scale;
+  const _AuthScaleScope({required this.scale, required super.child});
+
+  static _AuthScaleScope? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_AuthScaleScope>();
+
+  @override
+  bool updateShouldNotify(_AuthScaleScope oldWidget) =>
+      oldWidget.scale != scale;
+}
+
+/// Habillage plein écran des écrans d'authentification.
+///
+/// Deux colonnes dès [kAuthTwoColumnBreakpoint] : panneau de marque à gauche
+/// (45 %, dégradé indigo → teal, logo, accroche, trois arguments,
+/// illustration), formulaire à droite (55 %) sur fond clair, centré, largeur
+/// [AuthScale.formWidth]. En dessous : bandeau compact puis formulaire pleine
+/// largeur avec 24 px de marge. Le formulaire défile toujours : jamais de
+/// débordement sur une petite fenêtre.
 class AuthShell extends StatelessWidget {
   final Widget form;
 
-  /// Largeur de la colonne du formulaire en disposition large. L'inscription
-  /// a plus de champs que la connexion, elle demande une colonne plus large.
+  /// Conservés pour compatibilité des appelants ; la largeur est désormais
+  /// calculée depuis la fenêtre ([AuthScale.formWidth]).
   final double formWidth;
   final double formWidthWide;
 
@@ -42,72 +121,222 @@ class AuthShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppColors.meshGradient),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final scale = AuthScale.forWidth(width);
+          final twoColumns = width >= kAuthTwoColumnBreakpoint;
+          return _AuthScaleScope(
+            scale: scale,
+            child: twoColumns
+                ? _twoColumns(context, constraints, scale)
+                : _oneColumn(context, constraints, scale),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _twoColumns(
+      BuildContext context, BoxConstraints constraints, AuthScale scale) {
+    final heroWidth = constraints.maxWidth * 0.45;
+    final formColumn = constraints.maxWidth - heroWidth;
+    return Row(
+      children: [
+        SizedBox(
+          width: heroWidth,
+          height: constraints.maxHeight,
+          child: CascadeIn(
+            index: 0,
+            offset: const Offset(-0.04, 0),
+            child: AuthHeroPanel(scale: scale),
+          ),
+        ),
+        Expanded(
+          child: _FormColumn(
+            form: form,
+            scale: scale,
+            columnWidth: formColumn,
+            windowWidth: constraints.maxWidth,
+            minHeight: constraints.maxHeight,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _oneColumn(
+      BuildContext context, BoxConstraints constraints, AuthScale scale) {
+    // Le bandeau garde une hauteur bornée pour laisser le formulaire respirer
+    // même sur 800×600 ; le tout défile d'un bloc.
+    final bannerHeight = (constraints.maxHeight * 0.26).clamp(120.0, 180.0);
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(
+            height: bannerHeight,
+            width: double.infinity,
+            child: CascadeIn(
+              index: 0,
+              offset: const Offset(0, -0.05),
+              child: AuthHeroPanel(scale: scale, compact: true),
+            ),
+          ),
+          _FormColumn(
+            form: form,
+            scale: scale,
+            columnWidth: constraints.maxWidth,
+            windowWidth: constraints.maxWidth,
+            minHeight: constraints.maxHeight - bannerHeight,
+            scrollable: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Colonne claire qui centre le formulaire, le borne en largeur et le fait
+/// défiler. Le texte du formulaire est mis à l'échelle du palier courant via
+/// `MediaQuery.textScaler`, de sorte que titres, libellés et boutons
+/// grandissent ensemble sans toucher chaque widget.
+class _FormColumn extends StatelessWidget {
+  final Widget form;
+  final AuthScale scale;
+  final double columnWidth;
+  final double windowWidth;
+  final double minHeight;
+  final bool scrollable;
+
+  const _FormColumn({
+    required this.form,
+    required this.scale,
+    required this.columnWidth,
+    required this.windowWidth,
+    required this.minHeight,
+    this.scrollable = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final width = AuthScale.formWidth(windowWidth, columnWidth);
+    final content = ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(scale.padding),
+          child: SizedBox(
+            key: const Key('auth-form'),
+            width: width,
+            child: CascadeIn(
+              index: 1,
+              offset: const Offset(0, 0.04),
+              child: MediaQuery(
+                data: media.copyWith(
+                  // Borné : l'agrandissement système reste respecté mais ne
+                  // se cumule pas sans limite avec le palier.
+                  textScaler: TextScaler.linear(
+                    (media.textScaler.scale(1) * scale.textFactor)
+                        .clamp(0.9, 1.6),
+                  ),
+                ),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    inputDecorationTheme:
+                        Theme.of(context).inputDecorationTheme.copyWith(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical:
+                                    ((scale.field - 20) / 2).clamp(12.0, 20.0),
+                              ),
+                            ),
+                  ),
+                  child: Material(type: MaterialType.transparency, child: form),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFF8FAFC), Colors.white, Color(0xFFF8FAFC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: scrollable ? SingleChildScrollView(child: content) : content,
+    );
+  }
+}
+
+/// Arguments affichés sur le panneau de marque — les trois du web
+/// (`LoginPage.tsx`), pour que les deux clients racontent la même chose.
+const List<({IconData icon, String title, String desc, Color color})>
+    kAuthFeatures = [
+  (
+    icon: Icons.school_outlined,
+    title: 'Gestion académique complète',
+    desc:
+        'Cours, devoirs, notes et emploi du temps centralisés en un seul endroit.',
+    color: Color(0xFF34D399),
+  ),
+  (
+    icon: Icons.wifi_tethering_outlined,
+    title: 'Accès résilient',
+    desc:
+        'Les données consultées restent disponibles ; les opérations sensibles exigent une session active.',
+    color: Color(0xFF60A5FA),
+  ),
+  (
+    icon: Icons.verified_user_outlined,
+    title: 'Rôles contrôlés',
+    desc:
+        'La session Appwrite et les permissions par rôle encadrent chaque accès.',
+    color: Color(0xFFC084FC),
+  ),
+];
+
+/// Panneau de marque : dégradé indigo `#1e3a8a` → `#2d4fa8` → teal `#0d9488`
+/// (celui du web), halos, logo, accroche, trois arguments, illustration.
+///
+/// L'ancienne photo `login.jpg` (322×620) étirée en `BoxFit.cover` sur tout
+/// le panneau sortait floue : elle est remplacée par le logotype du web
+/// (1200 px) sur une plaque blanche, net à toute taille.
+class AuthHeroPanel extends StatelessWidget {
+  final bool compact;
+  final AuthScale scale;
+  const AuthHeroPanel(
+      {super.key, this.compact = false, this.scale = AuthScale.regular});
+
+  @override
+  Widget build(BuildContext context) {
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final logoWidth = compact ? 150.0 : (scale.title * 7.2).clamp(200.0, 320.0);
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: AppColors.authHeroGradient),
+      child: ClipRect(
         child: Stack(
           children: [
             Positioned(
-              top: -140,
-              left: -120,
-              child: _Blob(
-                  size: 320,
-                  color: AppColors.primaryBlue.withValues(alpha: 0.10)),
-            ),
+                top: -80,
+                left: -60,
+                child: _Blob(
+                    size: compact ? 200 : 360,
+                    color: Colors.white.withValues(alpha: 0.10))),
             Positioned(
-              bottom: -160,
-              right: -130,
-              child: _Blob(
-                  size: 340, color: AppColors.teal.withValues(alpha: 0.12)),
-            ),
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final sideBySide = width >= kAuthSideBySideBreakpoint;
-                  final isWide = width >= kAuthWideBreakpoint;
-                  final padding = sideBySide ? 32.0 : 16.0;
-
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.all(padding),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - padding * 2),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1080),
-                          child: CascadeIn(
-                            index: 0,
-                            offset: const Offset(0, 0.03),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.cardWhite,
-                                borderRadius: BorderRadius.circular(24),
-                                border:
-                                    Border.all(color: AppColors.inputBorder),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primaryBlue
-                                        .withValues(alpha: 0.13),
-                                    blurRadius: 48,
-                                    offset: const Offset(0, 20),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Material(
-                                  type: MaterialType.transparency,
-                                  child: sideBySide ? _wide(isWide) : _narrow(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                bottom: -100,
+                right: -80,
+                child: _Blob(
+                    size: compact ? 220 : 320,
+                    color: Colors.white.withValues(alpha: 0.08))),
+            Positioned.fill(
+              child: compact
+                  ? _compactBanner(logoWidth, dpr)
+                  : _fullPanel(context, logoWidth, dpr),
             ),
           ],
         ),
@@ -115,130 +344,199 @@ class AuthShell extends StatelessWidget {
     );
   }
 
-  Widget _wide(bool isWide) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Expanded(child: AuthHeroPanel()),
-          SizedBox(
-            width: isWide ? formWidthWide : formWidth,
-            child: ColoredBox(
-              color: AppColors.cardWhite,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: isWide ? 44 : 32, vertical: 40),
-                child: form,
+  Widget _logoPlaque(double logoWidth, double dpr) => Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: logoWidth * 0.08, vertical: logoWidth * 0.05),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 10)),
+          ],
+        ),
+        child: Image.asset(
+          'assets/brand/uniflow-wordmark.png',
+          width: logoWidth,
+          cacheWidth: (logoWidth * dpr).round(),
+          filterQuality: FilterQuality.high,
+          fit: BoxFit.contain,
+        ),
+      );
+
+  Widget _compactBanner(double logoWidth, double dpr) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            _logoPlaque(logoWidth, dpr),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bienvenue sur UniFlow',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.h1
+                        .copyWith(color: Colors.white, fontSize: 20),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'La plateforme universitaire qui fonctionne partout, même sans Internet.',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.35,
+                        color: Colors.white.withValues(alpha: 0.88)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _fullPanel(BuildContext context, double logoWidth, double dpr) {
+    final pad = scale.padding;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Sous ~620 px de haut, les cartes d'arguments n'ont plus leur place :
+        // on les retire plutôt que de faire défiler un panneau décoratif.
+        final showFeatures = constraints.maxHeight >= 620;
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: pad, vertical: pad * 0.8),
+          child: ConstrainedBox(
+            constraints:
+                BoxConstraints(minHeight: constraints.maxHeight - pad * 1.6),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(child: _logoPlaque(logoWidth, dpr)),
+                    SizedBox(height: pad * 0.7),
+                    Text(
+                      'Bienvenue sur UniFlow',
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.h1.copyWith(
+                          color: Colors.white,
+                          fontSize: scale.title + 2,
+                          height: 1.15),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'La plateforme universitaire intelligente qui fonctionne partout, même sans Internet.',
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: scale.body + 1,
+                          height: 1.5,
+                          color: const Color(0xFFDBEAFE)),
+                    ),
+                    if (showFeatures) ...[
+                      SizedBox(height: pad * 0.8),
+                      for (var i = 0; i < kAuthFeatures.length; i++) ...[
+                        CascadeIn(
+                            index: 2 + i,
+                            child: _FeatureCard(
+                                feature: kAuthFeatures[i], scale: scale)),
+                        if (i < kAuthFeatures.length - 1)
+                          const SizedBox(height: 12),
+                      ],
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _narrow() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(
-            height: 180,
-            width: double.infinity,
-            child: AuthHeroPanel(compact: true)),
-        ColoredBox(
-          color: AppColors.cardWhite,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 28, 22, 30),
-            child: form,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
-/// Panneau visuel : photo de campus, voile dégradé bleu → teal, message.
-class AuthHeroPanel extends StatelessWidget {
-  final bool compact;
-  const AuthHeroPanel({super.key, this.compact = false});
+/// Carte d'argument translucide (`bg-white/10`, bordure `white/20`), qui se
+/// décale de 6 px au survol comme sur le web.
+class _FeatureCard extends StatefulWidget {
+  final ({IconData icon, String title, String desc, Color color}) feature;
+  final AuthScale scale;
+  const _FeatureCard({required this.feature, required this.scale});
+
+  @override
+  State<_FeatureCard> createState() => _FeatureCardState();
+}
+
+class _FeatureCardState extends State<_FeatureCard> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-            child: Image.asset('assets/images/login.jpg', fit: BoxFit.cover)),
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryBlue.withValues(alpha: 0.88),
-                  AppColors.deepBlue.withValues(alpha: 0.82),
-                  AppColors.teal.withValues(alpha: 0.78),
+    final f = widget.feature;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(_hover ? 6 : 0, 0, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: _hover ? 0.16 : 0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(f.icon, size: 22, color: f.color),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    f.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: widget.scale.body + 0.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    f.desc,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: widget.scale.body - 1.5,
+                        height: 1.4,
+                        color: const Color(0xFFDBEAFE)),
+                  ),
                 ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
             ),
-          ),
+          ],
         ),
-        Positioned.fill(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-                horizontal: compact ? 20 : 36, vertical: compact ? 16 : 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                UniFlowLogo(
-                  iconSize: compact ? 40 : 54,
-                  fontSize: compact ? 24 : 30,
-                  textColor: Colors.white,
-                ),
-                SizedBox(height: compact ? 8 : 18),
-                Text(
-                  'Bienvenue sur UniFlow',
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.h1.copyWith(
-                      color: Colors.white, fontSize: compact ? 21 : 27),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'La plateforme académique de référence',
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.body.copyWith(
-                    color: Colors.white.withValues(alpha: 0.88),
-                    fontSize: compact ? 12.5 : 14,
-                  ),
-                ),
-                if (!compact) ...[
-                  const SizedBox(height: 30),
-                  const _HeroPoint(
-                    icon: Icons.school_outlined,
-                    text:
-                        'Étudiants, enseignants et programmes au même endroit',
-                  ),
-                  const SizedBox(height: 12),
-                  const _HeroPoint(
-                    icon: Icons.calendar_today_outlined,
-                    text: 'Emplois du temps et présences en temps réel',
-                  ),
-                  const SizedBox(height: 12),
-                  const _HeroPoint(
-                    icon: Icons.videocam_outlined,
-                    text:
-                        'Visioconférence hébergée sur le poste, même sans internet',
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -283,7 +581,7 @@ class GradientButton extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
           child: SizedBox(
-            height: 52,
+            height: AuthScale.of(context).field,
             child: Center(
               child: isLoading
                   ? const SizedBox(
@@ -528,44 +826,6 @@ class AuthDropdown<T> extends StatelessWidget {
           ),
           items: items,
           onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
-
-class _HeroPoint extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _HeroPoint({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 15, color: Colors.white),
-        ),
-        const SizedBox(width: 10),
-        Flexible(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              text,
-              style: TextStyle(
-                  fontSize: 13,
-                  height: 1.35,
-                  color: Colors.white.withValues(alpha: 0.9)),
-            ),
-          ),
         ),
       ],
     );
