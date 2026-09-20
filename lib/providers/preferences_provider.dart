@@ -22,11 +22,15 @@ class AppPreferences {
   /// Barre latérale repliée au démarrage.
   final bool compactSidebar;
 
+  /// Thème sombre (`.dark` du web).
+  final bool darkMode;
+
   const AppPreferences({
     this.notificationBanners = true,
     this.keepSession = true,
     this.reduceMotion = false,
     this.compactSidebar = false,
+    this.darkMode = false,
   });
 
   AppPreferences copyWith({
@@ -34,12 +38,14 @@ class AppPreferences {
     bool? keepSession,
     bool? reduceMotion,
     bool? compactSidebar,
+    bool? darkMode,
   }) =>
       AppPreferences(
         notificationBanners: notificationBanners ?? this.notificationBanners,
         keepSession: keepSession ?? this.keepSession,
         reduceMotion: reduceMotion ?? this.reduceMotion,
         compactSidebar: compactSidebar ?? this.compactSidebar,
+        darkMode: darkMode ?? this.darkMode,
       );
 }
 
@@ -52,6 +58,7 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const _kKeepSession = 'prefs.keepSession';
   static const _kReduceMotion = 'prefs.reduceMotion';
   static const _kCompactSidebar = 'prefs.compactSidebar';
+  static const _kDarkMode = 'prefs.darkMode';
 
   Future<void> _load() async {
     try {
@@ -61,6 +68,7 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
         keepSession: prefs.getBool(_kKeepSession) ?? true,
         reduceMotion: prefs.getBool(_kReduceMotion) ?? false,
         compactSidebar: prefs.getBool(_kCompactSidebar) ?? false,
+        darkMode: prefs.getBool(_kDarkMode) ?? false,
       );
       motionReduced.value = state.reduceMotion;
     } catch (_) {
@@ -95,6 +103,11 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   void setCompactSidebar(bool value) {
     state = state.copyWith(compactSidebar: value);
     _set(_kCompactSidebar, value);
+  }
+
+  void setDarkMode(bool value) {
+    state = state.copyWith(darkMode: value);
+    _set(_kDarkMode, value);
   }
 }
 

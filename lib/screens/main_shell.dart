@@ -8,7 +8,9 @@ import '../models/app_destination.dart';
 import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
 import '../router/route_guard.dart';
-import '../ui/ui.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_sidebar.dart';
+import '../widgets/motion.dart';
 import 'academic_management_screens.dart';
 import 'access_denied_screen.dart';
 import 'accounts_screen.dart';
@@ -113,28 +115,38 @@ class _MainShellState extends ConsumerState<MainShell>
     final selected = ref.watch(currentDestinationProvider) ?? home;
     final allowed = canAccess(selected, role: role, accountType: accountType);
 
-    void select(AppDestination destination) =>
-        ref.read(currentDestinationProvider.notifier).state = destination;
-
-    return AppShell(
-      selected: selected,
-      onSelect: select,
-      body: AnimatedSwitcher(
-        duration: kMotionMedium,
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: pageTransition,
-        child: KeyedSubtree(
-          key: ValueKey('${selected.id}-$allowed'),
-          child: allowed
-              ? _buildDestination(selected)
-              : AccessDeniedScreen(
-                  destination: selected,
-                  role: role,
-                  accountType: accountType,
-                  onBackHome: () => select(home),
-                ),
-        ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Row(
+        children: [
+          AppSidebar(
+            selected: selected,
+            onSelect: (destination) => ref
+                .read(currentDestinationProvider.notifier)
+                .state = destination,
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: kMotionMedium,
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: pageTransition,
+              child: KeyedSubtree(
+                key: ValueKey('${selected.id}-$allowed'),
+                child: allowed
+                    ? _buildDestination(selected)
+                    : AccessDeniedScreen(
+                        destination: selected,
+                        role: role,
+                        accountType: accountType,
+                        onBackHome: () => ref
+                            .read(currentDestinationProvider.notifier)
+                            .state = home,
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

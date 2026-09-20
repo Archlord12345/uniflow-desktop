@@ -138,6 +138,171 @@ class AppColors {
   );
 }
 
+/// Grille d'espacement de 4 px, comme les classes `p-1`…`p-8` de Tailwind
+/// côté web : un écran qui mélange 13, 18 et 22 px paraît « bricolé ».
+class AppSpacing {
+  AppSpacing._();
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 20;
+  static const double xxl = 24;
+  static const double xxxl = 32;
+  static const double section = 40;
+}
+
+/// Rayons : 12 (`rounded-xl`), 16 (`rounded-2xl`, cartes du tableau de bord),
+/// 20 (`rounded-3xl`, panneaux d'authentification).
+class AppRadius {
+  AppRadius._();
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 20;
+  static const double pill = 999;
+}
+
+/// Ombres douces du web (`shadow-sm`, `shadow-md`, `shadow-lg`), teintées du
+/// bleu de marque pour ne pas grisailler le fond `#f3f4f6`.
+class AppShadows {
+  AppShadows._();
+  static List<BoxShadow> get card => [
+        BoxShadow(
+          color: AppColors.primaryBlue.withValues(alpha: 0.05),
+          blurRadius: 12,
+          offset: const Offset(0, 3),
+        ),
+      ];
+  static List<BoxShadow> get cardHover => [
+        BoxShadow(
+          color: AppColors.primaryBlue.withValues(alpha: 0.12),
+          blurRadius: 24,
+          offset: const Offset(0, 10),
+        ),
+      ];
+  static List<BoxShadow> get floating => [
+        BoxShadow(
+          color: AppColors.deepBlue.withValues(alpha: 0.18),
+          blurRadius: 40,
+          offset: const Offset(0, 16),
+        ),
+      ];
+}
+
+/// Couleurs qui changent avec le thème (fond, surface, bordure, texte), lues
+/// via `UniFlowColors.of(context)`. Les valeurs sombres sont celles du
+/// `.dark` du web (`#0b0f19`, `#151e32`, `#243049`, `#f8fafc`, `#cbd5e1`).
+///
+/// `AppColors` reste la palette claire historique utilisée par les écrans
+/// existants ; les composants de `lib/ui/` lisent cette extension pour
+/// fonctionner dans les deux thèmes.
+@immutable
+class UniFlowColors extends ThemeExtension<UniFlowColors> {
+  final Color background;
+  final Color surface;
+  final Color surfaceMuted;
+  final Color border;
+  final Color text;
+  final Color muted;
+  final Color primary;
+  final Color primaryLight;
+  final Color primaryDark;
+  final Color sidebar;
+  final Color sidebarDeep;
+
+  const UniFlowColors({
+    required this.background,
+    required this.surface,
+    required this.surfaceMuted,
+    required this.border,
+    required this.text,
+    required this.muted,
+    required this.primary,
+    required this.primaryLight,
+    required this.primaryDark,
+    required this.sidebar,
+    required this.sidebarDeep,
+  });
+
+  static const light = UniFlowColors(
+    background: AppColors.background,
+    surface: AppColors.cardWhite,
+    surfaceMuted: AppColors.surfaceMuted,
+    border: AppColors.inputBorder,
+    text: AppColors.textPrimary,
+    muted: AppColors.textSecondary,
+    primary: AppColors.primaryBlue,
+    primaryLight: AppColors.primaryLight,
+    primaryDark: AppColors.deepBlue,
+    sidebar: AppColors.sidebarBg,
+    sidebarDeep: AppColors.sidebarBgDeep,
+  );
+
+  static const dark = UniFlowColors(
+    background: Color(0xFF0B0F19),
+    surface: Color(0xFF151E32),
+    surfaceMuted: Color(0xFF1B2540),
+    border: Color(0xFF243049),
+    text: Color(0xFFF8FAFC),
+    muted: Color(0xFFCBD5E1),
+    primary: Color(0xFF3B82F6),
+    primaryLight: Color(0xFF60A5FA),
+    primaryDark: Color(0xFF1D4ED8),
+    sidebar: Color(0xFF0B0F19),
+    sidebarDeep: Color(0xFF060810),
+  );
+
+  static UniFlowColors of(BuildContext context) =>
+      Theme.of(context).extension<UniFlowColors>() ?? light;
+
+  @override
+  UniFlowColors copyWith({
+    Color? background,
+    Color? surface,
+    Color? surfaceMuted,
+    Color? border,
+    Color? text,
+    Color? muted,
+    Color? primary,
+    Color? primaryLight,
+    Color? primaryDark,
+    Color? sidebar,
+    Color? sidebarDeep,
+  }) =>
+      UniFlowColors(
+        background: background ?? this.background,
+        surface: surface ?? this.surface,
+        surfaceMuted: surfaceMuted ?? this.surfaceMuted,
+        border: border ?? this.border,
+        text: text ?? this.text,
+        muted: muted ?? this.muted,
+        primary: primary ?? this.primary,
+        primaryLight: primaryLight ?? this.primaryLight,
+        primaryDark: primaryDark ?? this.primaryDark,
+        sidebar: sidebar ?? this.sidebar,
+        sidebarDeep: sidebarDeep ?? this.sidebarDeep,
+      );
+
+  @override
+  UniFlowColors lerp(UniFlowColors? other, double t) {
+    if (other == null) return this;
+    return UniFlowColors(
+      background: Color.lerp(background, other.background, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      surfaceMuted: Color.lerp(surfaceMuted, other.surfaceMuted, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      text: Color.lerp(text, other.text, t)!,
+      muted: Color.lerp(muted, other.muted, t)!,
+      primary: Color.lerp(primary, other.primary, t)!,
+      primaryLight: Color.lerp(primaryLight, other.primaryLight, t)!,
+      primaryDark: Color.lerp(primaryDark, other.primaryDark, t)!,
+      sidebar: Color.lerp(sidebar, other.sidebar, t)!,
+      sidebarDeep: Color.lerp(sidebarDeep, other.sidebarDeep, t)!,
+    );
+  }
+}
+
 /// Styles de texte réutilisables.
 ///
 /// À utiliser partout au lieu de définir des `TextStyle` en dur dans les
@@ -145,14 +310,29 @@ class AppColors {
 class AppTextStyles {
   AppTextStyles._();
 
-  /// Police de l'interface.
-  ///
-  /// ATTENTION : Inter n'est pas embarquée dans `pubspec.yaml`, Flutter se
-  /// rabat donc sur la police système. Pour un rendu identique au web, il faut
-  /// déposer les fichiers `.ttf` dans `assets/fonts/` et déclarer la famille
-  /// dans la section `fonts:` de `pubspec.yaml` — la déclaration est prête en
-  /// commentaire dans ce fichier.
+  /// Police de l'interface : Inter, embarquée dans `assets/fonts/` et
+  /// déclarée dans `pubspec.yaml`. Avant, la famille était nommée sans être
+  /// fournie et Flutter retombait sur la police système : le desktop ne
+  /// ressemblait pas au web.
   static const String fontFamily = 'Inter';
+
+  /// Échelle typographique du web : 12 / 14 / 16 / 20 / 24 / 32.
+  static const double size12 = 12;
+  static const double size14 = 14;
+  static const double size16 = 16;
+  static const double size20 = 20;
+  static const double size24 = 24;
+  static const double size32 = 32;
+
+  /// Titre d'écran (`text-3xl font-black`).
+  static const TextStyle display = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: size32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    height: 1.15,
+    letterSpacing: -0.5,
+  );
 
   /// Grand titre (ex: « Bienvenue chez UniFlow »).
   static const TextStyle h1 = TextStyle(
@@ -247,28 +427,121 @@ class AppTheme {
   /// Rayon des éléments interactifs (`rounded-lg` du web = 8 px).
   static const double radiusControl = 8;
 
-  static ThemeData get lightTheme {
+  /// Transitions de page douces : fondu + léger glissement vertical, sur les
+  /// trois plateformes de bureau. La transition Material par défaut (zoom) est
+  /// pensée pour le tactile et paraît brusque à la souris.
+  static const PageTransitionsTheme pageTransitions = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+    },
+  );
+
+  static ThemeData get lightTheme => _build(UniFlowColors.light);
+
+  /// Thème sombre du web (`.dark` de `index.css`).
+  static ThemeData get darkTheme => _build(UniFlowColors.dark);
+
+  /// Échelle typographique appliquée au `textTheme` Material, pour que les
+  /// widgets standard (`ListTile`, `DataTable`, `AlertDialog`) parlent la même
+  /// langue que les écrans : 12 / 14 / 16 / 20 / 24 / 32.
+  static TextTheme _textTheme(Color text, Color muted) {
+    TextStyle style(double size, FontWeight weight, {Color? color}) =>
+        TextStyle(
+          fontFamily: AppTextStyles.fontFamily,
+          fontSize: size,
+          fontWeight: weight,
+          color: color ?? text,
+          height: 1.35,
+        );
+    return TextTheme(
+      displayLarge: style(AppTextStyles.size32, FontWeight.w800),
+      headlineMedium: style(AppTextStyles.size24, FontWeight.w700),
+      titleLarge: style(AppTextStyles.size20, FontWeight.w700),
+      titleMedium: style(AppTextStyles.size16, FontWeight.w600),
+      titleSmall: style(AppTextStyles.size14, FontWeight.w600),
+      bodyLarge: style(AppTextStyles.size16, FontWeight.w400),
+      bodyMedium: style(AppTextStyles.size14, FontWeight.w400),
+      bodySmall: style(AppTextStyles.size12, FontWeight.w400, color: muted),
+      labelLarge: style(AppTextStyles.size14, FontWeight.w600),
+      labelMedium: style(AppTextStyles.size12, FontWeight.w600),
+      labelSmall: style(11, FontWeight.w700, color: muted),
+    );
+  }
+
+  static ThemeData _build(UniFlowColors c) {
+    final dark = c == UniFlowColors.dark;
     final base = ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: AppColors.background,
+      brightness: dark ? Brightness.dark : Brightness.light,
+      scaffoldBackgroundColor: c.background,
       fontFamily: AppTextStyles.fontFamily,
+      pageTransitionsTheme: pageTransitions,
+      visualDensity: VisualDensity.standard,
+      splashFactory: InkSparkle.splashFactory,
+      extensions: [c],
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryBlue,
-        primary: AppColors.primaryBlue,
+        seedColor: c.primary,
+        brightness: dark ? Brightness.dark : Brightness.light,
+        primary: c.primary,
         secondary: AppColors.teal,
-        surface: AppColors.cardWhite,
+        surface: c.surface,
         error: AppColors.danger,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
+        onSurface: c.text,
+        outline: c.border,
       ),
     );
 
+    if (dark) {
+      // Le thème sombre ne reprend que les réglages qui dépendent des couleurs ;
+      // les formes (rayons, densité) sont partagées avec le thème clair.
+      return base.copyWith(
+        textTheme: _textTheme(c.text, c.muted),
+        cardTheme: CardThemeData(
+          color: c.surface,
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusCard),
+            side: BorderSide(color: c.border),
+          ),
+        ),
+        dividerTheme: DividerThemeData(color: c.border, thickness: 1, space: 1),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: c.surfaceMuted,
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(radiusCard),
+            borderSide: BorderSide(color: c.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(radiusCard),
+            borderSide: BorderSide(color: c.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(radiusCard),
+            borderSide: BorderSide(color: c.primary, width: 1.5),
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: c.surface,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.lg)),
+        ),
+      );
+    }
+
     return base.copyWith(
       // --- Textes -------------------------------------------------------
-      textTheme: base.textTheme.apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
-      ),
+      textTheme: _textTheme(c.text, c.muted),
 
       // --- Boutons pleins ------------------------------------------------
       elevatedButtonTheme: ElevatedButtonThemeData(

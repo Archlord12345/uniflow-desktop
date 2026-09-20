@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/auth_provider.dart';
+import 'providers/preferences_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_shell.dart';
@@ -26,13 +27,15 @@ class UniFlowApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionCheckProvider);
     final user = ref.watch(currentUserProvider);
+    final darkMode = ref.watch(preferencesProvider.select((p) => p.darkMode));
 
     return MaterialApp(
       title: 'UniFlow',
       debugShowCheckedModeBanner:
           false, // masque le bandeau "DEBUG" rouge en haut à droite
-      theme: AppTheme
-          .lightTheme, // thème centralisé défini dans theme/app_theme.dart
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       home: session.when(
         loading: () => const _SplashScreen(),
         // Un échec de résolution (Appwrite injoignable) ne doit pas bloquer

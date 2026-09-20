@@ -237,11 +237,12 @@ class FakeMessagingRepository extends MessagingRepository {
 /// attendu par les `InkWell`, `TextField` et `DropdownButton`. Les peindre nus
 /// produisait une avalanche de « No Material widget found » sans rapport avec
 /// la mise en page que l'on veut mesurer.
-Widget host(Widget child) {
+Widget host(Widget child, {List<Override> overrides = const []}) {
   final service = AppwriteService();
   return ProviderScope(
     overrides: [
       ..._overrides(),
+      ...overrides,
       appwriteServiceProvider.overrideWithValue(service),
       academicRepositoryProvider
           .overrideWithValue(FakeAcademicRepository(service)),

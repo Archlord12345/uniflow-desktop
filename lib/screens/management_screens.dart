@@ -870,6 +870,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .read(preferencesProvider.notifier)
                         .setCompactSidebar,
                   ),
+                  _SettingRow(
+                    title: 'Thème sombre',
+                    subtitle: 'Fond bleu nuit, comme le web en mode sombre',
+                    value: prefs.darkMode,
+                    onChanged:
+                        ref.read(preferencesProvider.notifier).setDarkMode,
+                  ),
                 ],
               ),
             ),
