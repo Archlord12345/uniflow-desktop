@@ -33,7 +33,9 @@ bool canAccess(
   if (destination.personalOnly && accountType != AccountType.personal) {
     return false;
   }
-  if (destination.universityOnly && accountType != AccountType.university) {
+  // `PLATFORM` voit les écrans d'établissement : l'admin de la plateforme
+  // administre toutes les universités, pas aucune.
+  if (destination.universityOnly && !accountType.seesInstitution) {
     return false;
   }
   return true;

@@ -161,10 +161,18 @@ UserRole parseUserRole(String? raw) {
   return _roleAliases[raw.trim().toUpperCase()] ?? UserRole.student;
 }
 
-/// Type de compte : rattaché à un établissement, ou usage personnel.
+/// Type de compte : rattaché à un établissement, usage personnel, ou
+/// administration de la plateforme.
+///
+/// `PLATFORM` (ajouté au schéma le 2026-09-20) est le type de l'admin de la
+/// plateforme (`kernel@forge.codes`) : il n'appartient à aucune université,
+/// n'a ni faculté, ni filière, ni niveau, et voit tous les établissements.
+/// Avant son ajout, ce compte était rangé « UNIVERSITY » et l'interface lui
+/// affichait un périmètre « ICT4D · L1 » qu'il n'a jamais eu.
 enum AccountType {
   university,
-  personal;
+  personal,
+  platform;
 
   String get label {
     switch (this) {
@@ -172,12 +180,23 @@ enum AccountType {
         return 'Université';
       case AccountType.personal:
         return 'Personnel';
+      case AccountType.platform:
+        return 'Plateforme';
     }
   }
+
+  /// Valeur telle que le serveur l'écrit dans `users.accountType`.
+  String get wireValue => name.toUpperCase();
+
+  /// Les écrans d'établissement (annuaire, UE, salles…) sont ouverts aux
+  /// comptes universitaires **et** à la plateforme, qui les voit tous.
+  bool get seesInstitution => this != AccountType.personal;
 }
 
 /// Résout le type de compte. Même prudence que pour le rôle : le repli est
-/// `UNIVERSITY`, l'espace complet, mais c'est bien la valeur lue qui décide.
+/// `UNIVERSITY`, l'espace d'établissement, mais c'est bien la valeur lue qui
+/// décide. Une valeur inconnue (ancien client, faute de frappe en console)
+/// ne fait jamais planter : elle retombe explicitement sur `UNIVERSITY`.
 ///
 /// Le web accepte deux champs (`accountType` et `accountCategory`) ; le
 /// desktop ne lit que `accountType`, mais accepte les deux valeurs `PERSONAL`
@@ -188,6 +207,9 @@ AccountType parseAccountType(String? raw) {
     case 'PERSONAL':
     case 'INDEPENDENT':
       return AccountType.personal;
+    case 'PLATFORM':
+      return AccountType.platform;
+    case 'UNIVERSITY':
     default:
       return AccountType.university;
   }

@@ -77,7 +77,7 @@ class AcademicCourse {
       description: doc.data['description'],
       university: doc.data['university'] ?? '',
       program: doc.data['program'] ?? '',
-      level: doc.data['level'] ?? 'L1',
+      level: doc.data['level'] ?? '',
       teacherId: doc.data['teacherId'],
       teacherName: doc.data['teacherName'],
       credits: doc.data['credits'],
@@ -98,6 +98,19 @@ class AcademicSchedule {
   final String classroom;
   final String? type;
 
+  /// Champs ajoutés au schéma le 2026-09-20 (`schedule_program_level`) : une
+  /// grille se lit désormais **directement** par filière et niveau, sans
+  /// joindre `academic_courses`. Tous optionnels : les anciens documents ne
+  /// les portent pas, on retombe alors sur la jointure par `courseId`.
+  final String university;
+  final String program;
+  final String level;
+  final String courseName;
+  final String teacherName;
+  final String group;
+  final String semester;
+  final String academicYear;
+
   AcademicSchedule({
     required this.id,
     required this.courseId,
@@ -107,18 +120,43 @@ class AcademicSchedule {
     required this.endTime,
     required this.classroom,
     this.type,
+    this.university = '',
+    this.program = '',
+    this.level = '',
+    this.courseName = '',
+    this.teacherName = '',
+    this.group = '',
+    this.semester = '',
+    this.academicYear = '',
   });
 
-  factory AcademicSchedule.fromDocument(models.Document doc) {
+  factory AcademicSchedule.fromDocument(models.Document doc) =>
+      AcademicSchedule.fromData(doc.$id, doc.data);
+
+  /// Construction depuis les données brutes, pour les tests sans SDK.
+  factory AcademicSchedule.fromData(String id, Map<String, dynamic> data) {
+    String text(String key) {
+      final value = data[key];
+      return value is String ? value : '';
+    }
+
     return AcademicSchedule(
-      id: doc.$id,
-      courseId: doc.data['courseId'] ?? '',
-      courseCode: doc.data['courseCode'] ?? '',
-      dayOfWeek: doc.data['dayOfWeek'] ?? '',
-      startTime: doc.data['startTime'] ?? '',
-      endTime: doc.data['endTime'] ?? '',
-      classroom: doc.data['classroom'] ?? '',
-      type: doc.data['type'],
+      id: id,
+      courseId: text('courseId'),
+      courseCode: text('courseCode'),
+      dayOfWeek: text('dayOfWeek'),
+      startTime: text('startTime'),
+      endTime: text('endTime'),
+      classroom: text('classroom'),
+      type: data['type'] is String ? data['type'] as String : null,
+      university: text('university'),
+      program: text('program'),
+      level: text('level'),
+      courseName: text('courseName'),
+      teacherName: text('teacherName'),
+      group: text('group'),
+      semester: text('semester'),
+      academicYear: text('academicYear'),
     );
   }
 }
@@ -155,6 +193,10 @@ class AcademicDirectoryEntry {
   final String name;
   final String role;
   final String university;
+
+  /// Code de faculté (`academic_directory.faculty`, schéma du 2026-09-20) ;
+  /// vide sur les anciens documents.
+  final String faculty;
   final String program;
   final String level;
   final String? matricule;
@@ -172,6 +214,7 @@ class AcademicDirectoryEntry {
     required this.name,
     required this.role,
     required this.university,
+    this.faculty = '',
     required this.program,
     required this.level,
     this.matricule,
@@ -188,8 +231,9 @@ class AcademicDirectoryEntry {
       name: doc.data['name'] ?? '',
       role: doc.data['role'] ?? 'STUDENT',
       university: doc.data['university'] ?? '',
+      faculty: (doc.data['faculty'] ?? '').toString(),
       program: doc.data['program'] ?? '',
-      level: doc.data['level'] ?? 'L1',
+      level: doc.data['level'] ?? '',
       matricule: doc.data['matricule'],
       status: doc.data['status'],
     );
@@ -207,6 +251,7 @@ class AcademicDirectoryEntry {
       name: name,
       role: role,
       university: university,
+      faculty: faculty,
       program: program,
       level: level,
       matricule: matricule,
@@ -418,7 +463,7 @@ class UniFlowUser {
   final String id;
   final String email;
   final String name;
-  final String accountType; // 'UNIVERSITY' | 'PERSONAL'
+  final String accountType; // 'UNIVERSITY' | 'PERSONAL' | 'PLATFORM'
 
   /// Rôle affiché (`STUDENT` | `DELEGATE` | `TEACHER` | `ADMIN`), **déjà
   /// résolu** depuis les labels Appwrite par [UserRole.fromLabels] : c'est la
@@ -426,6 +471,11 @@ class UniFlowUser {
   /// sert que de repli quand le compte n'a aucun label.
   final String role;
   final String? university;
+
+  /// Code de la faculté (`users.faculty`, ajouté au schéma le 2026-09-20).
+  /// Une administration d'université porte université + faculté, sans
+  /// filière ni niveau : elle gère toutes les filières de sa faculté.
+  final String? faculty;
   final String? program;
   final String? level;
   final String? country;
@@ -452,6 +502,7 @@ class UniFlowUser {
     required this.accountType,
     required this.role,
     this.university,
+    this.faculty,
     this.program,
     this.level,
     this.country,
@@ -469,6 +520,14 @@ class UniFlowUser {
 
   bool get isPersonal => accountKind == AccountType.personal;
 
+  /// Administration de la plateforme : aucun établissement, tout visible.
+  bool get isPlatform => accountKind == AccountType.platform;
+
+  /// Un compte a un périmètre académique (filière · niveau) seulement s'il en
+  /// porte un : la plateforme et l'administration d'université n'en ont pas.
+  bool get hasAcademicScope =>
+      (program ?? '').trim().isNotEmpty || (level ?? '').trim().isNotEmpty;
+
   UniFlowUser copyWith({
     String? name,
     String? username,
@@ -484,6 +543,7 @@ class UniFlowUser {
       accountType: accountType,
       role: role,
       university: university,
+      faculty: faculty,
       program: program ?? this.program,
       level: level ?? this.level,
       country: country,

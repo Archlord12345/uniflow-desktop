@@ -79,6 +79,26 @@ void main() {
       expect(parseAccountType(null), AccountType.university);
       expect(parseAccountType('n\'importe quoi'), AccountType.university);
     });
+
+    test('PLATFORM est reconnu (insensible à la casse) et voit l\'établissement', () {
+      expect(parseAccountType('PLATFORM'), AccountType.platform);
+      expect(parseAccountType(' platform '), AccountType.platform);
+      expect(AccountType.platform.seesInstitution, isTrue);
+      expect(AccountType.university.seesInstitution, isTrue);
+      expect(AccountType.personal.seesInstitution, isFalse);
+      expect(AccountType.platform.wireValue, 'PLATFORM');
+    });
+
+    test('la plateforme ouvre les écrans d\'établissement, pas l\'espace personnel', () {
+      expect(canAccess(AppDestination.classrooms,
+          role: UserRole.admin, accountType: AccountType.platform), isTrue);
+      expect(canAccess(AppDestination.accounts,
+          role: UserRole.admin, accountType: AccountType.platform), isTrue);
+      expect(canAccess(AppDestination.personalWorkspace,
+          role: UserRole.admin, accountType: AccountType.platform), isFalse);
+      expect(homeDestination(role: UserRole.admin, accountType: AccountType.platform),
+          AppDestination.dashboard);
+    });
   });
 
   group('UserRole', () {

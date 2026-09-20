@@ -179,11 +179,10 @@ class AuthRepository {
       name: account.name.isNotEmpty
           ? account.name
           : (profile['name']?.toString() ?? account.email),
-      accountType: parseAccountType(accountType) == AccountType.personal
-          ? 'PERSONAL'
-          : 'UNIVERSITY',
+      accountType: parseAccountType(accountType).wireValue,
       role: role.wireValue,
       university: profile['university']?.toString(),
+      faculty: profile['faculty']?.toString(),
       program: profile['program']?.toString(),
       level: profile['level']?.toString(),
       country: profile['country']?.toString(),

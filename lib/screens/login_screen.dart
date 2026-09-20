@@ -72,10 +72,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Le type choisi à l'écran n'est qu'une intention ; le type réel est
       // celui du compte. On le dit plutôt que d'ouvrir le mauvais espace.
-      if (user.accountKind != _accountType) {
+      // Un compte `PLATFORM` entre par « Compte universitaire » : c'est
+      // l'espace d'établissement, étendu à toutes les universités.
+      final expected = _accountType == AccountType.university
+          ? user.accountKind.seesInstitution
+          : user.isPersonal;
+      if (!expected) {
         _notice = user.isPersonal
             ? 'Ce compte est un compte indépendant : ouverture de votre espace personnel.'
             : 'Ce compte est rattaché à un établissement : ouverture de votre espace universitaire.';
+      } else if (user.isPlatform) {
+        _notice = 'Administration de la plateforme : tous les établissements sont visibles.';
       }
 
       ref.read(currentUserProvider.notifier).state = user;
