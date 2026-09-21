@@ -33,6 +33,10 @@ class AppDataTable<T> extends StatelessWidget {
   final Widget? empty;
   final double rowHeight;
 
+  /// Pied de tableau (décompte « 12 enseignants », bouton recharger…), séparé
+  /// des lignes par un trait, comme le pied des tableaux des planches.
+  final Widget? footer;
+
   const AppDataTable({
     super.key,
     required this.columns,
@@ -40,6 +44,7 @@ class AppDataTable<T> extends StatelessWidget {
     required this.cells,
     this.onRowTap,
     this.empty,
+    this.footer,
     this.rowHeight = 52,
   });
 
@@ -113,8 +118,49 @@ class AppDataTable<T> extends StatelessWidget {
                   ],
                 ],
               ),
+          if (footer != null)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: colors.border)),
+              ),
+              child: footer,
+            ),
         ],
       ),
+    );
+  }
+}
+
+/// Pied standard : décompte à gauche, actions (recharger…) à droite.
+///
+/// La pagination factice « 1 2 3 › » des premières maquettes a été remplacée
+/// par le décompte réel : le tableau charge tout, il n'y a rien à paginer.
+class AppTableFooter extends StatelessWidget {
+  final String label;
+  final List<Widget> actions;
+
+  const AppTableFooter({super.key, required this.label, this.actions = const []});
+
+  /// « 1 enseignant », « 12 enseignants », « 0 salle ».
+  static String count(int n, String singular, [String? plural]) =>
+      '$n ${n <= 1 ? singular : (plural ?? '${singular}s')}';
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.body.copyWith(fontSize: 13),
+          ),
+        ),
+        ...actions,
+      ],
     );
   }
 }
