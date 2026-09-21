@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,6 +94,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       ref.read(currentUserProvider.notifier).state = user;
       ref.read(currentDestinationProvider.notifier).state = null;
+      unawaited(
+          ref.read(authRepositoryProvider).retryAcademicProvisioning(user));
       setState(() => _isLoading = false);
       if (_notice != null) {
         showFeedback(context,
@@ -118,13 +122,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _openRegister() async {
-    final registered = await Navigator.of(context).push<bool>(
+  /// L'inscription mène elle-même au tableau de bord (et retire cet écran
+  /// de la pile) ; ici, on ne fait qu'ouvrir le formulaire.
+  void _openRegister() {
+    Navigator.of(context).push(
       softRoute(RegisterScreen(initialType: _accountType)),
     );
-    if (registered == true && mounted) {
-      Navigator.of(context).pushReplacement(softRoute(const MainShell()));
-    }
   }
 
   @override

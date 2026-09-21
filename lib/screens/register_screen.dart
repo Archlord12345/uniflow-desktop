@@ -15,6 +15,7 @@ import '../widgets/app_text_field.dart';
 import '../widgets/auth_chrome.dart';
 import '../widgets/motion.dart';
 import 'login_screen.dart';
+import 'main_shell.dart';
 
 /// Inscription native, même séquence que `createAccount` du web.
 ///
@@ -51,7 +52,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   bool _busy = false;
   String? _error;
-  bool _done = false;
 
   @override
   void dispose() {
@@ -111,10 +111,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       final user = await ref.read(authRepositoryProvider).register(request);
       if (!mounted) return;
       ref.read(currentUserProvider.notifier).state = user;
-      setState(() {
-        _busy = false;
-        _done = true;
-      });
+      setState(() => _busy = false);
+      // Compte créé et session ouverte : on entre directement dans
+      // l'application, comme après une connexion, sans écran « Compte créé »
+      // à valider. Le mot de bienvenue s'affiche par-dessus le tableau de bord.
+      showFeedback(
+        context,
+        message: 'Bienvenue, ${user.name}.',
+        detail: _type == AccountType.university
+            ? 'Votre compte étudiant est prêt : cours, emploi du temps et devoirs vous attendent.'
+            : 'Votre espace personnel est prêt.',
+        duration: const Duration(seconds: 5),
+      );
+      // L'écran de connexion sous celui-ci est retiré aussi : un « retour »
+      // depuis le tableau de bord ne doit pas rouvrir le formulaire.
+      Navigator.of(context).pushAndRemoveUntil(
+        softRoute(const MainShell()),
+        (route) => false,
+      );
     } on AppwriteException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -144,23 +158,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_done) {
-      final user = ref.watch(currentUserProvider);
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        body: ResultView(
-          success: true,
-          title: 'Compte créé',
-          message: _type == AccountType.university
-              ? 'Bienvenue ${user?.name ?? ''}. Votre compte étudiant est prêt : vos cours, '
-                  'votre emploi du temps et vos devoirs vous attendent.'
-              : 'Bienvenue ${user?.name ?? ''}. Votre espace personnel est prêt.',
-          actionLabel: 'Entrer dans UniFlow',
-          onAction: () => Navigator.of(context).pop(true),
-        ),
-      );
-    }
-
     final reference = ref.watch(academicReferenceProvider);
     return AuthShell(
       formWidth: 420,

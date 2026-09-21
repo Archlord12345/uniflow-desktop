@@ -204,6 +204,24 @@ class AuthRepository {
     );
   }
 
+  /// Rejoue le raccordement académique d'un apprenant universitaire à la
+  /// connexion : un étudiant inscrit avant la publication des cours de sa
+  /// filière n'avait aucune inscription aux cours (le serveur répondait alors
+  /// « cours pas encore disponibles »). L'appel est idempotent côté serveur et
+  /// ne lève jamais : c'est un rattrapage, pas une condition d'accès.
+  Future<void> retryAcademicProvisioning(UniFlowUser user) async {
+    if (user.isPersonal || user.isPlatform) return;
+    if (!const {'STUDENT', 'DELEGATE'}.contains(user.role.toUpperCase())) {
+      return;
+    }
+    if ((user.program ?? '').isEmpty || (user.level ?? '').isEmpty) return;
+    try {
+      await _api.call(ApiPaths.academicRegistration, {'action': 'provision'});
+    } catch (error) {
+      debugPrint('Raccordement académique toujours différé : $error');
+    }
+  }
+
   /// Relit uniquement le document de profil, sans repasser par le compte.
   ///
   /// Utilisé après un changement de photo : le compte Appwrite n'a pas bougé,
