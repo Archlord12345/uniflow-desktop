@@ -79,7 +79,13 @@ class AppColors {
   static const Color warning = Color(0xFFF59E0B);
   static const Color info = Color(0xFF3B82F6);
 
-  // --- Sidebar -----------------------------------------------------------
+  /// Ambre des planches (TP, statuts « Occupée », « Vacataire ») : la même
+  /// teinte que [warning], nommée comme dans `docs/design/README.md`.
+  static const Color amber = warning;
+
+  // --- Sidebar (thème sombre) ---------------------------------------------
+  // Depuis les planches du 2026-09-21, la barre latérale est claire en thème
+  // clair (`SidebarPalette.light`) ; ces teintes ne servent qu'au thème sombre.
   /// Fond bleu nuit de la barre latérale (extrémité haute du dégradé).
   static const Color sidebarBg = Color(0xFF151E32);
 

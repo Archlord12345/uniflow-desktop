@@ -16,7 +16,7 @@ import '../widgets/uni/uni_scenes.dart';
 import 'form_fields.dart';
 import 'motion_in.dart';
 
-/// Coquille de l'application : barre latérale sombre repliable à gauche,
+/// Coquille de l'application : barre latérale claire repliable à gauche,
 /// en-tête (recherche, état de synchronisation, notifications, avatar) et
 /// contenu en dessous — l'`AppLayout.tsx` du web.
 ///
