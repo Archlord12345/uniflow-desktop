@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../services/conference/attendance_export_service.dart';
 import '../services/conference/attendance_store.dart';
 import '../services/conference/conference_attendance.dart';
 import '../services/conference/conference_models.dart';
@@ -14,6 +15,11 @@ import '../services/conference/livekit_webhook.dart';
 /// page, pour ne rien écrire dans le dossier de l'utilisateur.
 final attendanceStoreProvider = Provider<AttendanceStore>(
   (ref) => FileAttendanceStore(attendanceDirectory()),
+);
+
+/// Exports PDF / Excel vers les Documents de l'utilisateur.
+final attendanceExportServiceProvider = Provider<AttendanceExportService>(
+  (ref) => AttendanceExportService(),
 );
 
 /// Feuille de présence de la réunion en cours, `null` hors réunion.

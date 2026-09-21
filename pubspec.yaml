@@ -38,6 +38,11 @@ dependencies:
   # QR code du lien de participation affiché à l'hôte, pour qu'un téléphone du
   # réseau local rejoigne la salle sans recopier l'adresse.
   qr_flutter: ^4.1.0
+  # Exports de la feuille de présence d'une réunion, produits sur le poste
+  # (donc disponibles hors ligne) : un PDF à imprimer ou joindre, un classeur
+  # à retravailler par le secrétariat.
+  pdf: ^3.12.0
+  excel: ^4.0.6
 
 dev_dependencies:
   flutter_test:
