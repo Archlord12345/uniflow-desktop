@@ -13,8 +13,12 @@ class AppColumn {
   final double? width;
   final TextAlign align;
 
+  /// Remplace le libellé d'en-tête par un widget : la colonne de sélection
+  /// des étudiants y met sa case « tout cocher ».
+  final Widget? header;
+
   const AppColumn(this.label,
-      {this.flex = 1, this.width, this.align = TextAlign.left});
+      {this.flex = 1, this.width, this.align = TextAlign.left, this.header});
 }
 
 /// Tableau stylé du design system (`table.tsx` du web) : en-tête en petites
@@ -37,6 +41,13 @@ class AppDataTable<T> extends StatelessWidget {
   /// des lignes par un trait, comme le pied des tableaux des planches.
   final Widget? footer;
 
+  /// Largeur sous laquelle le tableau défile horizontalement au lieu de
+  /// comprimer ses colonnes. Un tableau à dix colonnes dont sept à largeur
+  /// fixe ne laissait que 7 px à la colonne « Nom » dans une fenêtre de
+  /// 420 px : l'avatar débordait de 39 px. Les colonnes ne se compriment pas
+  /// sans devenir illisibles ; la vue défile, comme tout tableau large.
+  final double? minWidth;
+
   const AppDataTable({
     super.key,
     required this.columns,
@@ -46,6 +57,7 @@ class AppDataTable<T> extends StatelessWidget {
     this.empty,
     this.footer,
     this.rowHeight = 52,
+    this.minWidth,
   });
 
   Widget _cell(AppColumn column, Widget child) {
@@ -65,6 +77,20 @@ class AppDataTable<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final minWidth = this.minWidth;
+    if (minWidth == null) return _card(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= minWidth) return _card(context);
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(width: minWidth, child: _card(context)),
+        );
+      },
+    );
+  }
+
+  Widget _card(BuildContext context) {
     final colors = UniFlowColors.of(context);
     return SurfaceCard(
       padding: EdgeInsets.zero,
@@ -82,13 +108,14 @@ class AppDataTable<T> extends StatelessWidget {
                 for (var i = 0; i < columns.length; i++) ...[
                   _cell(
                     columns[i],
-                    Text(
-                      columns[i].label.toUpperCase(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          AppTextStyles.overline.copyWith(color: colors.muted),
-                    ),
+                    columns[i].header ??
+                        Text(
+                          columns[i].label.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.overline
+                              .copyWith(color: colors.muted),
+                        ),
                   ),
                   if (i < columns.length - 1)
                     const SizedBox(width: AppSpacing.md),

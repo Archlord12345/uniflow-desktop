@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/program_tree.dart';
 import '../providers/program_provider.dart';
+import '../ui/app_data_table.dart';
+import '../ui/status_badge.dart';
+import '../ui/surface_card.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
-import '../ui/status_badge.dart';
 import '../widgets/simple_tab_bar.dart';
 
 /// Page "Programmes & Facultés" : arborescence Université > Filière > Niveau
@@ -382,7 +384,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         margin: const EdgeInsets.symmetric(vertical: 2),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEAF1FF) : Colors.transparent,
+          color: isSelected ? AppColors.primary50 : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3))
@@ -536,98 +538,63 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
         const SizedBox(height: 20),
 
         if (_selectedTab == 0)
-          program.modules.isEmpty
-              ? const _Panel(
-                  child: Text(
-                    'Aucune UE enregistrée pour ce niveau.',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-                  ),
-                )
-              : _buildModulesTable(program.modules)
+          _buildModulesTable(program.modules)
         else
           _buildTeachers(program.teachers),
       ],
     );
   }
 
-  Widget _buildModulesTable(List<CurriculumModule> modules) {
-    const headerStyle = TextStyle(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textMuted,
-        letterSpacing: 0.4);
+  /// Colonnes de la planche « Programmes » : la maquette d'origine mettait
+  /// les mêmes que le tableau des UE, en version courte.
+  static const List<AppColumn> _moduleColumns = [
+    AppColumn('Module', flex: 4),
+    AppColumn('Code', flex: 2),
+    AppColumn('Type', flex: 2),
+    AppColumn('Crédits', align: TextAlign.right),
+  ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Row(
-              children: [
-                Expanded(flex: 4, child: Text('MODULE', style: headerStyle)),
-                Expanded(flex: 2, child: Text('CODE', style: headerStyle)),
-                Expanded(flex: 2, child: Text('TYPE', style: headerStyle)),
-                Expanded(
-                    child: Text('CRÉDITS',
-                        style: headerStyle, textAlign: TextAlign.right)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            for (final module in modules)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: Text(module.name,
-                          style: const TextStyle(
-                              fontSize: 13.5, color: AppColors.textPrimary)),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(module.code,
-                          style: const TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: StatusBadge.fromStatus(module.type),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        module.credits.toString(),
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
+  Widget _buildModulesTable(List<CurriculumModule> modules) {
+    return AppDataTable<CurriculumModule>(
+      columns: _moduleColumns,
+      rows: modules,
+      rowHeight: 44,
+      cells: (module, _) => [
+        Text(module.name,
+            style:
+                const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis),
+        Text(module.code,
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis),
+        StatusBadge.fromStatus(module.type),
+        Text(
+          module.credits.toString(),
+          style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary),
         ),
+      ],
+      empty: const DataEmptyView(
+        compact: true,
+        icon: Icons.menu_book_outlined,
+        message: 'Aucune UE enregistrée pour ce niveau.',
       ),
     );
   }
 
   Widget _buildTeachers(List<String> teachers) {
     if (teachers.isEmpty) {
-      return const _Panel(
-        child: Text(
-          'Aucun enseignant renseigné sur les UE de ce niveau.',
-          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+      return const SurfaceCard(
+        padding: EdgeInsets.zero,
+        child: DataEmptyView(
+          compact: true,
+          icon: Icons.school_outlined,
+          message: 'Aucun enseignant renseigné sur les UE de ce niveau.',
         ),
       );
     }
@@ -691,24 +658,6 @@ class _SectionLabel extends StatelessWidget {
             fontWeight: FontWeight.w700,
             color: AppColors.textMuted,
             letterSpacing: 0.4),
-      );
-}
-
-/// Carte neutre pour les messages d'état.
-class _Panel extends StatelessWidget {
-  final Widget child;
-
-  const _Panel({required this.child});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          color: AppColors.cardWhite,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.inputBorder),
-        ),
-        child: child,
       );
 }
 

@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/student.dart';
 import '../providers/directory_provider.dart';
+import '../ui/app_data_table.dart';
+import '../ui/status_badge.dart';
+import '../ui/table_action_icon.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/user_avatar.dart';
-import '../ui/status_badge.dart';
 import 'student_detail_screen.dart';
 
 /// Page "Étudiants" : fil d'Ariane, filtres, tableau des étudiants.
@@ -14,6 +16,10 @@ import 'student_detail_screen.dart';
 /// Les lignes proviennent de la collection `academic_directory` d'Appwrite,
 /// jointe aux profils `users` (pseudo, photo). Ce widget n'a pas de
 /// Scaffold/sidebar propre : il est affiché à l'intérieur de [MainShell].
+///
+/// Le tableau est un [AppDataTable] comme celui des enseignants : les deux
+/// annuaires avaient chacun leur en-tête, leurs marges et leur pied, et se
+/// distinguaient à l'œil alors que les planches les dessinent identiques.
 class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
 
@@ -66,23 +72,16 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildFiltersRow(),
-                const SizedBox(height: 18),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.cardWhite,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.inputBorder),
+                const SizedBox(height: AppSpacing.lg),
+                studentsAsync.when(
+                  loading: () => const DataLoadingView(
+                    label: 'Chargement de l\'annuaire académique…',
                   ),
-                  child: studentsAsync.when(
-                    loading: () => const DataLoadingView(
-                      label: 'Chargement de l\'annuaire académique…',
-                    ),
-                    error: (error, _) => DataErrorView(
-                      error: error,
-                      onRetry: () => ref.invalidate(directoryProvider),
-                    ),
-                    data: (students) => _buildTable(_filtered(students)),
+                  error: (error, _) => DataErrorView(
+                    error: error,
+                    onRetry: () => ref.invalidate(directoryProvider),
                   ),
+                  data: (students) => _buildTable(_filtered(students)),
                 ),
               ],
             ),
@@ -92,33 +91,70 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     );
   }
 
+  /// Colonnes de la planche « Étudiants » : sélection, rang, puis les champs
+  /// de l'annuaire ; la colonne d'actions a la largeur exacte de trois icônes.
+  List<AppColumn> _columns(List<Student> students) {
+    final allChecked = students.isNotEmpty &&
+        students.every((s) => _checkedIds.contains(s.id));
+    return [
+      AppColumn(
+        'Sélection',
+        width: 32,
+        header: _RowCheckbox(
+          value: allChecked,
+          onChanged: (v) => setState(() {
+            if (v) {
+              _checkedIds.addAll(students.map((s) => s.id));
+            } else {
+              _checkedIds.clear();
+            }
+          }),
+        ),
+      ),
+      const AppColumn('#', width: 28),
+      const AppColumn('Nom', flex: 3),
+      const AppColumn('N° étudiant', flex: 2),
+      const AppColumn('Pseudo / email', flex: 3),
+      const AppColumn('Programme', flex: 2),
+      const AppColumn('Niveau', flex: 2),
+      const AppColumn('Statut', flex: 2),
+      const AppColumn('Inscrit le', flex: 2),
+      AppColumn('Actions', width: TableActionIcon.columnWidth(3)),
+    ];
+  }
+
+  /// Dix colonnes, dont trois fixes (sélection, rang, actions) : sous ce
+  /// seuil, la colonne « Nom » ne gardait que quelques pixels pour l'avatar
+  /// et le tableau défile horizontalement.
+  static const double _minTableWidth = 960;
+
   Widget _buildTable(List<Student> students) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildTableHeader(students),
-        if (students.isEmpty)
-          DataEmptyView(
-            icon: Icons.people_outline,
-            message: _searchController.text.trim().isEmpty
-                ? 'Aucun étudiant dans l\'annuaire académique.\nLes comptes apparaissent ici une fois inscrits.'
-                : 'Aucun étudiant ne correspond à « ${_searchController.text.trim()} ».',
-          )
-        else
-          ...students.asMap().entries.map((entry) => _StudentRow(
-                index: entry.key + 1,
-                student: entry.value,
-                isChecked: _checkedIds.contains(entry.value.id),
-                onCheckedChanged: (checked) => setState(() {
-                  if (checked) {
-                    _checkedIds.add(entry.value.id);
-                  } else {
-                    _checkedIds.remove(entry.value.id);
-                  }
-                }),
-              )),
-        _buildFooter(students),
-      ],
+    final query = _searchController.text.trim();
+    return AppDataTable<Student>(
+      columns: _columns(students),
+      rows: students,
+      minWidth: _minTableWidth,
+      cells: (student, index) => _StudentRow.cells(
+        context,
+        student,
+        index: index + 1,
+        isChecked: _checkedIds.contains(student.id),
+        onCheckedChanged: (checked) => setState(() {
+          if (checked) {
+            _checkedIds.add(student.id);
+          } else {
+            _checkedIds.remove(student.id);
+          }
+        }),
+      ),
+      onRowTap: (student) => _StudentRow.open(context, student),
+      empty: DataEmptyView(
+        icon: Icons.people_outline,
+        message: query.isEmpty
+            ? 'Aucun étudiant dans l\'annuaire académique.\nLes comptes apparaissent ici une fois inscrits.'
+            : 'Aucun étudiant ne correspond à « $query ».',
+      ),
+      footer: _buildFooter(students),
     );
   }
 
@@ -235,88 +271,52 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     );
   }
 
-  Widget _buildTableHeader(List<Student> students) {
-    const style = TextStyle(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textMuted,
-        letterSpacing: 0.3);
-    final allChecked = students.isNotEmpty &&
-        students.every((s) => _checkedIds.contains(s.id));
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 32,
-            child: Checkbox(
-              value: allChecked,
-              onChanged: (v) => setState(() {
-                if (v == true) {
-                  _checkedIds.addAll(students.map((s) => s.id));
-                } else {
-                  _checkedIds.clear();
-                }
-              }),
-              activeColor: AppColors.primaryBlue,
-            ),
-          ),
-          const SizedBox(width: 28, child: Text('#', style: style)),
-          const Expanded(flex: 3, child: Text('NOM', style: style)),
-          const Expanded(flex: 2, child: Text('N° ÉTUDIANT', style: style)),
-          const Expanded(flex: 3, child: Text('PSEUDO / EMAIL', style: style)),
-          const Expanded(flex: 2, child: Text('PROGRAMME', style: style)),
-          const Expanded(flex: 2, child: Text('NIVEAU', style: style)),
-          const Expanded(flex: 2, child: Text('STATUT', style: style)),
-          const Expanded(flex: 2, child: Text('INSCRIT LE', style: style)),
-          const SizedBox(width: 100, child: Text('ACTIONS', style: style)),
-        ],
-      ),
-    );
-  }
-
-  /// Pied de tableau : le décompte réel remplace la pagination factice.
+  /// Pied de tableau : le décompte réel remplace la pagination factice ; la
+  /// sélection en cours s'affiche en pastille.
   Widget _buildFooter(List<Student> students) {
     final selected = _checkedIds.length;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          Text(
-            students.length <= 1
-                ? '${students.length} étudiant'
-                : '${students.length} étudiants',
-            style: AppTextStyles.body.copyWith(fontSize: 13),
+    return AppTableFooter(
+      label: AppTableFooter.count(students.length, 'étudiant'),
+      actions: [
+        if (selected > 0) ...[
+          StatusBadge(
+            label: '$selected sélectionné${selected > 1 ? 's' : ''}',
+            tone: BadgeTone.info,
           ),
-          if (selected > 0) ...[
-            const SizedBox(width: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                '$selected sélectionné${selected > 1 ? 's' : ''}',
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryBlue,
-                ),
-              ),
-            ),
-          ],
-          const Spacer(),
-          IconButton(
-            onPressed: () => ref.invalidate(directoryProvider),
-            icon: const Icon(Icons.refresh, size: 18),
-            color: AppColors.textSecondary,
-            tooltip: 'Recharger depuis Appwrite',
-          ),
+          const SizedBox(width: AppSpacing.md),
         ],
+        IconButton(
+          onPressed: () => ref.invalidate(directoryProvider),
+          icon: const Icon(Icons.refresh, size: 18),
+          color: AppColors.textSecondary,
+          tooltip: 'Recharger depuis Appwrite',
+        ),
+      ],
+    );
+  }
+}
+
+/// Case à cocher d'une ligne ou de l'en-tête, ramenée à la hauteur de la
+/// ligne : la case Material réserve 48 px de cible tactile et forçait les
+/// lignes à 48 px de haut quand le reste du tableau en fait 52 — la colonne
+/// de sélection débordait sous l'en-tête gris.
+class _RowCheckbox extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _RowCheckbox({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: Checkbox(
+        value: value,
+        onChanged: (v) => onChanged(v ?? false),
+        activeColor: AppColors.primaryBlue,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
       ),
     );
   }
@@ -360,158 +360,102 @@ class _FilterDropdown extends StatelessWidget {
   }
 }
 
-/// Une ligne du tableau représentant un étudiant.
-class _StudentRow extends StatelessWidget {
-  final int index;
-  final Student student;
-  final bool isChecked;
-  final ValueChanged<bool> onCheckedChanged;
+/// Cellules d'une ligne du tableau des étudiants, dans l'ordre des colonnes de
+/// `_StudentsScreenState._columns`.
+abstract final class _StudentRow {
+  static const _muted =
+      TextStyle(fontSize: 13, color: AppColors.textSecondary);
 
-  const _StudentRow({
-    required this.index,
-    required this.student,
-    required this.isChecked,
-    required this.onCheckedChanged,
-  });
+  static void open(BuildContext context, Student student) {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => StudentDetailScreen(student: student)));
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  static List<Widget> cells(
+    BuildContext context,
+    Student student, {
+    required int index,
+    required bool isChecked,
+    required ValueChanged<bool> onCheckedChanged,
+  }) {
     // Le pseudo est le référent affiché ; l'email ne sert que de repli pour les
     // comptes qui n'en ont pas encore.
-    final handle = (student.username ?? '').isNotEmpty
+    final hasHandle = (student.username ?? '').isNotEmpty;
+    final handle = hasHandle
         ? '@${student.username}'
         : (student.email.isNotEmpty ? student.email : '—');
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
-      child: Row(
+    return [
+      _RowCheckbox(value: isChecked, onChanged: onCheckedChanged),
+      Text(index.toString(), style: _muted),
+      Row(
         children: [
-          SizedBox(
-            width: 32,
-            child: Checkbox(
-              value: isChecked,
-              onChanged: (v) => onCheckedChanged(v ?? false),
-              activeColor: AppColors.primaryBlue,
-            ),
+          InitialsAvatar(
+            initials: student.initials,
+            backgroundColor: student.avatarColor,
+            avatarFileId: student.avatarFileId,
+            size: 34,
           ),
-          SizedBox(
-            width: 28,
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
             child: Text(
-              index.toString(),
-              style:
-                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                InitialsAvatar(
-                  initials: student.initials,
-                  backgroundColor: student.avatarColor,
-                  avatarFileId: student.avatarFileId,
-                  size: 34,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    student.fullName.isEmpty ? '—' : student.fullName,
-                    style: const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-              flex: 2,
-              child: Text(_orDash(student.matricule),
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary))),
-          Expanded(
-            flex: 3,
-            child: Text(
-              handle,
-              style: TextStyle(
-                fontSize: 13,
-                color: student.username != null && student.username!.isNotEmpty
-                    ? AppColors.primaryBlue
-                    : AppColors.textSecondary,
-              ),
+              student.fullName.isEmpty ? '—' : student.fullName,
+              style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary),
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Expanded(
-              flex: 2,
-              child: Text(_orDash(student.programme),
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary))),
-          Expanded(
-              flex: 2,
-              child: Text(_orDash(student.niveau),
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary))),
-          Expanded(
-            flex: 2,
-            child: Align(
-                alignment: Alignment.centerLeft,
-                child: StatusBadge.fromStatus(student.statut)),
-          ),
-          Expanded(
-              flex: 2,
-              child: Text(_orDash(student.inscritLe),
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary))),
-          SizedBox(
-            width: 100,
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_red_eye_outlined, size: 17),
-                  color: AppColors.primaryBlue,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 30, minHeight: 30),
-                  tooltip: 'Voir la fiche',
-                  onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => StudentDetailScreen(student: student)));
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 16),
-                  color: const Color(0xFFF5A623),
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 30, minHeight: 30),
-                  tooltip: 'Modifier',
-                  onPressed: () {
-                    // TODO: ouvrir le formulaire d'édition
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 16),
-                  color: AppColors.danger,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 30, minHeight: 30),
-                  tooltip: 'Supprimer',
-                  onPressed: () {
-                    // TODO: confirmer puis supprimer l'étudiant
-                  },
-                ),
-              ],
             ),
           ),
         ],
       ),
-    );
+      _text(_orDash(student.matricule)),
+      Text(
+        handle,
+        style: TextStyle(
+          fontSize: 13,
+          color: hasHandle ? AppColors.primaryBlue : AppColors.textSecondary,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      _text(_orDash(student.programme)),
+      _text(_orDash(student.niveau)),
+      StatusBadge.fromStatus(student.statut),
+      _text(_orDash(student.inscritLe)),
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TableActionIcon(
+            icon: Icons.remove_red_eye_outlined,
+            color: AppColors.primaryBlue,
+            tooltip: 'Voir la fiche',
+            onPressed: () => open(context, student),
+          ),
+          TableActionIcon(
+            icon: Icons.edit_outlined,
+            color: AppColors.warning,
+            tooltip: 'Modifier',
+            onPressed: () {
+              // TODO: ouvrir le formulaire d'édition
+            },
+          ),
+          TableActionIcon(
+            icon: Icons.delete_outline,
+            color: AppColors.danger,
+            tooltip: 'Supprimer',
+            onPressed: () {
+              // TODO: confirmer puis supprimer l'étudiant
+            },
+          ),
+        ],
+      ),
+    ];
   }
+
+  static Widget _text(String value) =>
+      Text(value, style: _muted, maxLines: 1, overflow: TextOverflow.ellipsis);
 
   /// Un champ absent de la base s'affiche « — » plutôt que vide : la colonne
   /// reste lisible et rien n'est inventé.

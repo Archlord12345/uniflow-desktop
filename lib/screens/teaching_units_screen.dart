@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/teaching_unit.dart';
 import '../providers/directory_provider.dart';
+import '../ui/app_data_table.dart';
+import '../ui/status_badge.dart';
+import '../ui/table_action_icon.dart';
+import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/filter_dropdown.dart';
-import '../ui/status_badge.dart';
 
 /// Page "Gestion des UE" : cartes statistiques, recherche + filtres,
 /// tableau des unités d'enseignement.
@@ -15,7 +18,10 @@ import '../ui/status_badge.dart';
 /// contient pas la donnée — semestre, capacité, statut — n'existent plus.
 ///
 /// Ce widget n'a pas de Scaffold/sidebar propre : il est affiché à
-/// l'intérieur de [MainShell].
+/// l'intérieur de [MainShell]. En-tête [AppTopBar] et tableau [AppDataTable]
+/// comme les autres pages de gestion : la page avait sa propre barre de titre
+/// et son propre tableau, qui différaient de ceux d'à côté par la graisse de
+/// l'en-tête et l'absence de fond gris.
 class TeachingUnitsScreen extends ConsumerStatefulWidget {
   const TeachingUnitsScreen({super.key});
 
@@ -130,14 +136,14 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
             Expanded(
                 child: _UeStatCard(
                     icon: Icons.description_outlined,
-                    iconColor: const Color(0xFFF5A623),
+                    iconColor: AppColors.warning,
                     value: credits.toString(),
                     label: 'Crédits totaux')),
             const SizedBox(width: 16),
             Expanded(
                 child: _UeStatCard(
                     icon: Icons.access_time,
-                    iconColor: const Color(0xFFA855F7),
+                    iconColor: AppColors.purple,
                     value: '${heures}h',
                     label: 'Heures totales')),
           ],
@@ -145,90 +151,74 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
         const SizedBox(height: 20),
         _buildFiltersRow(niveaux, departements),
         const SizedBox(height: 18),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // Le tableau aligne dix colonnes dont sept à largeur fixe : 595 px
-            // incompressibles, plus la gouttière. Dans une fenêtre plus
-            // étroite, `Row` n'avait d'autre issue que de déborder de 273 px.
-            // Les colonnes ne se compriment pas sans devenir illisibles, et
-            // les tronquer toutes reviendrait à ne plus rien montrer : la vue
-            // défile donc horizontalement, comme n'importe quel tableau large.
-            const double minTableWidth = 980;
-            final width = constraints.maxWidth < minTableWidth
-                ? minTableWidth
-                : constraints.maxWidth;
-
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: width,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.cardWhite,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.inputBorder),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildTableHeader(),
-                      if (units.isEmpty)
-                        DataEmptyView(
-                          icon: Icons.menu_book_outlined,
-                          message: allUnits.isEmpty
-                              ? 'Aucune UE dans `academic_courses`.\nLes unités apparaissent ici une fois créées.'
-                              : 'Aucune UE ne correspond aux critères sélectionnés.',
-                        )
-                      else
-                        ...units.asMap().entries.map(
-                              (e) => _UnitRow(
-                                  unit: e.value,
-                                  isLast: e.key == units.length - 1),
-                            ),
-                      _buildFooter(units),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+        _buildTable(units, allUnits),
       ],
     );
   }
 
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-      decoration: const BoxDecoration(
-        color: AppColors.cardWhite,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder)),
+  /// Le tableau aligne dix colonnes dont sept à largeur fixe : 595 px
+  /// incompressibles, plus neuf gouttières et les marges. Dans une fenêtre
+  /// plus étroite, `Row` n'avait d'autre issue que de déborder de 273 px ;
+  /// sous ce seuil le tableau défile horizontalement.
+  static const double _minTableWidth = 1000;
+
+  /// Colonnes de la planche « UE » ; les compteurs (crédits, heures, inscrits)
+  /// ont une largeur fixe pour rester alignés d'une ligne à l'autre.
+  static final List<AppColumn> _columns = [
+    const AppColumn('Code', width: 80),
+    const AppColumn('UE', flex: 4),
+    const AppColumn('Programme', flex: 3),
+    const AppColumn('Niveau', width: 100),
+    const AppColumn('Type', width: 120),
+    const AppColumn('Enseignant', flex: 3),
+    const AppColumn('Crédits', width: 70),
+    const AppColumn('Heures', width: 65),
+    const AppColumn('Inscrits', width: 80),
+    AppColumn('Actions', width: TableActionIcon.columnWidth(2)),
+  ];
+
+  Widget _buildTable(List<TeachingUnit> units, List<TeachingUnit> allUnits) {
+    return AppDataTable<TeachingUnit>(
+      columns: _columns,
+      rows: units,
+      minWidth: _minTableWidth,
+      cells: (unit, _) => _UnitRow.cells(unit),
+      empty: DataEmptyView(
+        icon: Icons.menu_book_outlined,
+        message: allUnits.isEmpty
+            ? 'Aucune UE dans `academic_courses`.\nLes unités apparaissent ici une fois créées.'
+            : 'Aucune UE ne correspond aux critères sélectionnés.',
       ),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Gestion des UE', style: AppTextStyles.h1),
-                SizedBox(height: 4),
-                Text('Administration · Unités d\'Enseignement',
-                    style: AppTextStyles.body),
-              ],
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: ouvrir le formulaire de création d'UE
-            },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Nouvelle UE'),
-            style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
+      footer: AppTableFooter(
+        label: AppTableFooter.count(units.length, 'UE affichée'),
+        actions: [
+          IconButton(
+            onPressed: () => ref.invalidate(teachingUnitsProvider),
+            icon: const Icon(Icons.refresh, size: 18),
+            color: AppColors.textSecondary,
+            tooltip: 'Recharger depuis Appwrite',
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return AppTopBar(
+      title: 'Gestion des UE',
+      subtitle: 'Administration · Unités d\'Enseignement',
+      actions: [
+        ElevatedButton.icon(
+          onPressed: () {
+            // TODO: ouvrir le formulaire de création d'UE
+          },
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Nouvelle UE'),
+          style: ElevatedButton.styleFrom(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
+        ),
+      ],
     );
   }
 
@@ -283,56 +273,6 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
     );
   }
 
-  Widget _buildTableHeader() {
-    const style = TextStyle(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textMuted,
-        letterSpacing: 0.3);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
-      child: const Row(
-        children: [
-          SizedBox(width: 80, child: Text('CODE', style: style)),
-          Expanded(flex: 4, child: Text('UE', style: style)),
-          Expanded(flex: 3, child: Text('PROGRAMME', style: style)),
-          SizedBox(width: 100, child: Text('NIVEAU', style: style)),
-          SizedBox(width: 120, child: Text('TYPE', style: style)),
-          Expanded(flex: 3, child: Text('ENSEIGNANT', style: style)),
-          SizedBox(width: 70, child: Text('CRÉDITS', style: style)),
-          SizedBox(width: 65, child: Text('HEURES', style: style)),
-          SizedBox(width: 80, child: Text('INSCRITS', style: style)),
-          SizedBox(width: 80, child: Text('ACTIONS', style: style)),
-        ],
-      ),
-    );
-  }
-
-  /// Pied de tableau : décompte réel des lignes affichées.
-  Widget _buildFooter(List<TeachingUnit> units) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          Text(
-            units.length <= 1
-                ? '${units.length} UE affichée'
-                : '${units.length} UE affichées',
-            style: AppTextStyles.body.copyWith(fontSize: 13),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () => ref.invalidate(teachingUnitsProvider),
-            icon: const Icon(Icons.refresh, size: 18),
-            color: AppColors.textSecondary,
-            tooltip: 'Recharger depuis Appwrite',
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Petite carte statistique (icône + valeur + libellé), utilisée pour les
@@ -377,169 +317,109 @@ class _UeStatCard extends StatelessWidget {
   }
 }
 
-class _UnitRow extends StatelessWidget {
-  final TeachingUnit unit;
-  final bool isLast;
+/// Cellules d'une ligne du tableau des UE, dans l'ordre de
+/// `_TeachingUnitsScreenState._columns`.
+abstract final class _UnitRow {
+  static const _muted =
+      TextStyle(fontSize: 13, color: AppColors.textSecondary);
+  static const _counter =
+      TextStyle(fontSize: 12.5, color: AppColors.textSecondary);
 
-  const _UnitRow({required this.unit, required this.isLast});
-
-  @override
-  Widget build(BuildContext context) {
+  static List<Widget> cells(TeachingUnit unit) {
     final taux = unit.tauxRemplissage;
     // Le pourcentage n'est affiché que si la capacité d'accueil est connue.
     final tauxColor = taux == null
         ? AppColors.textMuted
         : (taux == 0
             ? AppColors.danger
-            : (taux >= 50 ? AppColors.success : const Color(0xFFF5A623)));
+            : (taux >= 50 ? AppColors.success : AppColors.warning));
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: isLast
-          ? null
-          : const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
-      child: Row(
+    return [
+      Text(
+        _orDash(unit.code),
+        style: const TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryBlue),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      Text(
+        _orDash(unit.intitule),
+        style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      Text(_orDash(unit.departement),
+          style: _muted, maxLines: 1, overflow: TextOverflow.ellipsis),
+      StatusBadge(label: _orDash(unit.niveau)),
+      unit.type.isEmpty
+          ? const Text('—',
+              style: TextStyle(fontSize: 13, color: AppColors.textMuted))
+          : StatusBadge.fromStatus(unit.type),
+      Text(_orDash(unit.enseignant),
+          style: _muted, maxLines: 1, overflow: TextOverflow.ellipsis),
+      _counterCell(Icons.description_outlined, unit.credits.toString()),
+      _counterCell(Icons.access_time, '${unit.heures}h'),
+      Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 80,
+          const Icon(Icons.people_alt_outlined,
+              size: 13, color: AppColors.textMuted),
+          const SizedBox(width: 3),
+          Flexible(
             child: Text(
-              _orDash(unit.code),
-              style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryBlue),
+              unit.inscrits.toString(),
+              style: _counter,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Expanded(
-            flex: 4,
-            child: Text(
-              _orDash(unit.intitule),
-              style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary),
-              overflow: TextOverflow.ellipsis,
-            ),
+          if (taux != null) ...[
+            const SizedBox(width: 3),
+            Text('$taux%',
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: tauxColor)),
+          ],
+        ],
+      ),
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TableActionIcon(
+            icon: Icons.remove_red_eye_outlined,
+            color: AppColors.primaryBlue,
+            tooltip: 'Voir le détail',
+            onPressed: () {
+              // TODO: naviguer vers une page de détail UE
+            },
           ),
-          Expanded(
-            flex: 3,
-            child: Text(_orDash(unit.departement),
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
-                overflow: TextOverflow.ellipsis),
-          ),
-          SizedBox(
-            width: 100,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: StatusBadge(
-                label: _orDash(unit.niveau),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 120,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: unit.type.isEmpty
-                  ? const Text('—',
-                      style:
-                          TextStyle(fontSize: 13, color: AppColors.textMuted))
-                  : StatusBadge.fromStatus(unit.type),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(_orDash(unit.enseignant),
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
-                overflow: TextOverflow.ellipsis),
-          ),
-          SizedBox(
-            width: 70,
-            child: Row(
-              children: [
-                const Icon(Icons.description_outlined,
-                    size: 13, color: AppColors.textMuted),
-                const SizedBox(width: 3),
-                Text(unit.credits.toString(),
-                    style: const TextStyle(
-                        fontSize: 12.5, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 65,
-            child: Row(
-              children: [
-                const Icon(Icons.access_time,
-                    size: 13, color: AppColors.textMuted),
-                const SizedBox(width: 3),
-                Text('${unit.heures}h',
-                    style: const TextStyle(
-                        fontSize: 12.5, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 80,
-            child: Row(
-              children: [
-                const Icon(Icons.people_alt_outlined,
-                    size: 13, color: AppColors.textMuted),
-                const SizedBox(width: 3),
-                Flexible(
-                  child: Text(
-                    unit.inscrits.toString(),
-                    style: const TextStyle(
-                        fontSize: 12.5, color: AppColors.textSecondary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (taux != null) ...[
-                  const SizedBox(width: 3),
-                  Text('$taux%',
-                      style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: tauxColor)),
-                ],
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 80,
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_red_eye_outlined, size: 15),
-                  color: AppColors.primaryBlue,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 26, minHeight: 26),
-                  tooltip: 'Voir le détail',
-                  onPressed: () {
-                    // TODO: naviguer vers une page de détail UE
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 14),
-                  color: const Color(0xFFF5A623),
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 26, minHeight: 26),
-                  tooltip: 'Modifier',
-                  onPressed: () {
-                    // TODO: ouvrir le formulaire d'édition de l'UE
-                  },
-                ),
-              ],
-            ),
+          TableActionIcon(
+            icon: Icons.edit_outlined,
+            color: AppColors.warning,
+            tooltip: 'Modifier',
+            onPressed: () {
+              // TODO: ouvrir le formulaire d'édition de l'UE
+            },
           ),
         ],
       ),
+    ];
+  }
+
+  static Widget _counterCell(IconData icon, String value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: AppColors.textMuted),
+        const SizedBox(width: 3),
+        Text(value, style: _counter),
+      ],
     );
   }
 

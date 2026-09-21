@@ -9,10 +9,12 @@ import '../providers/auth_provider.dart';
 import '../providers/directory_provider.dart';
 import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_data_table.dart';
+import '../ui/status_badge.dart';
+import '../ui/table_action_icon.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
-import '../ui/status_badge.dart';
 
 /// Page « Salles ».
 ///
@@ -21,6 +23,9 @@ import '../ui/status_badge.dart';
 /// modifie et supprime les salles du catalogue ; les autres rôles consultent.
 ///
 /// Ce widget n'a pas de Scaffold propre : il est affiché dans [MainShell].
+/// Le tableau est un [AppDataTable] (planche « Salles ») : la version maison
+/// avait des marges de 24 px là où les autres tableaux en ont 20 et pas de
+/// fond d'en-tête.
 class ClassroomsScreen extends ConsumerStatefulWidget {
   const ClassroomsScreen({super.key});
 
@@ -88,22 +93,14 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildSearchRow(),
-                const SizedBox(height: 18),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.cardWhite,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.inputBorder),
-                  ),
-                  child: classroomsAsync.when(
-                    loading: () => const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: TableSkeleton(rows: 5)),
-                    error: (error, _) =>
-                        DataErrorView(error: error, onRetry: _refresh),
-                    data: (classrooms) =>
-                        _buildTable(_filtered(classrooms), isAdmin),
-                  ),
+                const SizedBox(height: AppSpacing.lg),
+                classroomsAsync.when(
+                  loading: () => const DataLoadingView(
+                      label: 'Chargement du catalogue des salles…'),
+                  error: (error, _) =>
+                      DataErrorView(error: error, onRetry: _refresh),
+                  data: (classrooms) =>
+                      _buildTable(_filtered(classrooms), isAdmin),
                 ),
               ],
             ),
@@ -113,33 +110,59 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
+  /// Colonnes de la planche « Salles » ; la colonne d'actions n'existe que
+  /// pour l'administration, seule à pouvoir modifier le catalogue.
+  static List<AppColumn> _columns(bool isAdmin) => [
+        const AppColumn('Salle', flex: 3),
+        const AppColumn('Capacité', width: 96),
+        const AppColumn('Créneaux', width: 96),
+        const AppColumn('Nature', flex: 2),
+        if (isAdmin)
+          AppColumn('Actions',
+              width: TableActionIcon.columnWidth(2), align: TextAlign.right),
+      ];
+
+  /// Trois colonnes fixes (272 px) plus les gouttières : en dessous, la
+  /// colonne « Salle » n'a plus la place de l'icône et du nom (débordement de
+  /// 29 px mesuré à 420 px) ; le tableau défile alors horizontalement.
+  static const double _minTableWidth = 680;
+
   Widget _buildTable(List<Classroom> classrooms, bool isAdmin) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildTableHeader(isAdmin),
-        if (classrooms.isEmpty)
-          DataEmptyView(
-            icon: Icons.meeting_room_outlined,
-            message: _searchController.text.trim().isEmpty
-                ? (isAdmin
-                    ? 'Aucune salle au catalogue. Ajoutez la première avec « Ajouter une salle ».'
-                    : 'Aucune salle déclarée ni planifiée.')
-                : 'Aucune salle ne correspond à « ${_searchController.text.trim()} ».',
-          )
-        else
-          for (var i = 0; i < classrooms.length; i++)
-            CascadeIn(
-              index: i,
-              child: _ClassroomRow(
-                classroom: classrooms[i],
-                canEdit: isAdmin && classrooms[i].isCatalogued,
-                onEdit: () => _edit(context, existing: classrooms[i]),
-                onDelete: () => _delete(classrooms[i]),
-              ),
-            ),
-        _buildFooter(classrooms),
-      ],
+    final query = _searchController.text.trim();
+    return AppDataTable<Classroom>(
+      columns: _columns(isAdmin),
+      rows: classrooms,
+      minWidth: _minTableWidth,
+      cells: (room, _) => _ClassroomRow.cells(
+        room,
+        actions: !isAdmin
+            ? null
+            : room.isCatalogued
+                ? _ClassroomRow.actions(
+                    onEdit: () => _edit(context, existing: room),
+                    onDelete: () => _delete(room),
+                  )
+                : const SizedBox.shrink(),
+      ),
+      empty: DataEmptyView(
+        icon: Icons.meeting_room_outlined,
+        message: query.isEmpty
+            ? (isAdmin
+                ? 'Aucune salle au catalogue. Ajoutez la première avec « Ajouter une salle ».'
+                : 'Aucune salle déclarée ni planifiée.')
+            : 'Aucune salle ne correspond à « $query ».',
+      ),
+      footer: AppTableFooter(
+        label: AppTableFooter.count(classrooms.length, 'salle'),
+        actions: [
+          IconButton(
+            onPressed: _refresh,
+            icon: const Icon(Icons.refresh, size: 18),
+            color: AppColors.textSecondary,
+            tooltip: 'Recharger depuis Appwrite',
+          ),
+        ],
+      ),
     );
   }
 
@@ -220,50 +243,6 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
-  Widget _buildTableHeader(bool isAdmin) {
-    const style = TextStyle(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textMuted,
-        letterSpacing: 0.3);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
-      child: Row(
-        children: [
-          const Expanded(flex: 3, child: Text('SALLE', style: style)),
-          const SizedBox(width: 96, child: Text('CAPACITÉ', style: style)),
-          const SizedBox(width: 96, child: Text('CRÉNEAUX', style: style)),
-          const Expanded(flex: 2, child: Text('NATURE', style: style)),
-          if (isAdmin) const SizedBox(width: 88),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooter(List<Classroom> classrooms) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          Text(
-            classrooms.length <= 1
-                ? '${classrooms.length} salle'
-                : '${classrooms.length} salles',
-            style: AppTextStyles.body.copyWith(fontSize: 13),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: _refresh,
-            icon: const Icon(Icons.refresh, size: 18),
-            color: AppColors.textSecondary,
-            tooltip: 'Recharger depuis Appwrite',
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Le schéma n'ouvre `classrooms` qu'en lecture au niveau collection : une
@@ -277,114 +256,94 @@ String _permissionHint(AppwriteException e) {
   return e.message ?? 'Erreur Appwrite (${e.code}).';
 }
 
-class _ClassroomRow extends StatelessWidget {
-  final Classroom classroom;
-  final bool canEdit;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+/// Cellules d'une ligne du tableau des salles, dans l'ordre de
+/// `_ClassroomsScreenState._columns`. [actions] vaut `null` hors
+/// administration (la colonne n'existe pas) et un espace vide pour une salle
+/// hors catalogue, qu'on ne peut ni modifier ni retirer.
+abstract final class _ClassroomRow {
+  static const _muted =
+      TextStyle(fontSize: 13, color: AppColors.textSecondary);
 
-  const _ClassroomRow({
-    required this.classroom,
-    required this.canEdit,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.inputBorder))),
-      child: Row(
+  static List<Widget> cells(Classroom classroom, {required Widget? actions}) {
+    return [
+      Row(
         children: [
+          Icon(
+            classroom.isCatalogued
+                ? Icons.meeting_room_outlined
+                : Icons.help_outline,
+            size: 18,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
-            flex: 3,
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  classroom.isCatalogued
-                      ? Icons.meeting_room_outlined
-                      : Icons.help_outline,
-                  size: 18,
-                  color: AppColors.textMuted,
+                Text(
+                  classroom.nom,
+                  style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        classroom.nom,
-                        style: const TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        classroom.batiment.isNotEmpty
-                            ? classroom.batiment
-                            : (classroom.isCatalogued
-                                ? 'Bâtiment non renseigné'
-                                : 'Hors catalogue (emploi du temps)'),
-                        style: const TextStyle(
-                            fontSize: 11.5, color: AppColors.textMuted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                Text(
+                  classroom.batiment.isNotEmpty
+                      ? classroom.batiment
+                      : (classroom.isCatalogued
+                          ? 'Bâtiment non renseigné'
+                          : 'Hors catalogue (emploi du temps)'),
+                  style: const TextStyle(
+                      fontSize: 11.5, color: AppColors.textMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: 96,
-            child: Text(
-              classroom.capacite > 0 ? '${classroom.capacite} places' : '—',
-              style:
-                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-          ),
-          SizedBox(
-            width: 96,
-            child: Text(
-              '${classroom.creneaux} · ${classroom.cours} UE',
-              style:
-                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: classroom.type.isEmpty
-                  ? const Text('—',
-                      style:
-                          TextStyle(fontSize: 13, color: AppColors.textMuted))
-                  : StatusBadge(label: classroom.type),
-            ),
-          ),
-          if (canEdit)
-            SizedBox(
-              width: 88,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                      tooltip: 'Modifier',
-                      onPressed: onEdit,
-                      icon: const Icon(Icons.edit_outlined, size: 18)),
-                  IconButton(
-                      tooltip: 'Retirer',
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.delete_outline,
-                          size: 18, color: AppColors.textMuted)),
-                ],
-              ),
-            ),
         ],
       ),
+      Text(
+        classroom.capacite > 0 ? '${classroom.capacite} places' : '—',
+        style: _muted,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      Text(
+        '${classroom.creneaux} · ${classroom.cours} UE',
+        style: _muted,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      classroom.type.isEmpty
+          ? const Text('—',
+              style: TextStyle(fontSize: 13, color: AppColors.textMuted))
+          : StatusBadge(label: classroom.type),
+      if (actions != null) actions,
+    ];
+  }
+
+  static Widget actions(
+      {required VoidCallback onEdit, required VoidCallback onDelete}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TableActionIcon(
+          icon: Icons.edit_outlined,
+          color: AppColors.warning,
+          tooltip: 'Modifier',
+          onPressed: onEdit,
+        ),
+        TableActionIcon(
+          icon: Icons.delete_outline,
+          color: AppColors.danger,
+          tooltip: 'Retirer',
+          onPressed: onDelete,
+        ),
+      ],
     );
   }
 }

@@ -628,7 +628,7 @@ class StatisticsScreen extends ConsumerWidget {
                     child: StatCard(
                       label: 'Notes saisies',
                       value: '${stats.gradeCount}',
-                      delta: 'Total',
+                      hint: 'toutes matières',
                       icon: Icons.grade_outlined,
                       iconBackground: AppColors.primaryBlue,
                     ),
@@ -638,9 +638,9 @@ class StatisticsScreen extends ConsumerWidget {
                     child: StatCard(
                       label: 'Moyenne générale',
                       value: stats.averageLabel,
-                      delta: 'pondérée par coefficient',
+                      hint: 'pondérée par coefficient',
                       icon: Icons.star_border,
-                      iconBackground: const Color(0xFFF5A623),
+                      iconBackground: AppColors.warning,
                     ),
                   ),
                   SizedBox(
@@ -648,7 +648,7 @@ class StatisticsScreen extends ConsumerWidget {
                     child: StatCard(
                       label: 'Taux de réussite',
                       value: stats.successRateLabel,
-                      delta: 'notes ≥ 10/20',
+                      hint: 'notes ≥ 10/20',
                       icon: Icons.trending_up,
                       iconBackground: AppColors.teal,
                     ),
@@ -1010,7 +1010,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       TextButton(
                         onPressed: _uploading ? null : _removePhoto,
                         child: const Text('Retirer',
-                            style: TextStyle(color: Colors.red)),
+                            style: TextStyle(color: AppColors.danger)),
                       ),
                   ],
                 ),
@@ -1023,7 +1023,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 10),
                   Text(
                     _photoError!,
-                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                    style: const TextStyle(color: AppColors.danger, fontSize: 12),
                   ),
                 ],
               ],
@@ -1035,7 +1035,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ElevatedButton.icon(
                     onPressed: () => signOutToLogin(context, ref),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: AppColors.danger,
                         foregroundColor: Colors.white),
                     icon: const Icon(Icons.logout_rounded, size: 18),
                     label: const Text('Se déconnecter'),
@@ -1045,8 +1045,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       key: const Key('delete-account-open'),
                       onPressed: () => showDeleteAccountFlow(context, ref),
                       style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red)),
+                          foregroundColor: AppColors.danger,
+                          side: const BorderSide(color: AppColors.danger)),
                       icon: const Icon(Icons.delete_forever_outlined, size: 18),
                       label: const Text('Supprimer mon compte'),
                     ),

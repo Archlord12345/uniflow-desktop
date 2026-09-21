@@ -5,6 +5,7 @@ import '../models/teacher.dart';
 import '../providers/directory_provider.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
+import '../ui/table_action_icon.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/user_avatar.dart';
@@ -96,7 +97,7 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
     AppColumn('Pseudo / email', flex: 3),
     AppColumn('Département', flex: 2),
     AppColumn('Statut', flex: 2),
-    AppColumn('Actions', width: 80),
+    AppColumn('Actions', width: TableActionIcon.side * 2 + 8),
   ];
 
   Widget _buildTable(List<Teacher> teachers) {
@@ -246,13 +247,13 @@ class _TeacherRow {
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ActionIcon(
+          TableActionIcon(
             icon: Icons.remove_red_eye_outlined,
             color: AppColors.primaryBlue,
             tooltip: 'Voir la fiche',
             onPressed: () => open(context, teacher),
           ),
-          _ActionIcon(
+          TableActionIcon(
             icon: Icons.edit_outlined,
             color: AppColors.warning,
             tooltip: 'Modifier',
@@ -263,41 +264,5 @@ class _TeacherRow {
         ],
       ),
     ];
-  }
-}
-
-/// Icône d'action de 36 px, sans la cible tactile de 48 px de Material :
-/// deux `IconButton` standard font 96 px et débordaient de la colonne
-/// « Actions » de 80 px (le test le signalait : « overflowed by 16 pixels »).
-/// Sur un bureau, le pointeur n'a pas besoin de la marge tactile.
-class _ActionIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  const _ActionIcon({
-    required this.icon,
-    required this.color,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  static const double side = 36;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(icon, size: 17),
-      color: color,
-      tooltip: tooltip,
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        padding: EdgeInsets.zero,
-        fixedSize: const Size.square(side),
-        minimumSize: const Size.square(side),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-    );
   }
 }
