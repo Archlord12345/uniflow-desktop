@@ -9,9 +9,12 @@ import '../models/statistics_models.dart';
 import '../providers/analytics_provider.dart';
 import '../providers/attendance_provider.dart';
 import '../providers/conference_provider.dart';
+import '../services/conference/conference_client.dart';
 import '../services/conference/conference_host_state.dart';
 import '../services/conference/conference_models.dart';
 import 'conference_attendance_panel.dart';
+import 'conference_room_screen.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../services/profile_photo_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
@@ -110,6 +113,7 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
               host: host,
               onStop: _stopConference,
               onEnableInternet: _enableInternetMode,
+              onOpenRoom: _working ? null : _openHostRoom,
             )
           else ...[
             const _ArchlordNote(
@@ -127,23 +131,33 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
                   'être installé sur cette machine.',
             ),
           ],
-          if (!host.isRunning && !_working) ...[
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: AppButton.secondary(
-                label: 'Vérifier la présence du serveur média',
-                icon: Icons.check_circle_outline,
-                onPressed: _checkBinary,
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              AppButton.secondary(
+                label: 'Rejoindre une réunion',
+                icon: Icons.login_rounded,
+                onPressed: _working ? null : () => _joinConference(),
               ),
-            ),
-          ],
+              if (!host.isRunning)
+                AppButton.ghost(
+                  label: 'Vérifier la présence du serveur média',
+                  icon: Icons.check_circle_outline,
+                  onPressed: _working ? null : _checkBinary,
+                ),
+            ],
+          ),
           const SizedBox(height: 26),
           const _Panel(title: 'Présence', child: AttendancePanel()),
           const SizedBox(height: 26),
           _DiscoveredConferences(
             conferences: activeAsync,
             onRefresh: () => ref.invalidate(activeConferencesProvider),
+            onJoin: _working
+                ? null
+                : (item) => _joinConference(apiUrl: item.apiUrl, name: item.name),
           ),
         ],
       ),
@@ -167,12 +181,80 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
             hostName: user?.name ?? 'Hôte local',
           );
       if (!mounted) return;
-      _notify(
-        started
-            ? 'Réunion ouverte. Communiquez le code aux participants.'
-            : 'La réunion n\'a pas pu être ouverte.',
-        success: started,
+      if (!started) {
+        _notify('La réunion n\'a pas pu être ouverte.', success: false);
+        return;
+      }
+      _notify('Réunion ouverte : vous entrez dans la salle.');
+      // Créer une réunion doit mener dans la salle, pas sur un panneau
+      // d'état : l'hôte y trouve son lien d'invitation et voit arriver les
+      // participants.
+      await _openHostRoom();
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  /// Entre dans la salle de la réunion hébergée par ce poste.
+  Future<void> _openHostRoom() async {
+    final controller = ref.read(conferenceHostProvider.notifier);
+    final host = ref.read(conferenceHostProvider);
+    final user = ref.read(currentUserProvider);
+    final conference = host.conference;
+    final displayName = user?.name ?? conference?.hostName ?? 'Hôte';
+    final ticket = conference == null
+        ? null
+        : controller.hostTicket(
+            identity: user?.id ?? conference.hostId,
+            displayName: displayName,
+          );
+    if (ticket == null || conference == null) {
+      _notify('La salle n\'est pas prête : la réunion n\'est pas en cours.',
+          success: false);
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ConferenceRoomScreen(
+          ticket: ticket,
+          displayName: displayName,
+          hosted: conference,
+          onEndMeeting: () => ref.read(conferenceHostProvider.notifier).stop(),
+        ),
+      ),
+    );
+  }
+
+  /// Rejoint la réunion d'un autre poste : adresse (ou lien) de l'hôte + code.
+  Future<void> _joinConference({String? apiUrl, String? name}) async {
+    final request = await showDialog<_JoinRequest>(
+      context: context,
+      builder: (dialogContext) =>
+          _JoinConferenceDialog(initialAddress: apiUrl, roomName: name),
+    );
+    if (request == null || !mounted) return;
+
+    final user = ref.read(currentUserProvider);
+    setState(() => _working = true);
+    try {
+      final ticket = await const ConferenceClient().join(
+        apiUrl: request.apiUrl,
+        code: request.code,
+        identity: user?.id ?? 'invite-${DateTime.now().millisecondsSinceEpoch}',
+        displayName: user?.name ?? 'Participant',
+        userId: user?.id,
       );
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ConferenceRoomScreen(
+            ticket: ticket,
+            displayName: user?.name ?? 'Participant',
+          ),
+        ),
+      );
+    } on ConferenceException catch (error) {
+      if (mounted) _notify(error.message, success: false);
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -260,11 +342,13 @@ class _RunningConferencePanel extends StatelessWidget {
   final ConferenceHostState host;
   final Future<void> Function() onStop;
   final Future<void> Function() onEnableInternet;
+  final Future<void> Function()? onOpenRoom;
 
   const _RunningConferencePanel({
     required this.host,
     required this.onStop,
     required this.onEnableInternet,
+    required this.onOpenRoom,
   });
 
   @override
@@ -298,25 +382,58 @@ class _RunningConferencePanel extends StatelessWidget {
           ),
           const SizedBox(height: 18),
 
-          // Le code est l'information que l'hôte dicte : il est mis en avant.
-          _CopyField(
-            label: 'Code de la réunion',
-            value: conference.code,
-            emphasize: true,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final fields = Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Le code est l'information que l'hôte dicte : il est mis
+                  // en avant.
+                  _CopyField(
+                    label: 'Code de la réunion',
+                    value: conference.code,
+                    emphasize: true,
+                  ),
+                  // Le lien navigateur porte l'adresse de CE poste sur le
+                  // réseau : c'est lui que l'on projette ou que l'on envoie.
+                  _CopyField(
+                    label: 'Lien participant (navigateur, même réseau)',
+                    value: conference.participantLink,
+                  ),
+                  _CopyField(
+                      label: 'Adresse pour l\'application de bureau',
+                      value: conference.apiUrl),
+                  _CopyField(
+                    label: 'Serveur média (adresse effective)',
+                    value: conference.effectiveServerUrl,
+                  ),
+                  if (conference.publicUrl != null &&
+                      conference.publicUrl!.isNotEmpty)
+                    _CopyField(
+                        label: 'Adresse publique', value: conference.publicUrl!),
+                ],
+              );
+              final qr = _InviteQr(link: conference.participantLink);
+              if (constraints.maxWidth < 720) {
+                return Column(children: [fields, const SizedBox(height: 12), qr]);
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: fields),
+                  const SizedBox(width: 20),
+                  qr,
+                ],
+              );
+            },
           ),
-          _CopyField(label: 'API de jonction', value: conference.apiUrl),
-          _CopyField(
-            label: 'Serveur média (adresse effective)',
-            value: conference.effectiveServerUrl,
-          ),
-          if (conference.publicUrl != null && conference.publicUrl!.isNotEmpty)
-            _CopyField(label: 'Adresse publique', value: conference.publicUrl!),
 
           const SizedBox(height: 16),
           const Text(
-            'Les participants rejoignent cette réunion depuis leur propre '
-            'application en saisissant le code ci-dessus. Le secret de '
-            'signature des jetons ne quitte jamais cette machine.',
+            'Les participants scannent le QR ou ouvrent le lien depuis un '
+            'navigateur du même réseau, ou saisissent l\'adresse et le code '
+            'dans leur application de bureau. Le secret de signature des '
+            'jetons ne quitte jamais cette machine.',
             style: TextStyle(
                 fontSize: 12.5, color: AppColors.textMuted, height: 1.5),
           ),
@@ -326,6 +443,11 @@ class _RunningConferencePanel extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
+              AppButton(
+                label: 'Ouvrir la salle',
+                icon: Icons.meeting_room_outlined,
+                onPressed: onOpenRoom,
+              ),
               if (!isInternet)
                 AppButton.secondary(
                   label: 'Exposer sur internet',
@@ -341,6 +463,43 @@ class _RunningConferencePanel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// QR du lien participant, encadré de blanc : un QR sur fond gris se lit mal
+/// à travers une caméra de téléphone.
+class _InviteQr extends StatelessWidget {
+  final String link;
+  const _InviteQr({required this.link});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.inputBorder),
+          ),
+          child: QrImageView(
+            data: link,
+            version: QrVersions.auto,
+            size: 150,
+            gapless: true,
+            eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square, color: AppColors.primaryBlue),
+            dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: Color(0xFF111827)),
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text('Scanner pour rejoindre',
+            style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+      ],
     );
   }
 }
@@ -401,10 +560,12 @@ class _CopyField extends StatelessWidget {
 class _DiscoveredConferences extends StatelessWidget {
   final AsyncValue<List<DiscoveredConference>> conferences;
   final VoidCallback onRefresh;
+  final void Function(DiscoveredConference item)? onJoin;
 
   const _DiscoveredConferences({
     required this.conferences,
     required this.onRefresh,
+    required this.onJoin,
   });
 
   @override
@@ -467,14 +628,22 @@ class _DiscoveredConferences extends StatelessWidget {
                         style: const TextStyle(
                             fontSize: 12, color: AppColors.textSecondary),
                       ),
+                      if (item.apiUrl.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        AppButton.secondary(
+                          label: 'Rejoindre',
+                          icon: Icons.login_rounded,
+                          onPressed:
+                              onJoin == null ? null : () => onJoin!(item),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               const SizedBox(height: 12),
               const Text(
-                'Pour rejoindre une réunion, saisissez son code dans votre '
-                'propre application : la jonction se fait directement auprès '
-                'de l\'hôte.',
+                '« Rejoindre » demande le code de la réunion, puis la jonction '
+                'se fait directement auprès de l\'hôte, sur son réseau.',
                 style: TextStyle(
                     fontSize: 12.5, color: AppColors.textMuted, height: 1.5),
               ),
@@ -541,6 +710,116 @@ class _ConferenceNameDialogState extends State<_ConferenceNameDialog> {
   void _submit() {
     final value = _controller.text.trim();
     Navigator.of(context).pop(value.isEmpty ? 'Réunion sans titre' : value);
+  }
+}
+
+/// Ce que l'utilisateur a saisi pour rejoindre : l'adresse de l'API de
+/// l'hôte (déjà extraite d'un lien d'invitation si c'en était un) et le code.
+class _JoinRequest {
+  final String apiUrl;
+  final String code;
+  const _JoinRequest({required this.apiUrl, required this.code});
+}
+
+/// Demande l'adresse de l'hôte (ou son lien d'invitation) et le code.
+class _JoinConferenceDialog extends StatefulWidget {
+  final String? initialAddress;
+  final String? roomName;
+  const _JoinConferenceDialog({this.initialAddress, this.roomName});
+
+  @override
+  State<_JoinConferenceDialog> createState() => _JoinConferenceDialogState();
+}
+
+class _JoinConferenceDialogState extends State<_JoinConferenceDialog> {
+  late final TextEditingController _address =
+      TextEditingController(text: widget.initialAddress ?? '');
+  final TextEditingController _code = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _address.dispose();
+    _code.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locked = (widget.initialAddress ?? '').isNotEmpty;
+    return AlertDialog(
+      title: Text(widget.roomName == null
+          ? 'Rejoindre une réunion'
+          : 'Rejoindre « ${widget.roomName} »'),
+      content: SizedBox(
+        width: 440,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _address,
+              autofocus: !locked,
+              readOnly: locked,
+              decoration: const InputDecoration(
+                labelText: 'Adresse de l\'hôte ou lien d\'invitation',
+                hintText: 'Ex. http://192.168.1.10:8090/join/K7M2QP',
+              ),
+              onChanged: (_) => _prefillCodeFromLink(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _code,
+              autofocus: locked,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                labelText: 'Code de la réunion',
+                hintText: 'Ex. K7M2QP',
+                errorText: _error,
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'L\'adresse est celle affichée chez l\'hôte (« Adresse pour '
+              'l\'application de bureau ») ; un lien d\'invitation collé ici '
+              'remplit le code tout seul.',
+              style: TextStyle(
+                  fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        AppButton.secondary(
+          label: 'Annuler',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        AppButton(label: 'Rejoindre', onPressed: _submit),
+      ],
+    );
+  }
+
+  void _prefillCodeFromLink() {
+    final parsed = ConferenceInviteLink.parse(_address.text);
+    if (parsed?.code != null && _code.text.trim().isEmpty) {
+      _code.text = parsed!.code!;
+    }
+  }
+
+  void _submit() {
+    final parsed = ConferenceInviteLink.parse(_address.text);
+    final code = (_code.text.trim().isEmpty ? parsed?.code : _code.text.trim())
+        ?.toUpperCase();
+    if (parsed == null) {
+      setState(() => _error = 'Adresse illisible : attendu http://IP:port.');
+      return;
+    }
+    if (code == null || code.isEmpty) {
+      setState(() => _error = 'Le code de la réunion est requis.');
+      return;
+    }
+    Navigator.of(context).pop(_JoinRequest(apiUrl: parsed.apiUrl, code: code));
   }
 }
 

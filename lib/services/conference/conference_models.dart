@@ -125,6 +125,19 @@ class HostedConference {
   /// L'adresse de l'API est publiée dans le registre, pas recopiée à la main.
   String get joinHint => 'Code : $code';
 
+  /// Lien à diffuser aux participants sans application : la page de
+  /// participation servie par ce poste, sur son adresse du réseau local, le
+  /// code déjà dans l'adresse pour qu'un QR suffise.
+  String get participantLink => participantLinkFor(apiUrl, code);
+
+  /// Construit le lien de participation à partir de la racine de l'API.
+  static String participantLinkFor(String apiUrl, String code) {
+    final base = apiUrl.endsWith('/')
+        ? apiUrl.substring(0, apiUrl.length - 1)
+        : apiUrl;
+    return '$base/join/${code.toUpperCase()}';
+  }
+
   HostedConference copyWith({
     ConferenceStatus? status,
     ConferenceMode? mode,
@@ -219,6 +232,41 @@ class DiscoveredConference {
       status: _status(data['status']?.toString()),
       maxParticipants: (data['maxParticipants'] as num?)?.toInt() ?? 50,
       createdAt: DateTime.tryParse((data['createdAt'] ?? '').toString()),
+    );
+  }
+}
+
+/// Ce qu'un participant recopie pour rejoindre : la racine de l'API de
+/// l'hôte et le code de la réunion.
+///
+/// Accepte le lien de participation entier (`http://192.168.1.20:8090/join/AB12CD`),
+/// une racine nue (`http://192.168.1.20:8090`, avec le code à part) ou même
+/// `192.168.1.20:8090` sans schéma — c'est ce qu'on dicte à l'oral.
+class ConferenceInviteLink {
+  final String apiUrl;
+  final String? code;
+
+  const ConferenceInviteLink({required this.apiUrl, this.code});
+
+  static ConferenceInviteLink? parse(String raw) {
+    var text = raw.trim();
+    if (text.isEmpty) return null;
+    if (!text.contains('://')) text = 'http://$text';
+    final uri = Uri.tryParse(text);
+    if (uri == null || uri.host.isEmpty) return null;
+    if (uri.scheme != 'http' && uri.scheme != 'https') return null;
+
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    String? code;
+    if (segments.length >= 2 && segments[segments.length - 2] == 'join') {
+      code = segments.last.toUpperCase();
+    } else if (uri.queryParameters['code'] != null) {
+      code = uri.queryParameters['code']!.trim().toUpperCase();
+    }
+    final port = uri.hasPort ? ':${uri.port}' : '';
+    return ConferenceInviteLink(
+      apiUrl: '${uri.scheme}://${uri.host}$port',
+      code: (code == null || code.isEmpty) ? null : code,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/appwrite_service.dart';
+import '../services/conference/conference_client.dart';
 import '../services/conference/conference_host_server.dart';
 import '../services/conference/conference_host_state.dart';
 import '../services/conference/conference_models.dart';
@@ -249,6 +250,39 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
       published: _registryDocumentId != null,
     );
     return true;
+  }
+
+  /// Ticket de l'hôte pour entrer dans sa propre salle.
+  ///
+  /// Forgé localement avec les identifiants de la réunion : l'hôte n'a pas à
+  /// passer par son propre code. Le serveur média est joint par la boucle
+  /// locale plutôt que par l'adresse LAN : la réunion doit continuer pour
+  /// l'hôte même si le Wi-Fi décroche, et rien ne transite alors par le
+  /// réseau pour ses propres flux.
+  ConferenceTicket? hostTicket({
+    required String identity,
+    required String displayName,
+  }) {
+    final conference = state.conference;
+    final credentials = _credentials;
+    final mediaPort = state.mediaPort;
+    if (conference == null || credentials == null || mediaPort == null) {
+      return null;
+    }
+    final token = const LiveKitTokenService().mint(
+      apiKey: credentials.apiKey,
+      apiSecret: credentials.apiSecret,
+      roomName: conference.id,
+      identity: identity,
+      displayName: displayName,
+      isHost: true,
+    );
+    return ConferenceTicket(
+      token: token,
+      serverUrl: 'ws://127.0.0.1:$mediaPort',
+      roomId: conference.id,
+      roomName: conference.name,
+    );
   }
 
   /// Recharge le binaire et relance si nécessaire, après installation.

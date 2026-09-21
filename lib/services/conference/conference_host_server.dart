@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
+import 'conference_join_page.dart';
 import 'conference_models.dart';
 import 'livekit_token_service.dart';
 import 'livekit_webhook.dart';
@@ -13,6 +15,15 @@ typedef TicketIssuedCallback = void Function(IssuedTicket ticket);
 
 /// Appelé pour chaque webhook authentique du serveur média.
 typedef WebhookEventCallback = void Function(LiveKitWebhookEvent event);
+
+/// Lit une ressource embarquée (le bundle JavaScript du client) ; injectable
+/// pour que les tests n'aient pas besoin du moteur Flutter.
+typedef AssetLoader = Future<Uint8List> Function(String assetPath);
+
+Future<Uint8List> _loadBundledAsset(String assetPath) async {
+  final data = await rootBundle.load(assetPath);
+  return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+}
 
 /// API de jonction embarquée dans l'application desktop.
 ///
@@ -51,6 +62,12 @@ class ConferenceHostServer {
 
   final LiveKitTokenService _tokens;
   final LiveKitWebhookVerifier _webhooks;
+  final AssetLoader _loadAsset;
+
+  /// Bundle JavaScript du client, lu une fois dans les ressources : 400 Ko
+  /// que chaque navigateur du réseau redemande, il n'y a pas à relire le
+  /// disque à chaque participant.
+  Uint8List? _clientScript;
 
   TicketIssuedCallback? onTicketIssued;
   WebhookEventCallback? onWebhookEvent;
@@ -58,10 +75,12 @@ class ConferenceHostServer {
   ConferenceHostServer({
     LiveKitTokenService? tokenService,
     LiveKitWebhookVerifier? webhookVerifier,
+    AssetLoader? assetLoader,
     this.onTicketIssued,
     this.onWebhookEvent,
   })  : _tokens = tokenService ?? const LiveKitTokenService(),
-        _webhooks = webhookVerifier ?? const LiveKitWebhookVerifier();
+        _webhooks = webhookVerifier ?? const LiveKitWebhookVerifier(),
+        _loadAsset = assetLoader ?? _loadBundledAsset;
 
   bool get isRunning => _server != null;
 
@@ -123,6 +142,15 @@ class ConferenceHostServer {
   Future<void> _handle(HttpRequest request) async {
     final segments = request.uri.pathSegments;
 
+    // Pré-vol CORS : le client web (uniflow.kernelforge.codes) interroge
+    // l'hôte depuis une autre origine ; sans réponse ici, le navigateur ne
+    // laisse même pas partir la vraie requête.
+    if (request.method == 'OPTIONS') {
+      _cors(request.response);
+      request.response.statusCode = HttpStatus.noContent;
+      return request.response.close();
+    }
+
     if (request.method == 'GET' &&
         segments.length == 1 &&
         segments[0] == 'health') {
@@ -130,6 +158,28 @@ class ConferenceHostServer {
         'status': 'ok',
         'rooms': _rooms.length,
       });
+    }
+
+    // GET /  et  GET /join[/<CODE>] : page navigateur du participant.
+    if (request.method == 'GET' &&
+        (segments.isEmpty ||
+            (segments[0] == 'join' && segments.length <= 2))) {
+      final code = segments.length == 2 ? segments[1] : null;
+      return _joinPage(request, code);
+    }
+
+    // GET /assets/livekit-client.umd.js
+    if (request.method == 'GET' &&
+        request.uri.path == ConferenceJoinPage.clientScriptPath) {
+      return _clientScriptResponse(request);
+    }
+
+    // GET /rooms/by-code/<CODE>
+    if (request.method == 'GET' &&
+        segments.length == 3 &&
+        segments[0] == 'rooms' &&
+        segments[1] == 'by-code') {
+      return _lookupByCode(request, segments[2]);
     }
 
     // GET /rooms/<id>/join
@@ -289,6 +339,84 @@ class ConferenceHostServer {
     return _json(request, HttpStatus.ok, {'status': 'ended', 'roomId': roomId});
   }
 
+  /// Salle ouverte dont le code correspond (insensible à la casse), `null`
+  /// sinon. Le code est ce que l'hôte dicte ou affiche en QR : il n'y a
+  /// jamais deux salles ouvertes avec le même code sur un poste.
+  _OpenRoom? _roomByCode(String? code) {
+    final wanted = (code ?? '').trim().toUpperCase();
+    if (wanted.isEmpty) return null;
+    for (final room in _rooms.values) {
+      if (room.conference.status == ConferenceStatus.ended) continue;
+      if (room.conference.code.toUpperCase() == wanted) return room;
+    }
+    return null;
+  }
+
+  /// Page HTML du participant. Un code inconnu n'est pas une erreur : la
+  /// page s'ouvre quand même et laisse corriger la saisie — c'est le cas
+  /// de l'étudiant qui tape l'adresse à la main depuis le tableau.
+  Future<void> _joinPage(HttpRequest request, String? code) async {
+    final room = _roomByCode(code);
+    final html = ConferenceJoinPage.render(
+      roomId: room?.conference.id,
+      roomName: room?.conference.name,
+      code: room?.conference.code ?? code?.trim().toUpperCase(),
+      hostName: room?.conference.hostName,
+    );
+    request.response
+      ..statusCode = HttpStatus.ok
+      ..headers.contentType = ContentType.html
+      ..headers.set(HttpHeaders.cacheControlHeader, 'no-store');
+    request.response.write(html);
+    await request.response.close();
+  }
+
+  /// Bundle du client LiveKit, tel qu'embarqué dans l'application.
+  Future<void> _clientScriptResponse(HttpRequest request) async {
+    try {
+      _clientScript ??= await _loadAsset(ConferenceJoinPage.clientScriptAsset);
+    } on Object catch (error) {
+      return _json(request, HttpStatus.internalServerError, {
+        'error': 'Le client de visioconférence n\'est pas disponible : $error',
+      });
+    }
+    final script = _clientScript!;
+    request.response
+      ..statusCode = HttpStatus.ok
+      ..headers.contentType = ContentType('application', 'javascript',
+          charset: 'utf-8')
+      ..headers.set(HttpHeaders.cacheControlHeader, 'public, max-age=86400')
+      ..headers.contentLength = script.length;
+    request.response.add(script);
+    await request.response.close();
+  }
+
+  /// Retrouve une salle à partir de son code (page navigateur sans
+  /// identifiant, client web qui n'a que le code). Les échecs comptent
+  /// comme des essais de code : deviner un code par cette route ne doit pas
+  /// être plus facile que par `/join`.
+  Future<void> _lookupByCode(HttpRequest request, String code) async {
+    final remote = request.connectionInfo?.remoteAddress.address ?? 'inconnue';
+    if (_isThrottled(remote)) {
+      return _json(request, HttpStatus.tooManyRequests, {
+        'error': 'Trop de tentatives. Réessayez dans une minute.',
+      });
+    }
+    final room = _roomByCode(code);
+    if (room == null) {
+      _recordFailure(remote);
+      return _json(request, HttpStatus.notFound, {
+        'error': 'Aucune réunion en cours ne porte ce code.',
+      });
+    }
+    return _json(request, HttpStatus.ok, {
+      'roomId': room.conference.id,
+      'roomName': room.conference.name,
+      'hostName': room.conference.hostName,
+      'serverUrl': room.conference.effectiveServerUrl,
+    });
+  }
+
   bool _isThrottled(String address) {
     final attempts = _failedAttempts[address];
     if (attempts == null) return false;
@@ -315,15 +443,20 @@ class ConferenceHostServer {
     int statusCode,
     Map<String, dynamic> body,
   ) async {
+    _cors(request.response);
     request.response
       ..statusCode = statusCode
-      ..headers.contentType = ContentType.json
-      ..headers.set('Access-Control-Allow-Origin', '*')
-      ..headers
-          .set('Access-Control-Allow-Headers', 'Content-Type, X-Host-Token')
-      ..headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      ..headers.contentType = ContentType.json;
     request.response.write(jsonEncode(body));
     await request.response.close();
+  }
+
+  void _cors(HttpResponse response) {
+    response.headers
+      ..set('Access-Control-Allow-Origin', '*')
+      ..set('Access-Control-Allow-Headers', 'Content-Type, X-Host-Token')
+      ..set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      ..set('Access-Control-Max-Age', '600');
   }
 }
 
