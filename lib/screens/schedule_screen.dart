@@ -7,9 +7,14 @@ import '../models/schedule_event.dart';
 import '../models/schedule_scope.dart';
 import '../providers/schedule_provider.dart';
 import '../repositories/reference_repository.dart';
-import '../widgets/app_breadcrumb.dart';
-import '../widgets/data_state_view.dart';
+import '../ui/app_button.dart';
 import '../ui/status_badge.dart';
+import '../widgets/app_page_bar.dart';
+import '../widgets/data_state_view.dart';
+
+/// Hauteur commune des contrôles de la barre d'outils (sélecteurs, boutons) :
+/// plus basse que les 44 px des boutons de page, la barre est dense.
+const double _toolbarControlHeight = 40;
 
 /// Page "Emploi du temps" : grille hebdomadaire alimentée par
 /// `academic_schedules`, légende des types de séance, navigation de semaine,
@@ -100,15 +105,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     setState(() => _selectedKey = _selectedKey == key ? null : key);
   }
 
+  /// Même barre de titre que les autres annuaires ([AppPageBar]) : la page
+  /// reproduisait la sienne à la main, sans le repli des actions.
   Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-      decoration: const BoxDecoration(
-        color: AppColors.cardWhite,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder)),
-      ),
-      child: const AppBreadcrumb(items: ['Accueil', 'Emploi du temps']),
-    );
+    return const AppPageBar(breadcrumb: ['Accueil', 'Emploi du temps']);
   }
 
   /// Signale les créneaux lus en base mais non plaçables : sans ce bandeau, une
@@ -348,51 +348,36 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               runSpacing: 12,
               alignment: WrapAlignment.end,
               crossAxisAlignment: WrapCrossAlignment.center,
+              // Boutons du design system, à la hauteur des sélecteurs de la
+              // barre (40 px) : les trois avaient chacun leur marge et leur
+              // rayon, différents de ceux des autres pages.
               children: [
-                OutlinedButton.icon(
+                AppButton.secondary(
+                  label: 'Export PDF',
+                  icon: Icons.download_outlined,
+                  height: _toolbarControlHeight,
                   onPressed: () {
                     // TODO: exporter l'emploi du temps en PDF
                   },
-                  icon: const Icon(Icons.download_outlined,
-                      size: 16, color: AppColors.textSecondary),
-                  label: const Text('Export PDF'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    side: const BorderSide(color: AppColors.inputBorder),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
                 ),
-                OutlinedButton.icon(
+                AppButton.secondary(
+                  label: 'Imprimer',
+                  icon: Icons.print_outlined,
+                  height: _toolbarControlHeight,
                   onPressed: () {
                     // TODO: imprimer l'emploi du temps
                   },
-                  icon: const Icon(Icons.print_outlined,
-                      size: 16, color: AppColors.textSecondary),
-                  label: const Text('Imprimer'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    side: const BorderSide(color: AppColors.inputBorder),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
                 ),
                 // La génération concerne l'administration ; un étudiant ne
                 // fait que consulter sa grille.
                 if (scope.kind == ScheduleScopeKind.selectable)
-                  ElevatedButton.icon(
+                  AppButton(
+                    label: 'Auto-générer',
+                    icon: Icons.auto_awesome,
+                    height: _toolbarControlHeight,
                     onPressed: () {
                       // TODO: générer automatiquement l'emploi du temps
                     },
-                    icon: const Icon(Icons.auto_awesome, size: 16),
-                    label: const Text('Auto-générer'),
-                    style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 13)),
                   ),
               ],
             ),
@@ -610,33 +595,20 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 label: 'Description',
                 value: event.description.isEmpty ? '—' : event.description),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  // TODO: afficher la liste des étudiants inscrits à ce cours
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  side: const BorderSide(color: AppColors.inputBorder),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text('Voir les étudiants'),
-              ),
+            AppButton.secondary(
+              label: 'Voir les étudiants',
+              expand: true,
+              onPressed: () {
+                // TODO: afficher la liste des étudiants inscrits à ce cours
+              },
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: ajouter ce cours au calendrier personnel
-                },
-                style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 13)),
-                child: const Text('Ajouter au calendrier'),
-              ),
+            AppButton(
+              label: 'Ajouter au calendrier',
+              expand: true,
+              onPressed: () {
+                // TODO: ajouter ce cours au calendrier personnel
+              },
             ),
           ],
         ),

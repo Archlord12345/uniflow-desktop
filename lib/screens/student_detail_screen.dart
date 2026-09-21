@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../models/student.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
+import '../ui/app_button.dart';
 import '../ui/status_badge.dart';
 import '../widgets/simple_tab_bar.dart';
 import 'messaging_screen.dart';
@@ -183,40 +184,25 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   ],
                 ),
               ),
-              OutlinedButton.icon(
+              AppButton.secondary(
+                label: 'Modifier',
+                icon: Icons.edit_outlined,
                 onPressed: () {
                   // TODO: ouvrir le formulaire d'édition de l'étudiant
                 },
-                icon: const Icon(Icons.edit_outlined, size: 16),
-                label: const Text('Modifier'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  side: const BorderSide(color: AppColors.inputBorder),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
               ),
               const SizedBox(width: 10),
-              OutlinedButton.icon(
+              AppButton.danger(
+                label: 'Supprimer',
+                icon: Icons.delete_outline,
                 onPressed: () {
                   // TODO: confirmer puis supprimer l'étudiant
                 },
-                icon: const Icon(Icons.delete_outline,
-                    size: 16, color: AppColors.danger),
-                label: const Text('Supprimer',
-                    style: TextStyle(color: AppColors.danger)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.danger100),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
               ),
               const SizedBox(width: 10),
-              ElevatedButton.icon(
+              AppButton(
+                label: 'Envoyer un message',
+                icon: Icons.mail_outline,
                 onPressed: () {
                   // La messagerie s'adresse par pseudo, pas par identifiant
                   // interne : on ouvre l'écran avec le nom de l'étudiant
@@ -229,11 +215,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.mail_outline, size: 16),
-                label: const Text('Envoyer un message'),
-                style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 13)),
               ),
             ],
           ),

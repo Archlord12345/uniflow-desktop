@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/program_tree.dart';
 import '../providers/program_provider.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../ui/surface_card.dart';
@@ -59,22 +60,17 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         AppTopBar(
           title: 'Programmes & Facultés',
           subtitle: 'Hiérarchie des universités, filières et niveaux',
+          // Plus de loupe ni de cloche décoratives : elles n'ouvraient rien et
+          // la cloche affichait un point rouge sans notification derrière.
           actions: [
-            const TopBarIconButton(icon: Icons.search),
-            const TopBarIconButton(
-                icon: Icons.notifications_none_rounded, showDot: true),
-            ElevatedButton.icon(
+            AppButton(
+              label: 'Ajouter programme',
+              icon: Icons.add,
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('La création de programmes se fait depuis la '
                       'gestion des UE : chaque UE porte sa filière et son niveau.'),
                 ),
-              ),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Ajouter programme'),
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
               ),
             ),
           ],

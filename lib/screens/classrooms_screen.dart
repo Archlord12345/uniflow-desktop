@@ -9,6 +9,7 @@ import '../providers/auth_provider.dart';
 import '../providers/directory_provider.dart';
 import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../ui/table_action_icon.dart';
@@ -76,13 +77,10 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           subtitle: 'Catalogue des salles et occupation par l\'emploi du temps',
           actions: [
             if (isAdmin)
-              ElevatedButton.icon(
+              AppButton(
+                label: 'Ajouter une salle',
+                icon: Icons.add,
                 onPressed: () => _edit(context),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Ajouter une salle'),
-                style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 14)),
               ),
           ],
         ),

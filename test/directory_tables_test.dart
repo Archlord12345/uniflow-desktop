@@ -20,6 +20,8 @@ import 'package:uniflow/screens/classrooms_screen.dart';
 import 'package:uniflow/screens/programs_screen.dart';
 import 'package:uniflow/screens/students_screen.dart';
 import 'package:uniflow/screens/teaching_units_screen.dart';
+import 'package:uniflow/screens/teachers_screen.dart';
+import 'package:uniflow/ui/app_button.dart';
 import 'package:uniflow/ui/app_data_table.dart';
 import 'package:uniflow/ui/status_badge.dart';
 import 'package:uniflow/ui/table_action_icon.dart';
@@ -261,6 +263,26 @@ void main() {
       expect(find.text('Aucune UE enregistrée pour ce niveau.'), findsOneWidget);
       expect(find.byType(DataEmptyView), findsOneWidget);
     });
+  });
+
+  // Les actions des barres de page étaient des `ElevatedButton` et
+  // `OutlinedButton` avec, à chaque écran, une marge et un rayon différents ;
+  // elles passent toutes par le bouton du design system.
+  group('Boutons de barre de page', () {
+    for (final (name, screen, count) in <(String, Widget, int)>[
+      ('Enseignants', const TeachersScreen(), 2),
+      ('Étudiants', const StudentsScreen(), 3),
+      ('UE', const TeachingUnitsScreen(), 1),
+      ('Salles', const ClassroomsScreen(), 1),
+      ('Programmes', const ProgramsScreen(), 1),
+    ]) {
+      testWidgets('$name : AppButton uniquement', (tester) async {
+        await _pump(tester, screen, overrides: const []);
+        expect(find.byType(AppButton), findsNWidgets(count));
+        expect(find.byType(ElevatedButton), findsNothing);
+        expect(find.byType(OutlinedButton), findsNothing);
+      });
+    }
   });
 
   for (final width in const [420.0, 760.0, 1024.0, 1440.0]) {

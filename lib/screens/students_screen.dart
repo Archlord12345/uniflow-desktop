@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/student.dart';
 import '../providers/directory_provider.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../ui/table_action_icon.dart';
@@ -163,30 +164,19 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     return AppPageBar(
       breadcrumb: const ['Accueil', 'Étudiants'],
       actions: [
-        OutlinedButton.icon(
+        AppButton.secondary(
+          label: 'Filtres avancés',
+          icon: Icons.tune,
           onPressed: () {
             // TODO: ouvrir le panneau de filtres avancés
           },
-          icon:
-              const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
-          label: const Text('Filtres avancés'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.textSecondary,
-            side: const BorderSide(color: AppColors.inputBorder),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
         ),
-        ElevatedButton.icon(
+        AppButton(
+          label: 'Ajouter étudiant',
+          icon: Icons.add,
           onPressed: () {
             // TODO: ouvrir le formulaire de création d'étudiant
           },
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Ajouter étudiant'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          ),
         ),
       ],
     );
@@ -221,19 +211,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       ),
     );
 
-    final exportButton = OutlinedButton.icon(
+    final exportButton = AppButton.secondary(
+      label: 'Export',
+      icon: Icons.file_upload_outlined,
+      // Même hauteur que le champ de recherche voisin (bordure comprise).
+      height: 48,
       onPressed: () {
         // TODO: exporter la liste des étudiants (CSV/Excel)
       },
-      icon: const Icon(Icons.file_upload_outlined,
-          size: 17, color: AppColors.textSecondary),
-      label: const Text('Export'),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textSecondary,
-        side: const BorderSide(color: AppColors.inputBorder),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
     );
 
     return LayoutBuilder(

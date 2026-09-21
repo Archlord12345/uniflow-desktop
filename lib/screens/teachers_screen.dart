@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/teacher.dart';
 import '../providers/directory_provider.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../ui/table_action_icon.dart';
@@ -131,30 +132,19 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
     return AppPageBar(
       breadcrumb: const ['Accueil', 'Enseignants'],
       actions: [
-        OutlinedButton.icon(
+        AppButton.secondary(
+          label: 'Filtres avancés',
+          icon: Icons.tune,
           onPressed: () {
             // TODO: ouvrir le panneau de filtres avancés
           },
-          icon:
-              const Icon(Icons.tune, size: 17, color: AppColors.textSecondary),
-          label: const Text('Filtres avancés'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.textSecondary,
-            side: const BorderSide(color: AppColors.inputBorder),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
         ),
-        ElevatedButton.icon(
+        AppButton(
+          label: 'Ajouter enseignant',
+          icon: Icons.add,
           onPressed: () {
             // TODO: ouvrir le formulaire de création d'enseignant
           },
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Ajouter enseignant'),
-          style: ElevatedButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
         ),
       ],
     );

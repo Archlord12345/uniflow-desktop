@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../models/teaching_unit.dart';
 import '../providers/directory_provider.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../ui/table_action_icon.dart';
@@ -208,15 +209,12 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
       title: 'Gestion des UE',
       subtitle: 'Administration · Unités d\'Enseignement',
       actions: [
-        ElevatedButton.icon(
+        AppButton(
+          label: 'Nouvelle UE',
+          icon: Icons.add,
           onPressed: () {
             // TODO: ouvrir le formulaire de création d'UE
           },
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Nouvelle UE'),
-          style: ElevatedButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
         ),
       ],
     );
