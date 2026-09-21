@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 
 /// Carte affichant une métrique clé (ex: "Étudiants : 1 248, +12%").
-/// Disposition verticale : icône ronde en haut, libellé, puis grande valeur
+/// Disposition verticale : tuile d'icône Phosphor en haut (56 px, variante
+/// `filled`, spec `docs/icones-uniflow.md`), libellé, puis grande valeur
 /// avec le delta juste à côté — fidèle à la maquette "UniFlow Desktop Partie 1".
 class StatCard extends StatelessWidget {
   final String label;
@@ -20,6 +22,9 @@ class StatCard extends StatelessWidget {
   final IconData icon;
   final Color iconBackground;
 
+  /// Rang dans la grille : décale l'apparition en cascade de la tuile.
+  final int index;
+
   const StatCard({
     super.key,
     required this.label,
@@ -29,6 +34,7 @@ class StatCard extends StatelessWidget {
     required this.icon,
     required this.iconBackground,
     this.isPositive = true,
+    this.index = 0,
   });
 
   @override
@@ -43,12 +49,12 @@ class StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration:
-                BoxDecoration(color: iconBackground, shape: BoxShape.circle),
-            child: Icon(icon, color: Colors.white, size: 20),
+          IconTile(
+            icon: icon,
+            color: iconBackground,
+            size: 56,
+            index: index,
+            semanticLabel: label,
           ),
           const SizedBox(height: 12),
           // `maxLines` + ellipse sur le libellé : dans une grille de KPI, la
@@ -80,8 +86,10 @@ class StatCard extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(
-                  isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                PhosphorIcon(
+                  isPositive
+                      ? UniIcons.arrowUp(UniIconStyle.bold)
+                      : UniIcons.arrowDown(UniIconStyle.bold),
                   size: 13,
                   color: isPositive ? AppColors.success : AppColors.textMuted,
                 ),

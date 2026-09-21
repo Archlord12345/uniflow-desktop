@@ -2,6 +2,7 @@ import 'package:appwrite/models.dart' as models;
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 
 /// Un membre de l'équipe KERNEL FORGE, tel que stocké dans la collection
 /// `team_members`.
@@ -159,14 +160,16 @@ TeamAccentStyle teamAccentStyle(TeamAccent accent) {
 IconData teamMemberIcon(TeamMember member) {
   final haystack = '${member.subTeam} ${member.role}'.toLowerCase();
   if (RegExp(r'sgbd|base de donn|bdd?|database').hasMatch(haystack)) {
-    return Icons.storage_outlined;
+    return UniIcons.database();
   }
   if (RegExp(r'mobile|android|ios').hasMatch(haystack)) {
-    return Icons.smartphone_outlined;
+    return UniIcons.deviceMobile(UniIcons.defaultStyle);
   }
-  if (member.team == 'Leadership') return Icons.workspace_premium_outlined;
-  if (member.team == 'Backend') return Icons.dns_outlined;
-  return Icons.code_outlined;
+  if (member.team == 'Leadership') return UniIcons.badges();
+  if (member.team == 'Backend') {
+    return UniIcons.hardDrives(UniIcons.defaultStyle);
+  }
+  return UniIcons.code(UniIcons.defaultStyle);
 }
 
 /// Les catégories de filtre de la page, dans l'ordre des pastilles du web.

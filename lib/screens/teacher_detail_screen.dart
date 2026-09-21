@@ -1,6 +1,7 @@
 import '../models/app_destination.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../models/teacher.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
@@ -117,7 +118,7 @@ class TeacherDetailScreen extends StatelessWidget {
               ),
               AppButton.secondary(
                 label: 'Modifier',
-                icon: Icons.edit_outlined,
+                icon: UniIcons.edit(UniIconStyle.bold),
                 onPressed: () {
                   // TODO: ouvrir le formulaire d'édition de l'enseignant
                 },
@@ -125,7 +126,7 @@ class TeacherDetailScreen extends StatelessWidget {
               const SizedBox(width: 10),
               AppButton(
                 label: 'Envoyer un message',
-                icon: Icons.mail_outline,
+                icon: UniIcons.mail(UniIconStyle.bold),
                 onPressed: () {
                   // La messagerie s'adresse par pseudo, pas par identifiant
                   // interne : on ouvre l'écran avec le nom de l'enseignant

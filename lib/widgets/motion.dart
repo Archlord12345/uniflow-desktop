@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
+import 'uni_icons.dart';
 
 /// Boîte à outils d'animation partagée par tous les écrans.
 ///
@@ -389,7 +390,7 @@ class _AnimatedCrossState extends State<AnimatedCross>
           color: AppColors.danger.withValues(alpha: 0.12),
           border: Border.all(color: AppColors.danger, width: 3),
         ),
-        child: Icon(Icons.close_rounded,
+        child: PhosphorIcon(UniIcons.close(UniIconStyle.bold),
             color: AppColors.danger, size: widget.size * 0.55),
       ),
     );

@@ -13,6 +13,7 @@ import '../services/conference/conference_room_model.dart';
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
 import '../ui/toast.dart';
+import '../widgets/uni_icons.dart';
 
 /// Ouvre et connecte une salle. Injectable : les tests rendent l'écran sans
 /// serveur média en fournissant un connecteur qui n'aboutit pas ou échoue.
@@ -316,7 +317,7 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
           ),
           if (_mediaNote != null)
             _Banner(
-                icon: Icons.warning_amber_rounded,
+                icon: UniIcons.warning(UniIconStyle.fill),
                 color: AppColors.warning,
                 text: _mediaNote!),
           Expanded(
@@ -378,8 +379,8 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
   Widget _buildStage(List<_LiveTile> tiles, String? stage) {
     switch (_phase) {
       case _Phase.connecting:
-        return const _CenterMessage(
-          icon: Icons.sensors,
+        return _CenterMessage(
+          icon: UniIcons.broadcast(UniIcons.defaultStyle),
           title: 'Connexion à la salle…',
           message:
               'Le poste se connecte au serveur média. Sur un réseau local, cela prend une seconde.',
@@ -387,14 +388,14 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
         );
       case _Phase.failed:
         return _CenterMessage(
-          icon: Icons.videocam_off_outlined,
+          icon: UniIcons.videoOff(),
           title: 'La salle n\'a pas pu être rejointe',
           message: _error ?? 'Cause inconnue.',
           tone: AppColors.danger,
         );
       case _Phase.ended:
         return _CenterMessage(
-          icon: Icons.call_end_rounded,
+          icon: UniIcons.phoneDisconnect(UniIcons.defaultStyle),
           title: 'Réunion terminée',
           message: _error ?? 'La connexion a été fermée.',
         );
@@ -604,10 +605,10 @@ class _TileView extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          PhosphorIcon(
                             tile.model.micOn
-                                ? Icons.mic_rounded
-                                : Icons.mic_off_rounded,
+                                ? UniIcons.microphone(UniIconStyle.fill)
+                                : UniIcons.microphoneOff(UniIconStyle.fill),
                             size: 14,
                             color: tile.model.micOn
                                 ? Colors.white
@@ -650,10 +651,10 @@ class _TileView extends StatelessWidget {
               ),
             ),
             if (pinned)
-              const Positioned(
+              Positioned(
                 top: 10,
                 right: 10,
-                child: Icon(Icons.push_pin_rounded,
+                child: PhosphorIcon(UniIcons.pin(UniIconStyle.fill),
                     size: 16, color: Colors.white70),
               ),
           ],
@@ -703,7 +704,8 @@ class _TopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.videocam_rounded, color: Colors.white, size: 22),
+          PhosphorIcon(UniIcons.video(UniIconStyle.fill),
+              color: Colors.white, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -765,7 +767,7 @@ class _TopBar extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.key_rounded,
+                      PhosphorIcon(UniIcons.key(UniIconStyle.fill),
                           size: 15, color: Colors.white),
                       const SizedBox(width: 8),
                       Text(code!,
@@ -800,7 +802,7 @@ class _Banner extends StatelessWidget {
       color: color.withValues(alpha: 0.16),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color),
+          PhosphorIcon(icon, size: 16, color: color),
           const SizedBox(width: 10),
           Expanded(
               child: Text(text,
@@ -844,7 +846,7 @@ class _CenterMessage extends StatelessWidget {
                   child: CircularProgressIndicator(
                       strokeWidth: 3, color: Colors.white))
             else
-              Icon(icon, size: 48, color: tone),
+              PhosphorIcon(icon, size: 48, color: tone),
             const SizedBox(height: 18),
             Text(title,
                 textAlign: TextAlign.center,
@@ -1046,15 +1048,18 @@ class _PeoplePanel extends ConsumerWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(tile.micOn ? Icons.mic_rounded : Icons.mic_off_rounded,
+                  PhosphorIcon(
+                      tile.micOn
+                          ? UniIcons.microphone(UniIconStyle.fill)
+                          : UniIcons.microphoneOff(UniIconStyle.fill),
                       size: 16,
                       color:
                           tile.micOn ? AppColors.success : AppColors.textMuted),
                   const SizedBox(width: 6),
-                  Icon(
+                  PhosphorIcon(
                       tile.cameraOn
-                          ? Icons.videocam_rounded
-                          : Icons.videocam_off_rounded,
+                          ? UniIcons.video(UniIconStyle.fill)
+                          : UniIcons.videoOff(UniIconStyle.fill),
                       size: 16,
                       color: tile.cameraOn
                           ? AppColors.success
@@ -1064,10 +1069,10 @@ class _PeoplePanel extends ConsumerWidget {
                         ? 'Désépingler'
                         : 'Mettre en avant',
                     onPressed: () => onPin(tile.identity),
-                    icon: Icon(
+                    icon: PhosphorIcon(
                       pinned == tile.identity
-                          ? Icons.push_pin_rounded
-                          : Icons.push_pin_outlined,
+                          ? UniIcons.pin(UniIconStyle.fill)
+                          : UniIcons.pin(UniIconStyle.bold),
                       size: 16,
                       color: pinned == tile.identity
                           ? AppColors.primaryBlue
@@ -1136,7 +1141,7 @@ class _SideCard extends StatelessWidget {
               IconButton(
                 tooltip: 'Fermer le volet',
                 onPressed: onClose,
-                icon: const Icon(Icons.close_rounded,
+                icon: PhosphorIcon(UniIcons.close(UniIconStyle.bold),
                     size: 18, color: AppColors.textSecondary),
               ),
             ],
@@ -1199,7 +1204,7 @@ class _CopyRow extends StatelessWidget {
           IconButton(
             tooltip: 'Copier',
             onPressed: onCopy,
-            icon: const Icon(Icons.copy_rounded,
+            icon: PhosphorIcon(UniIcons.copy(UniIconStyle.bold),
                 size: 16, color: AppColors.textSecondary),
           ),
         ],
@@ -1259,14 +1264,18 @@ class _ControlBar extends StatelessWidget {
         runSpacing: 10,
         children: [
           _RoundControl(
-            icon: micOn ? Icons.mic_rounded : Icons.mic_off_rounded,
+            icon: micOn
+                ? UniIcons.microphone(UniIconStyle.fill)
+                : UniIcons.microphoneOff(UniIconStyle.fill),
             label: micOn ? 'Couper le micro' : 'Activer le micro',
             active: micOn,
             enabled: live,
             onPressed: onMic,
           ),
           _RoundControl(
-            icon: camOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+            icon: camOn
+                ? UniIcons.video(UniIconStyle.fill)
+                : UniIcons.videoOff(UniIconStyle.fill),
             label: camOn ? 'Couper la caméra' : 'Activer la caméra',
             active: camOn,
             enabled: live,
@@ -1274,8 +1283,8 @@ class _ControlBar extends StatelessWidget {
           ),
           _RoundControl(
             icon: sharing
-                ? Icons.stop_screen_share_rounded
-                : Icons.screen_share_rounded,
+                ? UniIcons.monitor(UniIconStyle.fill)
+                : UniIcons.monitorArrowUp(UniIconStyle.fill),
             label: sharing ? 'Arrêter le partage' : 'Partager l\'écran',
             active: sharing,
             enabled: live,
@@ -1284,14 +1293,14 @@ class _ControlBar extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           _RoundControl(
-            icon: Icons.person_add_alt_1_rounded,
+            icon: UniIcons.addPerson(UniIconStyle.fill),
             label: 'Inviter',
             active: panel == _SidePanel.invite,
             enabled: true,
             onPressed: () async => onInvite(),
           ),
           _RoundControl(
-            icon: Icons.people_alt_rounded,
+            icon: UniIcons.people(UniIconStyle.fill),
             label: 'Participants',
             active: panel == _SidePanel.people,
             enabled: true,
@@ -1301,18 +1310,18 @@ class _ControlBar extends StatelessWidget {
           if (onRetry != null)
             AppButton.secondary(
               label: 'Réessayer',
-              icon: Icons.refresh_rounded,
+              icon: UniIcons.refresh(UniIconStyle.bold),
               onPressed: onRetry,
             ),
           if (isHost && onEnd != null)
             AppButton.danger(
               label: 'Terminer pour tous',
-              icon: Icons.stop_circle_outlined,
+              icon: UniIcons.stopCircle(UniIconStyle.bold),
               onPressed: onEnd,
             ),
           AppButton(
             label: isHost ? 'Quitter la salle' : 'Quitter',
-            icon: Icons.call_end_rounded,
+            icon: UniIcons.phoneDisconnect(UniIconStyle.fill),
             variant:
                 isHost ? AppButtonVariant.secondary : AppButtonVariant.danger,
             onPressed: onLeave,
@@ -1359,7 +1368,7 @@ class _RoundControl extends StatelessWidget {
           child: SizedBox(
             width: 46,
             height: 46,
-            child: Icon(icon, color: foreground, size: 21),
+            child: PhosphorIcon(icon, color: foreground, size: 21),
           ),
         ),
       ),

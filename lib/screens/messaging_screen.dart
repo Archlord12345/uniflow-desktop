@@ -9,6 +9,7 @@ import '../ui/app_button.dart';
 import '../utils/avatar.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
+import '../widgets/uni_icons.dart';
 import '../widgets/user_avatar.dart';
 
 /// Messagerie du desktop : liste des conversations à gauche, fil de discussion
@@ -169,12 +170,12 @@ class _MessagingScreenState extends ConsumerState<MessagingScreen> {
               actions: [
                 AppButton.secondary(
                   label: 'Rafraîchir',
-                  icon: Icons.refresh,
+                  icon: UniIcons.refresh(UniIconStyle.bold),
                   onPressed: () => ref.invalidate(conversationsProvider),
                 ),
                 AppButton(
                   label: 'Nouvelle conversation',
-                  icon: Icons.add,
+                  icon: UniIcons.add(UniIconStyle.bold),
                   onPressed: () => _startConversation(),
                 ),
               ],
@@ -249,7 +250,8 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
+          PhosphorIcon(UniIcons.warningCircle(UniIconStyle.bold),
+              size: 18, color: AppColors.danger),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -259,7 +261,8 @@ class _ErrorBanner extends StatelessWidget {
           ),
           IconButton(
             onPressed: onDismiss,
-            icon: const Icon(Icons.close, size: 16, color: AppColors.danger),
+            icon: PhosphorIcon(UniIcons.close(UniIconStyle.bold),
+                size: 16, color: AppColors.danger),
             tooltip: 'Masquer',
           ),
         ],
@@ -444,11 +447,11 @@ class _Thread extends StatelessWidget {
           ? Center(
               child: DataEmptyView(
                 compact: true,
-                icon: Icons.forum_outlined,
+                icon: UniIcons.messaging(),
                 message: 'Sélectionnez une conversation',
                 action: AppButton(
                   label: 'Nouvelle conversation',
-                  icon: Icons.add,
+                  icon: UniIcons.add(UniIconStyle.bold),
                   height: 40,
                   onPressed: onStart,
                 ),
@@ -528,7 +531,7 @@ class _Thread extends StatelessWidget {
                       const SizedBox(width: 10),
                       AppButton(
                         label: 'Envoyer',
-                        icon: Icons.send,
+                        icon: UniIcons.send(UniIconStyle.bold),
                         loading: sending,
                         onPressed: () => onSend(current),
                       ),
@@ -696,9 +699,10 @@ class _NewConversationDialogState
               controller: _input,
               autofocus: true,
               onChanged: _onChanged,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: '@pseudo',
-                prefixIcon: Icon(Icons.search, size: 18),
+                prefixIcon:
+                    PhosphorIcon(UniIcons.search(UniIconStyle.bold), size: 18),
               ),
             ),
             const SizedBox(height: 12),

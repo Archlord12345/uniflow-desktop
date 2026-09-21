@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import '../uni_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
@@ -343,19 +345,21 @@ class _UniLauncherState extends State<UniLauncher>
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
                           child: widget.open
-                              ? const Center(
-                                  key: ValueKey('close'),
-                                  child: Icon(Icons.close_rounded,
-                                      color: Color(0xFF1E3A8A), size: 26),
+                              ? Center(
+                                  key: const ValueKey('close'),
+                                  child: PhosphorIcon(
+                                      UniIcons.close(UniIconStyle.bold),
+                                      color: const Color(0xFF1E3A8A),
+                                      size: 26),
                                 )
                               : Image.asset(
                                   'assets/assistant/uni_avatar.webp',
                                   key: const ValueKey('avatar'),
                                   fit: BoxFit.cover,
                                   filterQuality: FilterQuality.high,
-                                  errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.smart_toy_rounded,
-                                      color: Color(0xFF1E3A8A)),
+                                  errorBuilder: (_, __, ___) => PhosphorIcon(
+                                      UniIcons.robot(UniIconStyle.fill),
+                                      color: const Color(0xFF1E3A8A)),
                                 ),
                         ),
                       ),
@@ -641,14 +645,14 @@ class _Header extends StatelessWidget {
             IconButton(
               tooltip: 'Effacer la conversation',
               onPressed: onClear,
-              icon: const Icon(Icons.delete_outline_rounded,
+              icon: PhosphorIcon(UniIcons.delete(UniIconStyle.bold),
                   color: Colors.white, size: 20),
             ),
           IconButton(
             tooltip: 'Fermer',
             onPressed: onClose,
-            icon:
-                const Icon(Icons.close_rounded, color: Colors.white, size: 20),
+            icon: PhosphorIcon(UniIcons.close(UniIconStyle.bold),
+                color: Colors.white, size: 20),
           ),
         ],
       ),
@@ -709,7 +713,7 @@ class _Bubble extends StatelessWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 foregroundColor: const Color(0xFFFECACA),
               ),
-              icon: const Icon(Icons.refresh_rounded, size: 14),
+              icon: PhosphorIcon(UniIcons.refresh(UniIconStyle.bold), size: 14),
               label: const Text('Non envoyé · réessayer',
                   style:
                       TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
@@ -775,8 +779,10 @@ class _UniAvatar extends StatelessWidget {
         child: Image.asset(
           'assets/assistant/uni_avatar.webp',
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_rounded,
-              size: 16, color: Color(0xFF1E3A8A)),
+          errorBuilder: (_, __, ___) => PhosphorIcon(
+              UniIcons.robot(UniIconStyle.fill),
+              size: 16,
+              color: const Color(0xFF1E3A8A)),
         ),
       ),
     );
@@ -873,7 +879,7 @@ class _Composer extends StatelessWidget {
                   disabledBackgroundColor: const Color(0xFFDCE5FD),
                   foregroundColor: Colors.white,
                 ),
-                icon: const Icon(Icons.send_rounded, size: 20),
+                icon: PhosphorIcon(UniIcons.send(UniIconStyle.fill), size: 20),
               );
             },
           ),

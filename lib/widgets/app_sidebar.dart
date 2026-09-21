@@ -9,6 +9,7 @@ import '../screens/session_flow.dart';
 import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
+import 'uni_icons.dart';
 import 'uniflow_logo.dart';
 import 'user_avatar.dart';
 
@@ -557,7 +558,26 @@ class _SidebarTileState extends State<_SidebarTile> {
                   ),
                   const SizedBox(width: 10),
                 ],
-                Icon(widget.destination.icon, size: 19, color: foreground),
+                // `fill` quand la destination est active, `bold` sinon
+                // (spec icônes). L'AnimatedSwitcher fond l'un dans l'autre
+                // plutôt que de faire « sauter » le glyphe au changement.
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: Tween<double>(begin: 0.8, end: 1).animate(animation),
+                    child: FadeTransition(opacity: animation, child: child),
+                  ),
+                  child: PhosphorIcon(
+                    widget.destination.icon(
+                      isActive ? UniIconStyle.fill : UniIconStyle.bold,
+                    ),
+                    key: ValueKey<bool>(isActive),
+                    size: 19,
+                    color: foreground,
+                  ),
+                ),
                 if (!collapsed) ...[
                   const SizedBox(width: AppSpacing.md),
                   Expanded(

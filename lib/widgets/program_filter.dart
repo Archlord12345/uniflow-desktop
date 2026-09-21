@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/directory_provider.dart';
 import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 
 /// Filtre « filière + niveau » commun aux écrans d'administration.
 ///
@@ -56,7 +57,7 @@ class ProgramFilter extends ConsumerWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         _Chip<String?>(
-          icon: Icons.menu_book_outlined,
+          icon: UniIcons.courses(UniIconStyle.bold),
           hint: 'Toutes les filières',
           value: program,
           items: [
@@ -70,7 +71,7 @@ class ProgramFilter extends ConsumerWidget {
           onChanged: onProgramChanged,
         ),
         _Chip<String?>(
-          icon: Icons.stairs_outlined,
+          icon: UniIcons.stairs(UniIconStyle.bold),
           hint: 'Tous les niveaux',
           value: levels.contains(level) ? level : null,
           items: [
@@ -116,7 +117,7 @@ class _Chip<T> extends StatelessWidget {
           value: value,
           isDense: true,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down,
+          icon: PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
               size: 18, color: AppColors.textMuted),
           style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
           hint: Text(hint,
@@ -127,7 +128,7 @@ class _Chip<T> extends StatelessWidget {
             for (final item in items)
               Row(
                 children: [
-                  Icon(icon, size: 16, color: AppColors.textMuted),
+                  PhosphorIcon(icon, size: 16, color: AppColors.textMuted),
                   const SizedBox(width: 8),
                   Expanded(
                     child: DefaultTextStyle(

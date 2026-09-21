@@ -10,6 +10,7 @@ import '../ui/table_action_icon.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/filter_dropdown.dart';
+import '../widgets/uni_icons.dart';
 
 /// Page "Gestion des UE" : cartes statistiques, recherche + filtres,
 /// tableau des unités d'enseignement.
@@ -122,29 +123,33 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
           children: [
             Expanded(
                 child: _UeStatCard(
-                    icon: Icons.menu_book_outlined,
+                    icon: UniIcons.teachingUnits(),
                     iconColor: AppColors.primaryBlue,
+                    index: 0,
                     value: allUnits.length.toString(),
                     label: 'Total UE')),
             const SizedBox(width: 16),
             Expanded(
                 child: _UeStatCard(
-                    icon: Icons.school_outlined,
+                    icon: UniIcons.teachers(),
                     iconColor: AppColors.success,
+                    index: 1,
                     value: enseignants.toString(),
                     label: 'Enseignants')),
             const SizedBox(width: 16),
             Expanded(
                 child: _UeStatCard(
-                    icon: Icons.description_outlined,
+                    icon: UniIcons.badges(),
                     iconColor: AppColors.warning,
+                    index: 2,
                     value: credits.toString(),
                     label: 'Crédits totaux')),
             const SizedBox(width: 16),
             Expanded(
                 child: _UeStatCard(
-                    icon: Icons.access_time,
+                    icon: UniIcons.clock(),
                     iconColor: AppColors.purple,
+                    index: 3,
                     value: '${heures}h',
                     label: 'Heures totales')),
           ],
@@ -185,7 +190,7 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
       minWidth: _minTableWidth,
       cells: (unit, _) => _UnitRow.cells(unit),
       empty: DataEmptyView(
-        icon: Icons.menu_book_outlined,
+        icon: UniIcons.teachingUnits(),
         message: allUnits.isEmpty
             ? 'Aucune UE dans `academic_courses`.\nLes unités apparaissent ici une fois créées.'
             : 'Aucune UE ne correspond aux critères sélectionnés.',
@@ -195,7 +200,7 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(teachingUnitsProvider),
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: PhosphorIcon(UniIcons.refresh(UniIconStyle.bold), size: 18),
             color: AppColors.textSecondary,
             tooltip: 'Recharger depuis Appwrite',
           ),
@@ -211,7 +216,7 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
       actions: [
         AppButton(
           label: 'Nouvelle UE',
-          icon: Icons.add,
+          icon: UniIcons.add(UniIconStyle.bold),
           onPressed: () {
             // TODO: ouvrir le formulaire de création d'UE
           },
@@ -231,7 +236,7 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
               hintText: 'Rechercher par nom, code, enseignant...',
               hintStyle:
                   const TextStyle(color: AppColors.textMuted, fontSize: 14),
-              prefixIcon: const Icon(Icons.search,
+              prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
                   size: 20, color: AppColors.textMuted),
               filled: true,
               fillColor: AppColors.cardWhite,
@@ -279,12 +284,14 @@ class _UeStatCard extends StatelessWidget {
   final Color iconColor;
   final String value;
   final String label;
+  final int index;
 
   const _UeStatCard({
     required this.icon,
     required this.iconColor,
     required this.value,
     required this.label,
+    this.index = 0,
   });
 
   @override
@@ -299,7 +306,13 @@ class _UeStatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 22),
+          IconTile(
+            icon: icon,
+            color: iconColor,
+            size: 44,
+            index: index,
+            semanticLabel: label,
+          ),
           const SizedBox(height: 14),
           Text(value,
               style: const TextStyle(
@@ -340,14 +353,29 @@ abstract final class _UnitRow {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      Text(
-        _orDash(unit.intitule),
-        style: const TextStyle(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      // Icône de matière devant l'intitulé : c'est la « carte de cours » de
+      // ce tableau dense, à la couleur stable du code de l'UE.
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            subjectIcon(unit.intitule, code: unit.code),
+            size: 16,
+            color: subjectColor(unit.code.isEmpty ? unit.intitule : unit.code),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              _orDash(unit.intitule),
+              style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
       Text(_orDash(unit.departement),
           style: _muted, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -358,12 +386,12 @@ abstract final class _UnitRow {
           : StatusBadge.fromStatus(unit.type),
       Text(_orDash(unit.enseignant),
           style: _muted, maxLines: 1, overflow: TextOverflow.ellipsis),
-      _counterCell(Icons.description_outlined, unit.credits.toString()),
-      _counterCell(Icons.access_time, '${unit.heures}h'),
+      _counterCell(UniIcons.badges(UniIconStyle.bold), unit.credits.toString()),
+      _counterCell(UniIcons.clock(UniIconStyle.bold), '${unit.heures}h'),
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.people_alt_outlined,
+          PhosphorIcon(UniIcons.students(UniIconStyle.bold),
               size: 13, color: AppColors.textMuted),
           const SizedBox(width: 3),
           Flexible(
@@ -388,7 +416,7 @@ abstract final class _UnitRow {
         mainAxisSize: MainAxisSize.min,
         children: [
           TableActionIcon(
-            icon: Icons.remove_red_eye_outlined,
+            icon: UniIcons.eye(UniIconStyle.bold),
             color: AppColors.primaryBlue,
             tooltip: 'Voir le détail',
             onPressed: () {
@@ -396,7 +424,7 @@ abstract final class _UnitRow {
             },
           ),
           TableActionIcon(
-            icon: Icons.edit_outlined,
+            icon: UniIcons.edit(UniIconStyle.bold),
             color: AppColors.warning,
             tooltip: 'Modifier',
             onPressed: () {
@@ -412,7 +440,7 @@ abstract final class _UnitRow {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13, color: AppColors.textMuted),
+        PhosphorIcon(icon, size: 13, color: AppColors.textMuted),
         const SizedBox(width: 3),
         Text(value, style: _counter),
       ],

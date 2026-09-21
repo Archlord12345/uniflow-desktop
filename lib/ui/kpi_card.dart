@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import 'surface_card.dart';
 
 /// Carte d'indicateur du tableau de bord, reproduite du web
@@ -49,14 +50,12 @@ class KpiCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: tint,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(icon, size: 18, color: iconColor),
+              IconTile(
+                icon: icon,
+                color: iconColor,
+                size: 36,
+                variant: IconTileVariant.soft,
+                semanticLabel: label,
               ),
               const Spacer(),
               if (delta != null)

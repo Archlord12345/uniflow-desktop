@@ -43,6 +43,15 @@ dependencies:
   # à retravailler par le secrétariat.
   pdf: ^3.12.0
   excel: ^4.0.6
+  # Icônes Phosphor (`duotone`, `fill`, `bold`) : la seule famille d'icônes
+  # des trois clients depuis le 2026-09-21 (`docs/icones-uniflow.md`). Les
+  # icônes Material filaires ne sont plus admises sur la navigation, les
+  # tableaux de bord, les cours et l'espace personnel.
+  # Polices uniquement (`fontPackage: 'phosphor_flutter'`) : ne pas importer
+  # son code Dart, qui étend `IconData` — classe `final` depuis Flutter 3.47 —
+  # et ne compile plus. Les glyphes sont recopiés dans
+  # `lib/widgets/phosphor.dart` par `tool/generate_phosphor_glyphs.dart`.
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:

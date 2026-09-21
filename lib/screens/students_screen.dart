@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../models/student.dart';
 import '../providers/directory_provider.dart';
 import '../ui/app_button.dart';
@@ -150,7 +151,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       ),
       onRowTap: (student) => _StudentRow.open(context, student),
       empty: DataEmptyView(
-        icon: Icons.people_outline,
+        icon: UniIcons.students(),
         message: query.isEmpty
             ? 'Aucun étudiant dans l\'annuaire académique.\nLes comptes apparaissent ici une fois inscrits.'
             : 'Aucun étudiant ne correspond à « $query ».',
@@ -166,14 +167,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       actions: [
         AppButton.secondary(
           label: 'Filtres avancés',
-          icon: Icons.tune,
+          icon: UniIcons.sliders(UniIconStyle.bold),
           onPressed: () {
             // TODO: ouvrir le panneau de filtres avancés
           },
         ),
         AppButton(
           label: 'Ajouter étudiant',
-          icon: Icons.add,
+          icon: UniIcons.add(UniIconStyle.bold),
           onPressed: () {
             // TODO: ouvrir le formulaire de création d'étudiant
           },
@@ -193,8 +194,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher un étudiant...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon:
-            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
+            size: 20, color: AppColors.textMuted),
         filled: true,
         fillColor: AppColors.cardWhite,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -213,7 +214,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
 
     final exportButton = AppButton.secondary(
       label: 'Export',
-      icon: Icons.file_upload_outlined,
+      icon: UniIcons.export(UniIconStyle.bold),
       // Même hauteur que le champ de recherche voisin (bordure comprise).
       height: 48,
       onPressed: () {
@@ -272,7 +273,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         ],
         IconButton(
           onPressed: () => ref.invalidate(directoryProvider),
-          icon: const Icon(Icons.refresh, size: 18),
+          icon: PhosphorIcon(UniIcons.refresh(UniIconStyle.bold), size: 18),
           color: AppColors.textSecondary,
           tooltip: 'Recharger depuis Appwrite',
         ),
@@ -337,7 +338,7 @@ class _FilterDropdown extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.keyboard_arrow_down,
+          PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
               size: 18, color: AppColors.textMuted),
         ],
       ),
@@ -412,13 +413,13 @@ abstract final class _StudentRow {
         mainAxisSize: MainAxisSize.min,
         children: [
           TableActionIcon(
-            icon: Icons.remove_red_eye_outlined,
+            icon: UniIcons.eye(UniIconStyle.bold),
             color: AppColors.primaryBlue,
             tooltip: 'Voir la fiche',
             onPressed: () => open(context, student),
           ),
           TableActionIcon(
-            icon: Icons.edit_outlined,
+            icon: UniIcons.edit(UniIconStyle.bold),
             color: AppColors.warning,
             tooltip: 'Modifier',
             onPressed: () {
@@ -426,7 +427,7 @@ abstract final class _StudentRow {
             },
           ),
           TableActionIcon(
-            icon: Icons.delete_outline,
+            icon: UniIcons.delete(UniIconStyle.bold),
             color: AppColors.danger,
             tooltip: 'Supprimer',
             onPressed: () {

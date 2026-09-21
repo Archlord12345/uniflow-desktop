@@ -14,11 +14,11 @@ import '../providers/navigation_provider.dart';
 import '../repositories/academic_repository.dart';
 import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
-import '../ui/app_button.dart';
 import '../utils/french_date.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/stat_card.dart';
+import '../widgets/uni_icons.dart';
 
 /// Chiffres du tableau de bord d'un apprenant ou d'un enseignant, dans son
 /// périmètre. L'administration ne s'en sert pas : elle a ses compteurs
@@ -214,7 +214,7 @@ class _DashboardHeader extends ConsumerWidget {
         // requêtes tant que le compte ne change pas, et un enseignant qui
         // vient de saisir des notes veut les voir sans se déconnecter.
         TopBarIconButton(
-          icon: Icons.refresh_rounded,
+          icon: UniIcons.refresh(UniIconStyle.bold),
           tooltip: 'Actualiser',
           onTap: () {
             ref.invalidate(dashboardOverviewProvider);
@@ -250,29 +250,33 @@ class _AdminStats extends ConsumerWidget {
             label: 'Étudiants',
             value: count(stats, 'studentCount'),
             hint: 'Comptes actifs',
-            icon: Icons.person_outline,
+            icon: UniIcons.students(),
             iconBackground: AppColors.primaryBlue,
+            index: 0,
           ),
           StatCard(
             label: 'Enseignants',
             value: count(stats, 'teacherCount'),
             hint: 'Comptes actifs',
-            icon: Icons.school_outlined,
+            icon: UniIcons.teachers(),
             iconBackground: AppColors.teal,
+            index: 1,
           ),
           StatCard(
             label: 'Cours actifs',
             value: count(stats, 'courseCount'),
             hint: 'Toutes filières',
-            icon: Icons.badge_outlined,
+            icon: UniIcons.courses(),
             iconBackground: AppColors.warning,
+            index: 2,
           ),
           StatCard(
             label: 'Sessions',
             value: count(stats, 'sessionCount'),
             hint: 'Historique',
-            icon: Icons.event_note_outlined,
+            icon: UniIcons.schedule(),
             iconBackground: AppColors.purple,
+            index: 3,
           ),
         ],
       ),
@@ -324,24 +328,27 @@ class _RoleStats extends ConsumerWidget {
           label: 'Mes cours',
           value: '${overview.courseCount}',
           hint: 'Ce semestre',
-          icon: Icons.menu_book_outlined,
+          icon: UniIcons.courses(),
           iconBackground: AppColors.primaryBlue,
+          index: 0,
         ),
         StatCard(
           label: 'Devoirs à rendre',
           value: '${overview.assignmentCount}',
           hint:
               overview.assignmentCount == 0 ? 'Rien en attente' : 'En attente',
-          icon: Icons.task_outlined,
+          icon: UniIcons.assignments(),
           iconBackground: AppColors.warning,
+          index: 1,
         ),
         StatCard(
           label: 'Moyenne générale',
           value: overview.averageLabel,
           hint:
               '${overview.gradeCount} note${overview.gradeCount > 1 ? 's' : ''}',
-          icon: Icons.grade_outlined,
+          icon: UniIcons.grades(),
           iconBackground: AppColors.teal,
+          index: 2,
         ),
         StatCard(
           label: 'Taux de présence',
@@ -349,8 +356,9 @@ class _RoleStats extends ConsumerWidget {
           hint: overview.attendanceRate == null
               ? 'Aucun appel enregistré'
               : 'Depuis la rentrée',
-          icon: Icons.event_available_outlined,
+          icon: UniIcons.attendance(),
           iconBackground: AppColors.purple,
+          index: 3,
         ),
       ];
     }
@@ -359,22 +367,25 @@ class _RoleStats extends ConsumerWidget {
         label: 'Mes cours',
         value: '${overview.courseCount}',
         hint: 'Enseignements',
-        icon: Icons.menu_book_outlined,
+        icon: UniIcons.courses(),
         iconBackground: AppColors.primaryBlue,
+        index: 0,
       ),
       StatCard(
         label: 'Mes étudiants',
         value: '${overview.studentCount}',
         hint: 'Inscrits à mes cours',
-        icon: Icons.people_alt_outlined,
+        icon: UniIcons.students(),
         iconBackground: AppColors.teal,
+        index: 1,
       ),
       StatCard(
         label: 'Devoirs créés',
         value: '${overview.assignmentCount}',
         hint: 'Tous mes cours',
-        icon: Icons.task_outlined,
+        icon: UniIcons.assignments(),
         iconBackground: AppColors.warning,
+        index: 2,
       ),
       StatCard(
         label: 'Notes saisies',
@@ -382,8 +393,9 @@ class _RoleStats extends ConsumerWidget {
         hint: overview.averageOn20 == null
             ? 'Aucune note'
             : 'Moyenne ${overview.averageLabel}',
-        icon: Icons.grade_outlined,
+        icon: UniIcons.grades(),
         iconBackground: AppColors.purple,
+        index: 3,
       ),
     ];
   }
@@ -396,6 +408,15 @@ class _QuickActions extends ConsumerWidget {
 
   const _QuickActions({required this.destinations});
 
+  /// Une couleur de la palette par raccourci, pour que la rangée se lise
+  /// comme une suite de tuiles distinctes et non quatre boutons gris.
+  static const List<Color> _palette = [
+    AppColors.primaryBlue,
+    AppColors.teal,
+    AppColors.warning,
+    AppColors.purple,
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return _Card(
@@ -404,17 +425,93 @@ class _QuickActions extends ConsumerWidget {
         spacing: AppSpacing.sm,
         runSpacing: AppSpacing.sm,
         children: [
-          for (final destination in destinations)
-            AppButton.secondary(
-              key: ValueKey('quick-${destination.id}'),
-              label: destination.label,
-              icon: destination.icon,
-              height: 40,
-              onPressed: () => ref
-                  .read(currentDestinationProvider.notifier)
-                  .state = destination,
+          for (var i = 0; i < destinations.length; i++)
+            _QuickActionTile(
+              key: ValueKey('quick-${destinations[i].id}'),
+              destination: destinations[i],
+              color: _palette[i % _palette.length],
+              index: i,
+              onTap: () => ref.read(currentDestinationProvider.notifier).state =
+                  destinations[i],
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Raccourci « tuile + libellé » : la tuile Phosphor `filled` porte
+/// l'identité de l'écran, le libellé la nomme. Toute la carte est cliquable,
+/// pas seulement la tuile, sinon un clic sur le texte ne faisait rien.
+class _QuickActionTile extends StatefulWidget {
+  final AppDestination destination;
+  final Color color;
+  final int index;
+  final VoidCallback onTap;
+
+  const _QuickActionTile({
+    super.key,
+    required this.destination,
+    required this.color,
+    required this.index,
+    required this.onTap,
+  });
+
+  @override
+  State<_QuickActionTile> createState() => _QuickActionTileState();
+}
+
+class _QuickActionTileState extends State<_QuickActionTile> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.fromLTRB(10, 10, 16, 10),
+            decoration: BoxDecoration(
+              color: _hovered ? AppColors.inputFill : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.inputBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconTile(
+                  icon: widget.destination.icon(),
+                  color: widget.color,
+                  size: 44,
+                  index: widget.index,
+                  semanticLabel: widget.destination.label,
+                ),
+                const SizedBox(width: 12),
+                // Borné : « Unités d'enseignement » sur une fenêtre étroite
+                // doit se tronquer plutôt que d'élargir la tuile hors du Wrap.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: Text(
+                    widget.destination.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -946,10 +1043,10 @@ class _ActivityRow extends StatelessWidget {
 
   const _ActivityRow({required this.entry});
 
-  static const Map<ActivityKind, IconData> _icons = {
-    ActivityKind.enrollment: Icons.person_add_alt_outlined,
-    ActivityKind.course: Icons.menu_book_outlined,
-    ActivityKind.schedule: Icons.schedule_outlined,
+  static final Map<ActivityKind, IconData> _icons = {
+    ActivityKind.enrollment: UniIcons.addPerson(),
+    ActivityKind.course: UniIcons.courses(),
+    ActivityKind.schedule: UniIcons.clock(),
   };
 
   static const Map<ActivityKind, Color> _colors = {
@@ -995,14 +1092,12 @@ class _ActivityRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(9)),
-            child: Icon(_icons[entry.kind] ?? Icons.circle_outlined,
-                size: 17, color: color),
+          IconTile(
+            icon: _icons[entry.kind] ?? UniIcons.tray(),
+            color: color,
+            size: 36,
+            variant: IconTileVariant.soft,
+            semanticLabel: _title,
           ),
           const SizedBox(width: 12),
           Expanded(

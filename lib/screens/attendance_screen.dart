@@ -20,6 +20,7 @@ import '../ui/app_data_table.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 import 'academic_management_screens.dart' show selectedCourseIdProvider;
 
 /// Présences : séances d'un cours, appel manuel, émission du QR de séance
@@ -73,7 +74,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             if (canRoll && courseId != null && _tab == 0)
               AppButton(
                 label: 'Faire l\'appel',
-                icon: Icons.playlist_add_check_outlined,
+                icon: UniIcons.checks(UniIconStyle.bold),
                 onPressed: () => _newRoll(context, courseId),
               ),
           ],
@@ -86,15 +87,17 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SegmentedButton<int>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                       value: 0,
-                      icon: Icon(Icons.event_note_outlined, size: 16),
-                      label: Text('Séances')),
+                      icon: PhosphorIcon(UniIcons.schedule(UniIconStyle.bold),
+                          size: 16),
+                      label: const Text('Séances')),
                   ButtonSegment(
                       value: 1,
-                      icon: Icon(Icons.insights_outlined, size: 16),
-                      label: Text('Assiduité')),
+                      icon: PhosphorIcon(UniIcons.grades(UniIconStyle.bold),
+                          size: 16),
+                      label: const Text('Assiduité')),
                 ],
                 selected: {_tab},
                 onSelectionChanged: (s) => setState(() => _tab = s.first),
@@ -110,8 +113,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             transitionBuilder: pageTransition,
             child: _tab == 0
                 ? (courseId == null
-                    ? const DataEmptyView(
-                        icon: Icons.event_available_outlined,
+                    ? DataEmptyView(
+                        icon: UniIcons.attendance(),
                         message: 'Aucun cours dans votre périmètre.')
                     : _SessionsView(
                         key: ValueKey(courseId),
@@ -196,7 +199,7 @@ class _SessionsView extends ConsumerWidget {
       data: (items) {
         if (items.isEmpty) {
           return DataEmptyView(
-            icon: Icons.event_note_outlined,
+            icon: UniIcons.attendance(),
             message: canRoll
                 ? 'Aucune séance pour ce cours. « Faire l\'appel » crée la séance du jour.'
                 : 'Aucune séance enregistrée pour ce cours.',
@@ -273,7 +276,8 @@ class _SessionList extends StatelessWidget {
                 dense: true,
                 selected: sessions[i].id == selected,
                 selectedTileColor: AppColors.primary50,
-                leading: const Icon(Icons.event_outlined, size: 18),
+                leading: PhosphorIcon(UniIcons.schedule(UniIconStyle.bold),
+                    size: 18),
                 title: Text(_formatDate(sessions[i].date),
                     style: const TextStyle(
                         fontSize: 13.5, fontWeight: FontWeight.w600)),
@@ -320,13 +324,13 @@ class _SessionDetail extends ConsumerWidget {
               if (canRoll) ...[
                 AppButton.secondary(
                   label: 'Émettre le QR',
-                  icon: Icons.qr_code_2,
+                  icon: UniIcons.attendance(UniIconStyle.bold),
                   height: _inlineButtonHeight,
                   onPressed: () => _issueQr(context, ref),
                 ),
                 AppButton.secondary(
                   label: 'Corriger l\'appel',
-                  icon: Icons.edit_outlined,
+                  icon: UniIcons.edit(UniIconStyle.bold),
                   height: _inlineButtonHeight,
                   onPressed: () async {
                     final saved = await showDialog<bool>(
@@ -629,7 +633,7 @@ class _QrDialogState extends ConsumerState<_QrDialog> {
       actions: [
         AppButton.ghost(
           label: 'Copier le jeton',
-          icon: Icons.copy,
+          icon: UniIcons.copy(UniIconStyle.bold),
           onPressed: () {
             Clipboard.setData(ClipboardData(text: widget.qr.token));
             showFeedback(context, message: 'Jeton copié.');
@@ -711,7 +715,7 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
                       if (widget.date == null)
                         AppButton.ghost(
                           label: 'Changer la date',
-                          icon: Icons.event_outlined,
+                          icon: UniIcons.schedule(UniIconStyle.bold),
                           height: 36,
                           onPressed: () async {
                             final picked = await showDatePicker(
@@ -863,8 +867,8 @@ class _AttendanceStatsView extends ConsumerWidget {
           error: e, onRetry: () => ref.invalidate(studentAttendanceProvider)),
       data: (students) {
         if (students.isEmpty) {
-          return const DataEmptyView(
-            icon: Icons.insights_outlined,
+          return DataEmptyView(
+            icon: UniIcons.grades(),
             message:
                 'Aucun émargement enregistré : l\'assiduité se calcule depuis les séances.',
           );

@@ -27,6 +27,7 @@ import '../ui/app_dialog.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 
 // ---------------------------------------------------------------------------
 // Sélecteur de cours commun
@@ -131,7 +132,7 @@ class AssignmentsManagementScreen extends ConsumerWidget {
             if (canEdit)
               AppButton(
                 label: 'Nouveau devoir',
-                icon: Icons.add,
+                icon: UniIcons.add(UniIconStyle.bold),
                 onPressed: courseId == null
                     ? null
                     : () => _openEditor(context, ref, courseId: courseId),
@@ -148,10 +149,12 @@ class AssignmentsManagementScreen extends ConsumerWidget {
                 const DataLoadingView(label: 'Chargement de vos cours…'),
             error: (e, _) => DataErrorView(
                 error: e, onRetry: () => ref.invalidate(scopedCoursesProvider)),
-            data: (_) {
+            data: (courseList) {
+              final course =
+                  courseList.where((c) => c.id == courseId).firstOrNull;
               if (courseId == null) {
-                return const DataEmptyView(
-                  icon: Icons.task_outlined,
+                return DataEmptyView(
+                  icon: UniIcons.assignments(),
                   message:
                       'Aucun cours dans votre périmètre : les devoirs s\'affichent par cours.',
                 );
@@ -168,7 +171,7 @@ class AssignmentsManagementScreen extends ConsumerWidget {
                 data: (items) {
                   if (items.isEmpty) {
                     return DataEmptyView(
-                      icon: Icons.task_outlined,
+                      icon: UniIcons.assignments(),
                       message: canEdit
                           ? 'Aucun devoir pour ce cours. Créez le premier avec « Nouveau devoir ».'
                           : 'Aucun devoir publié pour ce cours.',
@@ -181,6 +184,8 @@ class AssignmentsManagementScreen extends ConsumerWidget {
                       index: i,
                       child: _AssignmentCard(
                         assignment: items[i],
+                        courseName: course?.name,
+                        index: i,
                         canEdit: canEdit,
                         onEdit: () => _openEditor(context, ref,
                             courseId: courseId, existing: items[i]),
@@ -250,6 +255,11 @@ class AssignmentsManagementScreen extends ConsumerWidget {
 
 class _AssignmentCard extends StatelessWidget {
   final AcademicAssignment assignment;
+
+  /// Nom du cours (le devoir ne porte que le code) : c'est lui qui donne
+  /// l'icône de matière, le code seul (« INF201 ») ne dit rien.
+  final String? courseName;
+  final int index;
   final bool canEdit;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -257,6 +267,8 @@ class _AssignmentCard extends StatelessWidget {
 
   const _AssignmentCard({
     required this.assignment,
+    this.courseName,
+    this.index = 0,
     required this.canEdit,
     required this.onEdit,
     required this.onDelete,
@@ -267,6 +279,7 @@ class _AssignmentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final due = DateTime.tryParse(assignment.dueDate);
     final overdue = due != null && due.isBefore(DateTime.now());
+    final subjectTint = subjectColor(assignment.courseCode);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(18),
@@ -278,16 +291,16 @@ class _AssignmentCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: (overdue ? AppColors.textMuted : AppColors.primaryBlue)
-                  .withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.task_outlined,
-                color: overdue ? AppColors.textMuted : AppColors.primaryBlue),
+          // Un devoir en retard passe en gris : la couleur de matière ne
+          // doit pas donner l'impression qu'il est encore d'actualité.
+          IconTile(
+            icon: subjectIcon(courseName ?? assignment.title,
+                code: assignment.courseCode),
+            color: overdue ? AppColors.textMuted : subjectTint,
+            size: 44,
+            variant: overdue ? IconTileVariant.soft : IconTileVariant.filled,
+            index: index,
+            semanticLabel: assignment.courseCode,
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -330,15 +343,17 @@ class _AssignmentCard extends StatelessWidget {
                 IconButton(
                     tooltip: 'Rendus et correction',
                     onPressed: onSubmissions,
-                    icon: const Icon(Icons.fact_check_outlined, size: 20)),
+                    icon: PhosphorIcon(UniIcons.checks(UniIconStyle.bold),
+                        size: 20)),
                 IconButton(
                     tooltip: 'Modifier',
                     onPressed: onEdit,
-                    icon: const Icon(Icons.edit_outlined, size: 20)),
+                    icon: PhosphorIcon(UniIcons.edit(UniIconStyle.bold),
+                        size: 20)),
                 IconButton(
                     tooltip: 'Supprimer',
                     onPressed: onDelete,
-                    icon: const Icon(Icons.delete_outline,
+                    icon: PhosphorIcon(UniIcons.delete(UniIconStyle.bold),
                         size: 20, color: AppColors.textMuted)),
               ],
             ),
@@ -501,9 +516,11 @@ class _AssignmentEditorDialogState
                 onTap: _pickDate,
                 borderRadius: BorderRadius.circular(10),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                       labelText: 'Date limite',
-                      prefixIcon: Icon(Icons.event_outlined, size: 19)),
+                      prefixIcon: PhosphorIcon(
+                          UniIcons.schedule(UniIconStyle.bold),
+                          size: 19)),
                   child: Text(_formatDateTime(_due)),
                 ),
               ),
@@ -560,9 +577,8 @@ class _SubmissionsScreen extends ConsumerWidget {
             onRetry: () => ref.invalidate(_submissionsProvider(assignment.id))),
         data: (items) {
           if (items.isEmpty) {
-            return const DataEmptyView(
-                icon: Icons.inbox_outlined,
-                message: 'Aucun rendu pour l\'instant.');
+            return DataEmptyView(
+                icon: UniIcons.tray(), message: 'Aucun rendu pour l\'instant.');
           }
           return ListView.builder(
             padding: const EdgeInsets.all(28),
@@ -611,7 +627,9 @@ class _SubmissionsScreen extends ConsumerWidget {
                           onPressed: () => launchUrl(Uri.parse(ref
                               .read(appwriteServiceProvider)
                               .fileViewUrl(s.fileId))),
-                          icon: const Icon(Icons.attach_file, size: 20),
+                          icon: PhosphorIcon(
+                              UniIcons.attachment(UniIconStyle.bold),
+                              size: 20),
                         ),
                       AppButton.secondary(
                         label: s.score == null ? 'Noter' : 'Modifier la note',
@@ -730,7 +748,7 @@ class GradesManagementScreen extends ConsumerWidget {
             if (courseId != null)
               AppButton(
                 label: 'Nouvelle évaluation',
-                icon: Icons.add,
+                icon: UniIcons.add(UniIconStyle.bold),
                 onPressed: () => _addEvaluation(context, ref, courseId),
               ),
           ],
@@ -741,8 +759,8 @@ class GradesManagementScreen extends ConsumerWidget {
                 Align(alignment: Alignment.centerLeft, child: _CoursePicker())),
         Expanded(
           child: courseId == null
-              ? const DataEmptyView(
-                  icon: Icons.grade_outlined,
+              ? DataEmptyView(
+                  icon: UniIcons.grades(),
                   message: 'Aucun cours dans votre périmètre.')
               : ref.watch(_rosterProvider(courseId)).when(
                     loading: () => const DataLoadingView(
@@ -808,8 +826,8 @@ class _GradeGrid extends ConsumerWidget {
       ...pending.where((p) => !roster.evaluationTitles.contains(p))
     ];
     if (roster.students.isEmpty) {
-      return const DataEmptyView(
-          icon: Icons.people_outline,
+      return DataEmptyView(
+          icon: UniIcons.students(),
           message: 'Aucun apprenant inscrit à ce cours.');
     }
     // Une colonne par évaluation, de largeur fixe pour que les notes restent
@@ -1020,10 +1038,17 @@ class _MyGradesView extends ConsumerWidget {
                 error: e, onRetry: () => ref.invalidate(_myGradesProvider)),
             data: (items) {
               if (items.isEmpty) {
-                return const DataEmptyView(
-                    icon: Icons.grade_outlined,
+                return DataEmptyView(
+                    icon: UniIcons.grades(),
                     message: 'Aucune note publiée pour l\'instant.');
               }
+              // Les notes ne portent que le code du cours ; le nom, quand la
+              // liste des cours est déjà chargée, donne une icône parlante.
+              final courseNames = {
+                for (final c in ref.watch(scopedCoursesProvider).valueOrNull ??
+                    const <AcademicCourse>[])
+                  c.code: c.name,
+              };
               final byCourse = <String, List<AcademicGrade>>{};
               for (final g in items) {
                 byCourse.putIfAbsent(g.courseCode, () => []).add(g);
@@ -1047,7 +1072,28 @@ class _MyGradesView extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(codes[i], style: AppTextStyles.h3),
+                          Row(
+                            children: [
+                              IconTile(
+                                icon: subjectIcon(
+                                    courseNames[codes[i]] ?? codes[i],
+                                    code: codes[i]),
+                                color: subjectColor(codes[i]),
+                                size: 36,
+                                index: i,
+                                semanticLabel: codes[i],
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  courseNames[codes[i]] ?? codes[i],
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.h3,
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 10),
                           Wrap(
                             spacing: 10,
@@ -1159,7 +1205,7 @@ class LibraryManagementScreen extends ConsumerWidget {
             if (canUpload)
               AppButton(
                 label: 'Téléverser',
-                icon: Icons.cloud_upload_outlined,
+                icon: UniIcons.upload(UniIconStyle.bold),
                 onPressed: () => _upload(context, ref),
               ),
           ],
@@ -1172,8 +1218,8 @@ class LibraryManagementScreen extends ConsumerWidget {
                 error: e, onRetry: () => ref.invalidate(libraryProvider)),
             data: (list) {
               if (list.isEmpty) {
-                return const DataEmptyView(
-                    icon: Icons.library_books_outlined,
+                return DataEmptyView(
+                    icon: UniIcons.library(),
                     message: 'Aucune ressource pour l\'instant.');
               }
               return SingleChildScrollView(
@@ -1340,14 +1386,22 @@ class _LibraryCard extends StatelessWidget {
   final VoidCallback? onOpen;
   const _LibraryCard({required this.item, this.onOpen});
 
-  IconData get _icon => switch (item.type.toUpperCase()) {
-        'PDF' => Icons.picture_as_pdf_outlined,
-        'PPT' || 'PPTX' => Icons.slideshow_outlined,
-        'XLS' || 'XLSX' => Icons.table_chart_outlined,
-        'PNG' || 'JPG' || 'JPEG' => Icons.image_outlined,
-        'ZIP' => Icons.folder_zip_outlined,
-        _ => Icons.description_outlined,
-      };
+  IconData get _icon {
+    const style = UniIcons.defaultStyle;
+    return switch (item.type.toUpperCase()) {
+      'PDF' => UniIcons.filePdf(style),
+      'PPT' || 'PPTX' => UniIcons.filePpt(style),
+      'XLS' || 'XLSX' => UniIcons.fileXls(style),
+      'PNG' || 'JPG' || 'JPEG' => UniIcons.fileImage(style),
+      'ZIP' => UniIcons.fileZip(style),
+      _ => UniIcons.fileText(style),
+    };
+  }
+
+  /// Couleur de la ressource : celle de son cours quand il est renseigné,
+  /// pour que la bibliothèque reprenne le code couleur des autres écrans.
+  Color get _tint =>
+      item.course.isEmpty ? AppColors.primaryBlue : subjectColor(item.course);
 
   @override
   Widget build(BuildContext context) {
@@ -1367,13 +1421,12 @@ class _LibraryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                      color: AppColors.primary50,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Icon(_icon, color: AppColors.primaryBlue, size: 22),
+                IconTile(
+                  icon: _icon,
+                  color: _tint,
+                  size: 44,
+                  variant: IconTileVariant.soft,
+                  semanticLabel: item.type.isEmpty ? 'Document' : item.type,
                 ),
                 const Spacer(),
                 if (item.type.isNotEmpty)
@@ -1415,12 +1468,12 @@ class _LibraryCard extends StatelessWidget {
             ],
             if (onOpen != null) ...[
               const SizedBox(height: 12),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.open_in_new,
+                  PhosphorIcon(UniIcons.openExternal(UniIconStyle.bold),
                       size: 14, color: AppColors.primaryBlue),
-                  SizedBox(width: 6),
-                  Text('Ouvrir',
+                  const SizedBox(width: 6),
+                  const Text('Ouvrir',
                       style: TextStyle(
                           fontSize: 12.5,
                           color: AppColors.primaryBlue,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 
 export '../widgets/app_text_field.dart' show AppTextField;
 export '../widgets/auth_chrome.dart'
@@ -86,7 +87,8 @@ class SearchField extends StatelessWidget {
             color: colors.text),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(Icons.search, size: 18, color: colors.muted),
+          prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
+              size: 18, color: colors.muted),
           isDense: true,
           filled: true,
           fillColor: colors.surfaceMuted,

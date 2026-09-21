@@ -11,6 +11,7 @@ import '../ui/toast.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/simple_tab_bar.dart';
+import '../widgets/uni_icons.dart';
 
 /// Page "Programmes & Facultés" : arborescence Université > Filière > Niveau
 /// à gauche, détail du niveau sélectionné à droite.
@@ -66,7 +67,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           actions: [
             AppButton(
               label: 'Ajouter programme',
-              icon: Icons.add,
+              icon: UniIcons.add(UniIconStyle.bold),
               onPressed: () => Toast.info(
                 context,
                 'Les programmes se créent depuis les UE.',
@@ -90,9 +91,9 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             ),
             data: (faculties) {
               if (faculties.isEmpty) {
-                return const Center(
+                return Center(
                   child: DataEmptyView(
-                    icon: Icons.account_tree_outlined,
+                    icon: UniIcons.treeStructure(UniIcons.defaultStyle),
                     title: 'Aucune UE enregistrée',
                     message:
                         'L\'arborescence se construit à partir de la collection '
@@ -216,12 +217,12 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher une filière, un niveau...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon:
-            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
+            size: 20, color: AppColors.textMuted),
         suffixIcon: _query.isEmpty
             ? null
             : IconButton(
-                icon: const Icon(Icons.close, size: 18),
+                icon: PhosphorIcon(UniIcons.close(UniIconStyle.bold), size: 18),
                 onPressed: () {
                   _searchController.clear();
                   setState(() => _query = '');
@@ -273,15 +274,15 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                Icon(
+                PhosphorIcon(
                   isExpanded
-                      ? Icons.keyboard_arrow_down
-                      : Icons.keyboard_arrow_right,
+                      ? UniIcons.chevronDown(UniIconStyle.bold)
+                      : UniIcons.chevronRight(UniIconStyle.bold),
                   size: 18,
                   color: AppColors.textMuted,
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.account_balance_outlined,
+                PhosphorIcon(UniIcons.university(),
                     size: 18, color: AppColors.primaryBlue),
                 const SizedBox(width: 8),
                 Expanded(
@@ -331,10 +332,10 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
             child: Row(
               children: [
-                Icon(
+                PhosphorIcon(
                   isExpanded
-                      ? Icons.keyboard_arrow_down
-                      : Icons.keyboard_arrow_right,
+                      ? UniIcons.chevronDown(UniIconStyle.bold)
+                      : UniIcons.chevronRight(UniIconStyle.bold),
                   size: 16,
                   color: AppColors.textMuted,
                 ),
@@ -389,8 +390,10 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         ),
         child: Row(
           children: [
-            Icon(
-              isSelected ? Icons.check_circle : Icons.circle_outlined,
+            PhosphorIcon(
+              isSelected
+                  ? UniIcons.checkCircle(UniIconStyle.fill)
+                  : UniIcons.circle(UniIconStyle.bold),
               size: 15,
               color: isSelected ? AppColors.primaryBlue : AppColors.textMuted,
             ),
@@ -557,11 +560,25 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
       rows: modules,
       rowHeight: 44,
       cells: (module, _) => [
-        Text(module.name,
-            style:
-                const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PhosphorIcon(
+              subjectIcon(module.name, code: module.code),
+              size: 16,
+              color:
+                  subjectColor(module.code.isEmpty ? module.name : module.code),
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(module.name,
+                  style: const TextStyle(
+                      fontSize: 13.5, color: AppColors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
         Text(module.code,
             style:
                 const TextStyle(fontSize: 13, color: AppColors.textSecondary),
@@ -576,9 +593,9 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
               color: AppColors.textPrimary),
         ),
       ],
-      empty: const DataEmptyView(
+      empty: DataEmptyView(
         compact: true,
-        icon: Icons.menu_book_outlined,
+        icon: UniIcons.teachingUnits(),
         message: 'Aucune UE enregistrée pour ce niveau.',
       ),
     );
@@ -586,11 +603,11 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
 
   Widget _buildTeachers(List<String> teachers) {
     if (teachers.isEmpty) {
-      return const SurfaceCard(
+      return SurfaceCard(
         padding: EdgeInsets.zero,
         child: DataEmptyView(
           compact: true,
-          icon: Icons.school_outlined,
+          icon: UniIcons.teachers(),
           message: 'Aucun enseignant renseigné sur les UE de ce niveau.',
         ),
       );
@@ -619,7 +636,7 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
                         color: AppColors.inputFill,
                         borderRadius: BorderRadius.circular(9),
                       ),
-                      child: const Icon(Icons.person_outline,
+                      child: PhosphorIcon(UniIcons.person(),
                           size: 17, color: AppColors.textSecondary),
                     ),
                     const SizedBox(width: 12),

@@ -9,6 +9,7 @@ import '../providers/auth_provider.dart';
 import '../providers/directory_provider.dart';
 import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/app_dialog.dart';
@@ -80,7 +81,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
             if (isAdmin)
               AppButton(
                 label: 'Ajouter une salle',
-                icon: Icons.add,
+                icon: UniIcons.add(UniIconStyle.bold),
                 onPressed: () => _edit(context),
               ),
           ],
@@ -144,7 +145,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                 : const SizedBox.shrink(),
       ),
       empty: DataEmptyView(
-        icon: Icons.meeting_room_outlined,
+        icon: UniIcons.room(),
         message: query.isEmpty
             ? (isAdmin
                 ? 'Aucune salle au catalogue. Ajoutez la première avec « Ajouter une salle ».'
@@ -156,7 +157,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         actions: [
           IconButton(
             onPressed: _refresh,
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: PhosphorIcon(UniIcons.refresh(UniIconStyle.bold), size: 18),
             color: AppColors.textSecondary,
             tooltip: 'Recharger depuis Appwrite',
           ),
@@ -212,8 +213,8 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher une salle, un bâtiment...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon:
-            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
+            size: 20, color: AppColors.textMuted),
         filled: true,
         fillColor: AppColors.cardWhite,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -254,10 +255,10 @@ abstract final class _ClassroomRow {
     return [
       Row(
         children: [
-          Icon(
+          PhosphorIcon(
             classroom.isCatalogued
-                ? Icons.meeting_room_outlined
-                : Icons.help_outline,
+                ? UniIcons.room()
+                : UniIcons.help(UniIconStyle.bold),
             size: 18,
             color: AppColors.textMuted,
           ),
@@ -318,13 +319,13 @@ abstract final class _ClassroomRow {
       mainAxisSize: MainAxisSize.min,
       children: [
         TableActionIcon(
-          icon: Icons.edit_outlined,
+          icon: UniIcons.edit(UniIconStyle.bold),
           color: AppColors.warning,
           tooltip: 'Modifier',
           onPressed: onEdit,
         ),
         TableActionIcon(
-          icon: Icons.delete_outline,
+          icon: UniIcons.delete(UniIconStyle.bold),
           color: AppColors.danger,
           tooltip: 'Retirer',
           onPressed: onDelete,

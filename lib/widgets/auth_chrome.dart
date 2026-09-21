@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_role.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 import 'motion.dart';
 import 'uni/archlord_mascot.dart';
 import 'uni/mascot_dialogue.dart';
@@ -278,28 +279,28 @@ class _FormColumn extends StatelessWidget {
 
 /// Arguments affichés sur le panneau de marque — les trois du web
 /// (`LoginPage.tsx`), pour que les deux clients racontent la même chose.
-const List<({IconData icon, String title, String desc, Color color})>
+final List<({IconData icon, String title, String desc, Color color})>
     kAuthFeatures = [
   (
-    icon: Icons.school_outlined,
+    icon: UniIcons.students(UniIcons.defaultStyle),
     title: 'Gestion académique complète',
     desc:
         'Cours, devoirs, notes et emploi du temps centralisés en un seul endroit.',
-    color: Color(0xFF34D399),
+    color: const Color(0xFF34D399),
   ),
   (
-    icon: Icons.wifi_tethering_outlined,
+    icon: UniIcons.online(UniIcons.defaultStyle),
     title: 'Accès résilient',
     desc:
         'Les données consultées restent disponibles ; les opérations sensibles exigent une session active.',
-    color: Color(0xFF60A5FA),
+    color: const Color(0xFF60A5FA),
   ),
   (
-    icon: Icons.verified_user_outlined,
+    icon: UniIcons.security(UniIcons.defaultStyle),
     title: 'Rôles contrôlés',
     desc:
         'La session Appwrite et les permissions par rôle encadrent chaque accès.',
-    color: Color(0xFFC084FC),
+    color: const Color(0xFFC084FC),
   ),
 ];
 
@@ -534,7 +535,7 @@ class _FeatureCardState extends State<_FeatureCard> {
                 color: Colors.white.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(f.icon, size: 22, color: f.color),
+              child: PhosphorIcon(f.icon, size: 22, color: f.color),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -623,7 +624,7 @@ class GradientButton extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (icon != null) ...[
-                          Icon(icon, size: 18, color: Colors.white),
+                          PhosphorIcon(icon!, size: 18, color: Colors.white),
                           const SizedBox(width: 8),
                         ],
                         Flexible(
@@ -664,7 +665,8 @@ class ErrorBanner extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
+            PhosphorIcon(UniIcons.warningCircle(UniIconStyle.bold),
+                size: 18, color: AppColors.danger),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
@@ -706,7 +708,7 @@ class AccountTypeSelector extends StatelessWidget {
         Expanded(
           child: _TypeCard(
             selected: value == AccountType.university,
-            icon: Icons.account_balance_outlined,
+            icon: UniIcons.university(UniIconStyle.bold),
             title: 'Universitaire',
             subtitle: 'Rattaché à un établissement',
             onTap: () => onChanged(AccountType.university),
@@ -716,7 +718,7 @@ class AccountTypeSelector extends StatelessWidget {
         Expanded(
           child: _TypeCard(
             selected: value == AccountType.personal,
-            icon: Icons.person_outline,
+            icon: UniIcons.person(UniIconStyle.bold),
             title: 'Indépendant',
             subtitle: 'Espace personnel libre',
             onTap: () => onChanged(AccountType.personal),
@@ -761,7 +763,7 @@ class _TypeCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon,
+            PhosphorIcon(icon,
                 size: 22,
                 color: selected ? AppColors.primaryBlue : AppColors.textMuted),
             const SizedBox(width: 10),
@@ -835,8 +837,8 @@ class AuthDropdown<T> extends StatelessWidget {
           key: ValueKey(value),
           initialValue: value,
           isExpanded: true,
-          icon:
-              const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
+          icon: PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
+              color: AppColors.textMuted),
           style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
           hint: Text(
             hint,

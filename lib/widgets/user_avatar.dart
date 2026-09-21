@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 import '../utils/avatar.dart';
 
 /// Avatar neutre affichant la photo, ou une silhouette grise sans aucun texte.
@@ -38,8 +39,8 @@ class SilhouetteAvatar extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(color: background, borderRadius: radius),
           alignment: Alignment.center,
-          child:
-              Icon(Icons.person_outline, size: size * 0.5, color: foreground),
+          child: PhosphorIcon(UniIcons.person(UniIconStyle.fill),
+              size: size * 0.5, color: foreground),
         );
 
     final url = avatarUrl(avatarFileId);

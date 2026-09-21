@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 
 /// Filtre déroulant réellement fonctionnel : il remplace les faux menus
 /// déroulants qui affichaient un libellé fixe et n'étaient reliés à rien.
@@ -37,7 +38,7 @@ class FilterDropdown extends StatelessWidget {
         child: DropdownButton<String?>(
           value: safeValue,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down,
+          icon: PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
               size: 18, color: AppColors.textMuted),
           style:
               const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),

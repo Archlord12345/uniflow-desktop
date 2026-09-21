@@ -10,6 +10,7 @@ import '../screens/session_flow.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 import '../widgets/app_sidebar.dart';
+import '../widgets/uni_icons.dart';
 import '../widgets/user_avatar.dart';
 import '../widgets/uni/uni_assistant.dart';
 import '../widgets/uni/uni_scenes.dart';
@@ -240,7 +241,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
               SyncIndicator(state: sync, compact: !roomy),
               const SizedBox(width: AppSpacing.sm),
               _HeaderIconButton(
-                icon: Icons.notifications_none_rounded,
+                icon: UniIcons.notifications(UniIconStyle.bold),
                 tooltip: 'Notifications',
                 badge: unread,
                 onTap: () => widget.onSelect(AppDestination.notifications),
@@ -297,7 +298,8 @@ class _SearchResults extends StatelessWidget {
                     dense: true,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm)),
-                    leading: Icon(d.icon, size: 18, color: colors.primary),
+                    leading: PhosphorIcon(d.icon(UniIconStyle.bold),
+                        size: 18, color: colors.primary),
                     title: Text(d.label,
                         style: TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
@@ -403,8 +405,8 @@ class OfflineBanner extends StatelessWidget {
       color: const Color(0xFFFEF3C7),
       child: Row(
         children: [
-          const Icon(Icons.cloud_off_outlined,
-              size: 16, color: Color(0xFFB45309)),
+          PhosphorIcon(UniIcons.offline(UniIconStyle.bold),
+              size: 16, color: const Color(0xFFB45309)),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -456,7 +458,8 @@ class _HeaderIconButton extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Center(child: Icon(icon, size: 21, color: colors.muted)),
+                Center(
+                    child: PhosphorIcon(icon, size: 21, color: colors.muted)),
                 if (badge > 0)
                   Positioned(
                     top: 6,
@@ -545,25 +548,28 @@ class _AvatarMenu extends ConsumerWidget {
           ),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem(
+        PopupMenuItem(
             value: 'settings',
             child: ListTile(
                 dense: true,
-                leading: Icon(Icons.settings_outlined, size: 18),
-                title: Text('Paramètres'))),
-        const PopupMenuItem(
+                leading: PhosphorIcon(UniIcons.settings(UniIconStyle.bold),
+                    size: 18),
+                title: const Text('Paramètres'))),
+        PopupMenuItem(
             value: 'notifications',
             child: ListTile(
                 dense: true,
-                leading: Icon(Icons.notifications_none_rounded, size: 18),
-                title: Text('Notifications'))),
+                leading: PhosphorIcon(UniIcons.notifications(UniIconStyle.bold),
+                    size: 18),
+                title: const Text('Notifications'))),
         const PopupMenuDivider(),
-        const PopupMenuItem(
+        PopupMenuItem(
             value: 'logout',
             child: ListTile(
                 dense: true,
-                leading: Icon(Icons.logout, size: 18, color: AppColors.danger),
-                title: Text('Se déconnecter',
+                leading: PhosphorIcon(UniIcons.signOut(UniIconStyle.bold),
+                    size: 18, color: AppColors.danger),
+                title: const Text('Se déconnecter',
                     style: TextStyle(color: AppColors.danger)))),
       ],
       child: Padding(
@@ -600,7 +606,8 @@ class _AvatarMenu extends ConsumerWidget {
                   ],
                 ),
               ),
-              Icon(Icons.expand_more, size: 18, color: colors.muted),
+              PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
+                  size: 18, color: colors.muted),
             ],
           ],
         ),

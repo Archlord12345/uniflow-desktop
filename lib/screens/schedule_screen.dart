@@ -11,6 +11,7 @@ import '../ui/app_button.dart';
 import '../ui/status_badge.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
+import '../widgets/uni_icons.dart';
 
 /// Hauteur commune des contrôles de la barre d'outils (sélecteurs, boutons) :
 /// plus basse que les 44 px des boutons de page, la barre est dense.
@@ -121,7 +122,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       color: AppColors.warning100,
       child: Row(
         children: [
-          const Icon(Icons.info_outline,
+          PhosphorIcon(UniIcons.warning(UniIconStyle.bold),
               size: 17, color: AppColors.warningDark),
           const SizedBox(width: 10),
           Expanded(
@@ -141,8 +142,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   /// dit pourquoi, plutôt qu'une grille vide.
   Widget? _scopeNotice(ScheduleScope scope, ScheduleWeek week) {
     if (scope.incomplete) {
-      return const _ScopeNotice(
-        icon: Icons.school_outlined,
+      return _ScopeNotice(
+        icon: UniIcons.students(),
         title: 'Filière ou niveau manquant sur votre profil',
         message:
             'L\'emploi du temps ne montre que les séances de votre filière et de '
@@ -152,8 +153,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       );
     }
     if (scope.needsSelection) {
-      return const _ScopeNotice(
-        icon: Icons.filter_alt_outlined,
+      return _ScopeNotice(
+        icon: UniIcons.filter(),
         title: 'Choisissez une filière',
         message:
             'Sélectionnez une filière, puis un niveau, dans la barre d\'outils '
@@ -161,8 +162,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       );
     }
     if (scope.kind == ScheduleScopeKind.personal) {
-      return const _ScopeNotice(
-        icon: Icons.person_outline,
+      return _ScopeNotice(
+        icon: UniIcons.profile(),
         title: 'Espace personnel',
         message:
             'Les emplois du temps universitaires sont réservés aux comptes '
@@ -172,7 +173,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     }
     if (week.events.isEmpty) {
       return _ScopeNotice(
-        icon: Icons.event_busy_outlined,
+        icon: UniIcons.calendarOff(),
         title: 'Aucune séance publiée',
         message: scope.kind == ScheduleScopeKind.teacher
             ? 'Aucune séance ne vous est attribuée pour l\'instant.'
@@ -290,7 +291,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _RoundIconButton(
-                          icon: Icons.chevron_left,
+                          icon: UniIcons.chevronLeft(UniIconStyle.bold),
                           onTap: () =>
                               ref.read(weekOffsetProvider.notifier).state--,
                         ),
@@ -312,7 +313,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           ),
                         ),
                         _RoundIconButton(
-                          icon: Icons.chevron_right,
+                          icon: UniIcons.chevronRight(UniIconStyle.bold),
                           onTap: () =>
                               ref.read(weekOffsetProvider.notifier).state++,
                         ),
@@ -325,7 +326,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                             child: Tooltip(
                               message: 'Revenir à la semaine en cours',
                               child: _RoundIconButton(
-                                icon: Icons.today_outlined,
+                                icon: UniIcons.today(UniIconStyle.bold),
                                 onTap: () => ref
                                     .read(weekOffsetProvider.notifier)
                                     .state = 0,
@@ -354,7 +355,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               children: [
                 AppButton.secondary(
                   label: 'Export PDF',
-                  icon: Icons.download_outlined,
+                  icon: UniIcons.download(UniIconStyle.bold),
                   height: _toolbarControlHeight,
                   onPressed: () {
                     // TODO: exporter l'emploi du temps en PDF
@@ -362,7 +363,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 ),
                 AppButton.secondary(
                   label: 'Imprimer',
-                  icon: Icons.print_outlined,
+                  icon: UniIcons.printer(UniIconStyle.bold),
                   height: _toolbarControlHeight,
                   onPressed: () {
                     // TODO: imprimer l'emploi du temps
@@ -373,7 +374,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 if (scope.kind == ScheduleScopeKind.selectable)
                   AppButton(
                     label: 'Auto-générer',
-                    icon: Icons.auto_awesome,
+                    icon: UniIcons.assistant(UniIconStyle.bold),
                     height: _toolbarControlHeight,
                     onPressed: () {
                       // TODO: générer automatiquement l'emploi du temps
@@ -571,7 +572,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 const Text('Cours sélectionné', style: AppTextStyles.h2),
                 InkWell(
                   onTap: () => setState(() => _selectedKey = null),
-                  child: const Icon(Icons.close,
+                  child: PhosphorIcon(UniIcons.close(UniIconStyle.bold),
                       size: 20, color: AppColors.textMuted),
                 ),
               ],
@@ -580,11 +581,24 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             StatusBadge.tinted(
                 label: event.type.label, color: event.type.color),
             const SizedBox(height: 10),
-            Text(event.title,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary)),
+            Row(
+              children: [
+                IconTile(
+                  icon: subjectIcon(event.title),
+                  color: subjectColor(event.title),
+                  size: 44,
+                  semanticLabel: event.title,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(event.title,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary)),
+                ),
+              ],
+            ),
             const SizedBox(height: 18),
             _DetailField(label: 'Enseignant', value: event.enseignant),
             _DetailField(
@@ -629,7 +643,7 @@ class _EmptyWeek extends StatelessWidget {
     // dépassait vers le bas de la zone laissée par la barre d'outils.
     return Center(
       child: DataEmptyView(
-        icon: Icons.event_busy_outlined,
+        icon: UniIcons.calendarOff(),
         title: 'Aucun créneau pour cette semaine',
         message:
             'Semaine du ${weekStart.day}/${weekStart.month}/${weekStart.year} — '
@@ -710,14 +724,28 @@ class _EventBlock extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                event.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white),
+              // Icône de matière en tête du titre : le créneau reste à la
+              // couleur de son type (CM/TD/TP), le glyphe dit la matière.
+              Row(
+                children: [
+                  PhosphorIcon(
+                    subjectIcon(event.title, style: UniIconStyle.fill),
+                    size: 13,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      event.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ),
+                  ),
+                ],
               ),
               Text(
                 subtitle,
@@ -751,7 +779,7 @@ class _RoundIconButton extends StatelessWidget {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: AppColors.inputBorder)),
-        child: Icon(icon, size: 18, color: AppColors.textSecondary),
+        child: PhosphorIcon(icon, size: 18, color: AppColors.textSecondary),
       ),
     );
   }
@@ -834,7 +862,7 @@ class _ScopeDropdown extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down,
+            PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
                 size: 16,
                 color: hasValue ? AppColors.primaryBlue : AppColors.textMuted),
           ],
@@ -866,7 +894,7 @@ class _LockedScopeChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lock_outline,
+            PhosphorIcon(UniIcons.lock(UniIconStyle.bold),
                 size: 14, color: AppColors.primaryBlue),
             const SizedBox(width: 6),
             Flexible(

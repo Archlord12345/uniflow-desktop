@@ -16,6 +16,7 @@ import '../ui/table_action_icon.dart';
 import '../ui/toast.dart';
 import '../utils/french_date.dart';
 import '../widgets/data_state_view.dart';
+import '../widgets/uni_icons.dart';
 
 /// Panneau « Présence » de la console des conférences.
 ///
@@ -95,9 +96,9 @@ class _AttendancePanelState extends ConsumerState<AttendancePanel> {
                   style: AppTextStyles.body.copyWith(fontSize: 12.5),
                 );
               }
-              return const DataEmptyView(
+              return DataEmptyView(
                 compact: true,
-                icon: Icons.fact_check_outlined,
+                icon: UniIcons.checks(),
                 title: 'Aucune feuille de présence',
                 message:
                     'La feuille se remplit d\'elle-même pendant une réunion : '
@@ -139,7 +140,7 @@ class _AttendancePanelState extends ConsumerState<AttendancePanel> {
       message: 'Le fichier est dans vos Documents :\n${file.path}',
       confirmLabel: 'Ouvrir le fichier',
       cancelLabel: 'Fermer',
-      icon: Icons.check_circle_outline,
+      icon: UniIcons.checkCircle(UniIconStyle.bold),
     );
     if (!open || !mounted) return;
     final opened = await service.open(file);
@@ -174,7 +175,7 @@ class _AttendancePanelState extends ConsumerState<AttendancePanel> {
         subtitle: '${sheet.hostName.isEmpty ? 'Hôte inconnu' : sheet.hostName}'
             ' · ${formatShortDateTime(sheet.startedAt)}'
             ' · ${formatDurationFr(sheet.durationAt(end))}',
-        icon: Icons.fact_check_outlined,
+        icon: UniIcons.checks(UniIconStyle.bold),
         maxWidth: 860,
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,12 +189,12 @@ class _AttendancePanelState extends ConsumerState<AttendancePanel> {
         actions: [
           AppButton.secondary(
             label: 'PDF',
-            icon: Icons.picture_as_pdf_outlined,
+            icon: UniIcons.filePdf(UniIconStyle.bold),
             onPressed: () => _export(sheet, AttendanceExportFormat.pdf),
           ),
           AppButton.secondary(
             label: 'Excel',
-            icon: Icons.table_view_outlined,
+            icon: UniIcons.fileXls(UniIconStyle.bold),
             onPressed: () => _export(sheet, AttendanceExportFormat.excel),
           ),
           AppButton(
@@ -260,13 +261,13 @@ class _LiveSheet extends StatelessWidget {
                 value: sheet.presenceThreshold, onChanged: onThreshold),
             AppButton.secondary(
               label: 'PDF',
-              icon: Icons.picture_as_pdf_outlined,
+              icon: UniIcons.filePdf(UniIconStyle.bold),
               height: 40,
               onPressed: () => onExport(AttendanceExportFormat.pdf),
             ),
             AppButton.secondary(
               label: 'Excel',
-              icon: Icons.table_view_outlined,
+              icon: UniIcons.fileXls(UniIconStyle.bold),
               height: 40,
               onPressed: () => onExport(AttendanceExportFormat.excel),
             ),
@@ -311,7 +312,7 @@ class _ThresholdPicker extends StatelessWidget {
           hint: Text('Seuil ${(value * 100).round()} %',
               style:
                   const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
-          icon: const Icon(Icons.keyboard_arrow_down,
+          icon: PhosphorIcon(UniIcons.chevronDown(UniIconStyle.bold),
               size: 18, color: AppColors.textMuted),
           style: const TextStyle(
               fontSize: 13,
@@ -537,25 +538,25 @@ class _PastSheets extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               TableActionIcon(
-                icon: Icons.visibility_outlined,
+                icon: UniIcons.eye(UniIconStyle.bold),
                 color: AppColors.primaryBlue,
                 tooltip: 'Voir la feuille',
                 onPressed: () => onOpen(sheet),
               ),
               TableActionIcon(
-                icon: Icons.picture_as_pdf_outlined,
+                icon: UniIcons.filePdf(UniIconStyle.bold),
                 color: AppColors.textSecondary,
                 tooltip: 'Exporter en PDF',
                 onPressed: () => onExport(sheet, AttendanceExportFormat.pdf),
               ),
               TableActionIcon(
-                icon: Icons.table_view_outlined,
+                icon: UniIcons.fileXls(UniIconStyle.bold),
                 color: AppColors.textSecondary,
                 tooltip: 'Exporter en Excel',
                 onPressed: () => onExport(sheet, AttendanceExportFormat.excel),
               ),
               TableActionIcon(
-                icon: Icons.delete_outline,
+                icon: UniIcons.delete(UniIconStyle.bold),
                 color: AppColors.danger,
                 tooltip: 'Supprimer la feuille',
                 onPressed: () => onDelete(sheet),

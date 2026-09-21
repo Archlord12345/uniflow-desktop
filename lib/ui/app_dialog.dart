@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import 'app_button.dart';
 
 /// Dialogue du design system (`Modal.tsx`) : icône dans une pastille
@@ -39,8 +40,7 @@ class AppDialog extends StatelessWidget {
       context: context,
       builder: (context) => AppDialog(
         title: title,
-        icon: icon ??
-            (destructive ? Icons.warning_amber_rounded : Icons.help_outline),
+        icon: icon ?? (destructive ? UniIcons.warning() : UniIcons.help()),
         content: Text(message, style: AppTextStyles.body),
         actions: [
           AppButton.secondary(
@@ -89,7 +89,13 @@ class AppDialog extends StatelessWidget {
                         gradient: AppColors.logoGradient,
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      child: Icon(icon, color: Colors.white, size: 22),
+                      child: PhosphorIcon(
+                        icon!,
+                        color: Colors.white,
+                        size: 22,
+                        duotoneSecondaryColor: Colors.white,
+                        duotoneSecondaryOpacity: 0.45,
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.lg),
                   ],
@@ -113,7 +119,8 @@ class AppDialog extends StatelessWidget {
                   IconButton(
                     tooltip: 'Fermer',
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: Icon(Icons.close, size: 20, color: colors.muted),
+                    icon: PhosphorIcon(UniIcons.close(UniIconStyle.bold),
+                        size: 20, color: colors.muted),
                   ),
                 ],
               ),

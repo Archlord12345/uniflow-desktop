@@ -10,6 +10,7 @@ import '../providers/auth_provider.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../ui/app_button.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/auth_chrome.dart';
@@ -177,7 +178,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             IconButton(
               tooltip: 'Retour à la connexion',
               onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-              icon: const Icon(Icons.arrow_back),
+              icon: PhosphorIcon(UniIcons.back(UniIconStyle.bold)),
             ),
             Expanded(
               child: Text(
@@ -215,7 +216,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           label: 'Nom complet',
           hint: 'Prénom Nom',
           controller: _nameController,
-          prefixIcon: Icons.person_outline,
+          prefixIcon: UniIcons.person(UniIconStyle.bold),
         ),
         const SizedBox(height: 14),
         AppTextField(
@@ -223,7 +224,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           hint: 'prenom.nom@universite.cm',
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          prefixIcon: Icons.mail_outline,
+          prefixIcon: UniIcons.mail(UniIconStyle.bold),
         ),
         const SizedBox(height: 14),
         AppTextField(
@@ -231,7 +232,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           hint: '••••••••',
           controller: _passwordController,
           obscureText: true,
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: UniIcons.lock(UniIconStyle.bold),
         ),
         const SizedBox(height: 14),
         AppTextField(
@@ -239,7 +240,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           hint: '••••••••',
           controller: _confirmController,
           obscureText: true,
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: UniIcons.lock(UniIconStyle.bold),
         ),
         const SizedBox(height: 14),
         AnimatedSize(
@@ -252,7 +253,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: 'Pays (facultatif)',
                   hint: 'Cameroun',
                   controller: _countryController,
-                  prefixIcon: Icons.public_outlined,
+                  prefixIcon: UniIcons.globeSimple(UniIconStyle.bold),
                 ),
         ),
         if (_type == AccountType.university) ...[
@@ -264,12 +265,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.teal100),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, size: 16, color: AppColors.tealDark),
-                SizedBox(width: 8),
-                Flexible(
+                PhosphorIcon(UniIcons.about(UniIconStyle.bold),
+                    size: 16, color: AppColors.tealDark),
+                const SizedBox(width: 8),
+                const Flexible(
                   child: Text(
                     'L\'inscription crée un compte étudiant. Les comptes enseignant, '
                     'délégué et administration sont créés par l\'administration de '
@@ -291,7 +293,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         const SizedBox(height: 12),
         AppButton.ghost(
           label: 'S\'inscrire sur le web',
-          icon: Icons.open_in_new,
+          icon: UniIcons.openExternal(UniIconStyle.bold),
           expand: true,
           onPressed: _busy ? null : _openWebRegistration,
         ),
@@ -328,14 +330,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             label: 'Université',
             hint: 'Nom complet de l\'université',
             controller: _universityFree,
-            prefixIcon: Icons.account_balance_outlined,
+            prefixIcon: UniIcons.university(UniIconStyle.bold),
           ),
           const SizedBox(height: 14),
           AppTextField(
             label: 'Code de filière',
             hint: 'Tel qu\'indiqué par votre établissement',
             controller: _programFree,
-            prefixIcon: Icons.menu_book_outlined,
+            prefixIcon: UniIcons.courses(UniIconStyle.bold),
           ),
           const SizedBox(height: 14),
           AuthDropdown<String>(

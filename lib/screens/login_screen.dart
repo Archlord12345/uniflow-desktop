@@ -8,6 +8,7 @@ import '../models/user_role.dart';
 import '../providers/auth_provider.dart';
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../ui/app_button.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/auth_chrome.dart';
@@ -176,7 +177,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           hint: 'prenom.nom@universite.cm',
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          prefixIcon: Icons.mail_outline,
+          prefixIcon: UniIcons.mail(UniIconStyle.bold),
         ),
         const SizedBox(height: 16),
         AppTextField(
@@ -184,7 +185,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           hint: '••••••••',
           controller: _passwordController,
           obscureText: true,
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: UniIcons.lock(UniIconStyle.bold),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -268,7 +269,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           label: _accountType == AccountType.university
               ? 'Créer un compte étudiant'
               : 'Créer un compte indépendant',
-          icon: Icons.person_add_alt_1_outlined,
+          icon: UniIcons.addPerson(UniIconStyle.bold),
           expand: true,
           height: scale.field - 4,
           onPressed: _isLoading ? null : _openRegister,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/session_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../ui/app_button.dart';
 import '../widgets/motion.dart';
 import 'login_screen.dart';
@@ -35,13 +36,14 @@ class SignOutButton extends ConsumerWidget {
       return IconButton(
         tooltip: 'Se déconnecter',
         onPressed: () => signOutToLogin(context, ref),
-        icon: Icon(Icons.logout_rounded, color: tint, size: 20),
+        icon: PhosphorIcon(UniIcons.signOut(UniIconStyle.bold),
+            color: tint, size: 20),
       );
     }
     return TextButton.icon(
       onPressed: () => signOutToLogin(context, ref),
       style: TextButton.styleFrom(foregroundColor: tint),
-      icon: const Icon(Icons.logout_rounded, size: 18),
+      icon: PhosphorIcon(UniIcons.signOut(UniIconStyle.bold), size: 18),
       label: const Text('Se déconnecter'),
     );
   }
@@ -148,11 +150,12 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: AppColors.danger),
-          SizedBox(width: 10),
-          Expanded(child: Text('Supprimer mon compte')),
+          PhosphorIcon(UniIcons.warning(UniIconStyle.fill),
+              color: AppColors.danger),
+          const SizedBox(width: 10),
+          const Expanded(child: Text('Supprimer mon compte')),
         ],
       ),
       content: SizedBox(

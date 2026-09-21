@@ -1,6 +1,7 @@
 import '../models/app_destination.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../models/student.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
@@ -186,7 +187,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               ),
               AppButton.secondary(
                 label: 'Modifier',
-                icon: Icons.edit_outlined,
+                icon: UniIcons.edit(UniIconStyle.bold),
                 onPressed: () {
                   // TODO: ouvrir le formulaire d'édition de l'étudiant
                 },
@@ -194,7 +195,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               const SizedBox(width: 10),
               AppButton.danger(
                 label: 'Supprimer',
-                icon: Icons.delete_outline,
+                icon: UniIcons.delete(UniIconStyle.bold),
                 onPressed: () {
                   // TODO: confirmer puis supprimer l'étudiant
                 },
@@ -202,7 +203,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               const SizedBox(width: 10),
               AppButton(
                 label: 'Envoyer un message',
-                icon: Icons.mail_outline,
+                icon: UniIcons.mail(UniIconStyle.bold),
                 onPressed: () {
                   // La messagerie s'adresse par pseudo, pas par identifiant
                   // interne : on ouvre l'écran avec le nom de l'étudiant

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 
 /// Champ de saisie custom réutilisé sur tous les formulaires de l'app
 /// (login, création d'étudiant, d'enseignant, etc.)
@@ -60,16 +61,17 @@ class _AppTextFieldState extends State<AppTextField> {
             fillColor: AppColors.inputFill, // fond gris clair du champ
             // icône à gauche (ex: enveloppe pour l'email, cadenas pour le mot de passe)
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, size: 20, color: AppColors.textMuted)
+                ? PhosphorIcon(widget.prefixIcon!,
+                    size: 20, color: AppColors.textMuted)
                 : null,
             // bouton "œil" affiché uniquement si c'est un champ mot de passe,
             // permet de basculer entre texte masqué / visible
             suffixIcon: widget.obscureText
                 ? IconButton(
-                    icon: Icon(
+                    icon: PhosphorIcon(
                       _obscure
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
+                          ? UniIcons.eyeOff(UniIconStyle.bold)
+                          : UniIcons.eye(UniIconStyle.bold),
                       size: 20,
                       color: AppColors.textMuted,
                     ),

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import '../widgets/uni_icons.dart';
 import 'user_role.dart';
 
 /// Section du menu latéral.
@@ -44,14 +43,14 @@ enum AppDestination {
   dashboard(
     'tableau-de-bord',
     'Tableau de bord',
-    Icons.grid_view_rounded,
+    UniIcons.dashboard,
     NavSection.pilotage,
     _everyone,
   ),
   personalWorkspace(
     'espace-personnel',
     'Espace personnel',
-    Icons.auto_awesome_outlined,
+    UniIcons.assistant,
     NavSection.pilotage,
     {UserRole.student, UserRole.teacher},
     personalOnly: true,
@@ -59,7 +58,7 @@ enum AppDestination {
   notifications(
     'notifications',
     'Notifications',
-    Icons.notifications_outlined,
+    UniIcons.notifications,
     NavSection.pilotage,
     _everyone,
   ),
@@ -71,42 +70,42 @@ enum AppDestination {
   students(
     'etudiants',
     'Étudiants',
-    Icons.people_alt_outlined,
+    UniIcons.students,
     NavSection.scolarite,
     {UserRole.delegate, UserRole.teacher, UserRole.admin},
   ),
   teachers(
     'enseignants',
     'Enseignants',
-    Icons.school_outlined,
+    UniIcons.teachers,
     NavSection.scolarite,
     {UserRole.admin},
   ),
   programs(
     'programmes',
     'Programmes',
-    Icons.menu_book_outlined,
+    UniIcons.courses,
     NavSection.scolarite,
     {UserRole.teacher, UserRole.admin},
   ),
   teachingUnits(
     'unites-enseignement',
     'Unités d\'enseignement',
-    Icons.dashboard_outlined,
+    UniIcons.teachingUnits,
     NavSection.scolarite,
     {UserRole.teacher, UserRole.admin},
   ),
   structure(
     'structure',
     'Structure',
-    Icons.account_tree_outlined,
+    UniIcons.treeStructure,
     NavSection.scolarite,
     {UserRole.admin},
   ),
   classrooms(
     'salles',
     'Salles',
-    Icons.meeting_room_outlined,
+    UniIcons.room,
     NavSection.scolarite,
     _everyone,
     universityOnly: true,
@@ -114,7 +113,7 @@ enum AppDestination {
   schedule(
     'emploi-du-temps',
     'Emploi du temps',
-    Icons.calendar_today_outlined,
+    UniIcons.schedule,
     NavSection.scolarite,
     _everyone,
     universityOnly: true,
@@ -124,14 +123,14 @@ enum AppDestination {
   attendance(
     'presences',
     'Présences',
-    Icons.event_available_outlined,
+    UniIcons.attendance,
     NavSection.pedagogie,
     {UserRole.delegate, UserRole.teacher, UserRole.admin},
   ),
   assignments(
     'devoirs',
     'Devoirs',
-    Icons.task_outlined,
+    UniIcons.assignments,
     NavSection.pedagogie,
     _everyone,
     universityOnly: true,
@@ -139,7 +138,7 @@ enum AppDestination {
   grades(
     'notes',
     'Notes',
-    Icons.grade_outlined,
+    UniIcons.grades,
     NavSection.pedagogie,
     _everyone,
     universityOnly: true,
@@ -147,7 +146,7 @@ enum AppDestination {
   library(
     'bibliotheque',
     'Bibliothèque',
-    Icons.library_books_outlined,
+    UniIcons.library,
     NavSection.pedagogie,
     _everyone,
   ),
@@ -156,21 +155,21 @@ enum AppDestination {
   conferences(
     'conferences',
     'Conférences',
-    Icons.videocam_outlined,
+    UniIcons.video,
     NavSection.campus,
     _everyone,
   ),
   messaging(
     'messagerie',
     'Messagerie',
-    Icons.chat_bubble_outline,
+    UniIcons.messaging,
     NavSection.campus,
     _everyone,
   ),
   teams(
     'equipe',
     'Équipe',
-    Icons.groups_outlined,
+    UniIcons.team,
     NavSection.campus,
     _everyone,
   ),
@@ -181,28 +180,28 @@ enum AppDestination {
   accounts(
     'comptes',
     'Comptes',
-    Icons.manage_accounts_outlined,
+    UniIcons.accounts,
     NavSection.administration,
     {UserRole.admin},
   ),
   statistics(
     'statistiques',
     'Statistiques',
-    Icons.bar_chart_outlined,
+    UniIcons.statistics,
     NavSection.administration,
     _staff,
   ),
   sentinelle(
     'sentinelle',
     'Sentinelle IoT',
-    Icons.security_outlined,
+    UniIcons.security,
     NavSection.administration,
     {UserRole.admin},
   ),
   payments(
     'paiements',
     'Paiements',
-    Icons.payments_outlined,
+    UniIcons.subscription,
     NavSection.administration,
     {UserRole.admin},
   ),
@@ -211,7 +210,7 @@ enum AppDestination {
   settings(
     'parametres',
     'Paramètres',
-    Icons.settings_outlined,
+    UniIcons.settings,
     NavSection.systeme,
     _everyone,
   );
@@ -222,7 +221,12 @@ enum AppDestination {
   final String id;
 
   final String label;
-  final IconData icon;
+
+  /// Icône Phosphor de la destination, sous forme de constructeur : la barre
+  /// latérale la rend en `fill` quand elle est active et en `bold` sinon
+  /// (spec `docs/icones-uniflow.md`), donc l'entrée ne peut pas figer un
+  /// style unique comme le faisait l'ancien `IconData` Material.
+  final UniIcon phosphor;
   final NavSection section;
 
   /// Rôles autorisés à ouvrir cet écran.
@@ -241,7 +245,7 @@ enum AppDestination {
   const AppDestination(
     this.id,
     this.label,
-    this.icon,
+    this.phosphor,
     this.section,
     this.roles, {
     this.personalOnly = false,
@@ -250,4 +254,8 @@ enum AppDestination {
 
   /// Faut-il un compte universitaire pour ouvrir cet écran ?
   bool get requiresUniversityAccount => universityOnly;
+
+  /// Icône dans le style demandé (`duotone` par défaut pour les tuiles).
+  PhosphorIconData icon([UniIconStyle style = UniIcons.defaultStyle]) =>
+      phosphor(style);
 }

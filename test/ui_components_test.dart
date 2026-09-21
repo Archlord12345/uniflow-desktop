@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:uniflow/models/app_destination.dart';
 import 'package:uniflow/offline/sync_state.dart';
 import 'package:uniflow/ui/ui.dart';
+import 'package:uniflow/widgets/uni_icons.dart';
 
 import 'layout_test_support.dart';
 
@@ -39,7 +40,15 @@ void main() {
       expect(find.text('Tableau de bord'), findsWidgets);
       expect(find.text('PILOTAGE'), findsWidgets);
       expect(find.byType(SearchField), findsOneWidget);
-      expect(find.byIcon(Icons.notifications_none_rounded), findsOneWidget);
+      // La barre latérale liste aussi « Notifications » : on cible la cloche
+      // de l'en-tête par son infobulle.
+      expect(
+        find.descendant(
+          of: find.byTooltip('Notifications'),
+          matching: find.byIcon(UniIcons.notifications(UniIconStyle.bold)),
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(SyncIndicator), findsOneWidget);
 
       await tester.enterText(find.byType(SearchField), 'emploi');

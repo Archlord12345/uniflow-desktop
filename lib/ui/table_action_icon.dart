@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/uni_icons.dart';
+
 /// Icône d'action d'une ligne de tableau (voir, modifier, supprimer).
 ///
 /// 36 px de côté, sans la cible tactile de 48 px de Material : deux
@@ -30,7 +32,7 @@ class TableActionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 17),
+      icon: PhosphorIcon(icon, size: 17),
       color: color,
       tooltip: tooltip,
       onPressed: onPressed,

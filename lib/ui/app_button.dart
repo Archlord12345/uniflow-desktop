@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 
 enum AppButtonVariant { primary, secondary, ghost, danger }
 
@@ -129,7 +130,7 @@ class _AppButtonState extends State<AppButton> {
             child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
           )
         else if (widget.icon != null)
-          Icon(widget.icon, size: 18, color: foreground),
+          PhosphorIcon(widget.icon!, size: 18, color: foreground),
         if (widget.loading || widget.icon != null) const SizedBox(width: 8),
         Flexible(
           child: Text(

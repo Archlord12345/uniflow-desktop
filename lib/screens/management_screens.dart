@@ -30,6 +30,7 @@ import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/preferences_provider.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 import '../widgets/uni/archlord_mascot.dart';
 import 'session_flow.dart';
 
@@ -71,26 +72,26 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
       subtitle:
           'Hébergez une séance : ce poste devient le serveur de la réunion',
       action: host.isRunning ? null : 'Nouvelle conférence',
-      icon: Icons.add,
+      icon: UniIcons.add(UniIconStyle.bold),
       onAction: _working ? null : _createConference,
       stats: [
         if (host.isRunning) ...[
           _Metric('État', host.status.label, 'Serveur embarqué',
-              Icons.dns_outlined),
+              UniIcons.hardDrives(UniIcons.defaultStyle)),
           _Metric('Code réunion', host.conference!.code, 'À communiquer',
-              Icons.key_outlined),
+              UniIcons.key()),
           _Metric('Adresse locale', host.localIp ?? '—', 'Réseau de l\'hôte',
-              Icons.lan_outlined),
+              UniIcons.network(UniIcons.defaultStyle)),
           if (attendanceSummary != null)
             _Metric(
                 'Présence',
                 '${attendanceSummary.connectedNow} en ligne',
                 '${attendanceSummary.present} présents / '
                     '${attendanceSummary.invited} invités',
-                Icons.fact_check_outlined)
+                UniIcons.checks())
           else
             _Metric('Participants max', '${host.conference!.maxParticipants}',
-                'Capacité de la salle', Icons.groups_outlined),
+                'Capacité de la salle', UniIcons.team()),
         ],
       ],
       child: Column(
@@ -98,13 +99,13 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
         children: [
           if (host.binaryHint != null)
             _InfoPanel(
-              icon: Icons.terminal_outlined,
+              icon: UniIcons.terminalWindow(UniIcons.defaultStyle),
               title: 'Serveur média absent',
               message: host.binaryHint!,
             )
           else if (host.status == HostState.failed)
             _InfoPanel(
-              icon: Icons.error_outline,
+              icon: UniIcons.warningCircle(UniIcons.defaultStyle),
               title: 'Le service de réunion n\'a pas démarré',
               message: host.error ?? 'Cause inconnue.',
             )
@@ -122,8 +123,8 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
                   'local.',
             ),
             const SizedBox(height: 16),
-            const _InfoPanel(
-              icon: Icons.videocam_outlined,
+            _InfoPanel(
+              icon: UniIcons.video(),
               title: 'Aucune réunion en cours',
               message: 'Démarrez une réunion pour que ce poste en devienne le '
                   'serveur : les participants s\'y connecteront directement, '
@@ -138,13 +139,13 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
             children: [
               AppButton.secondary(
                 label: 'Rejoindre une réunion',
-                icon: Icons.login_rounded,
+                icon: UniIcons.signIn(UniIconStyle.bold),
                 onPressed: _working ? null : () => _joinConference(),
               ),
               if (!host.isRunning)
                 AppButton.ghost(
                   label: 'Vérifier la présence du serveur média',
-                  icon: Icons.check_circle_outline,
+                  icon: UniIcons.checkCircle(UniIconStyle.bold),
                   onPressed: _working ? null : _checkBinary,
                 ),
             ],
@@ -448,18 +449,18 @@ class _RunningConferencePanel extends StatelessWidget {
             children: [
               AppButton(
                 label: 'Ouvrir la salle',
-                icon: Icons.meeting_room_outlined,
+                icon: UniIcons.video(UniIconStyle.bold),
                 onPressed: onOpenRoom,
               ),
               if (!isInternet)
                 AppButton.secondary(
                   label: 'Exposer sur internet',
-                  icon: Icons.public,
+                  icon: UniIcons.globe(UniIconStyle.bold),
                   onPressed: onEnableInternet,
                 ),
               AppButton.danger(
                 label: 'Terminer la réunion',
-                icon: Icons.stop_circle_outlined,
+                icon: UniIcons.stopCircle(UniIconStyle.bold),
                 onPressed: onStop,
               ),
             ],
@@ -550,7 +551,7 @@ class _CopyField extends StatelessWidget {
               Clipboard.setData(ClipboardData(text: value));
               Toast.success(context, '« $value » copié.');
             },
-            icon: const Icon(Icons.copy_rounded,
+            icon: PhosphorIcon(UniIcons.copy(UniIconStyle.bold),
                 size: 17, color: AppColors.textSecondary),
           ),
         ],
@@ -602,8 +603,13 @@ class _DiscoveredConferences extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
-                      const Icon(Icons.videocam_outlined,
-                          size: 20, color: AppColors.primaryBlue),
+                      IconTile(
+                        icon: UniIcons.video(),
+                        color: AppColors.primaryBlue,
+                        size: 36,
+                        variant: IconTileVariant.soft,
+                        semanticLabel: 'Conférence',
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -635,7 +641,7 @@ class _DiscoveredConferences extends StatelessWidget {
                         const SizedBox(width: 12),
                         AppButton.secondary(
                           label: 'Rejoindre',
-                          icon: Icons.login_rounded,
+                          icon: UniIcons.signIn(UniIconStyle.bold),
                           onPressed:
                               onJoin == null ? null : () => onJoin!(item),
                         ),
@@ -914,8 +920,8 @@ class StatisticsScreen extends ConsumerWidget {
         ),
         data: (stats) {
           if (stats == null) {
-            return const DataEmptyView(
-              icon: Icons.query_stats_outlined,
+            return DataEmptyView(
+              icon: UniIcons.statistics(),
               title: 'Aucune note saisie',
               message:
                   'Les statistiques se calculent à partir de la collection '
@@ -937,8 +943,9 @@ class StatisticsScreen extends ConsumerWidget {
                       label: 'Notes saisies',
                       value: '${stats.gradeCount}',
                       hint: 'toutes matières',
-                      icon: Icons.grade_outlined,
+                      icon: UniIcons.grades(),
                       iconBackground: AppColors.primaryBlue,
+                      index: 0,
                     ),
                   ),
                   SizedBox(
@@ -947,8 +954,9 @@ class StatisticsScreen extends ConsumerWidget {
                       label: 'Moyenne générale',
                       value: stats.averageLabel,
                       hint: 'pondérée par coefficient',
-                      icon: Icons.star_border,
+                      icon: UniIcons.star(),
                       iconBackground: AppColors.warning,
+                      index: 1,
                     ),
                   ),
                   SizedBox(
@@ -957,8 +965,9 @@ class StatisticsScreen extends ConsumerWidget {
                       label: 'Taux de réussite',
                       value: stats.successRateLabel,
                       hint: 'notes ≥ 10/20',
-                      icon: Icons.trending_up,
+                      icon: UniIcons.grades(),
                       iconBackground: AppColors.teal,
+                      index: 2,
                     ),
                   ),
                 ],
@@ -1227,7 +1236,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 12),
                 AppButton.secondary(
                   label: 'Changer le mot de passe',
-                  icon: Icons.lock_reset_outlined,
+                  icon: UniIcons.lockKey(UniIconStyle.bold),
                   onPressed: currentUser == null
                       ? null
                       : () => _changePassword(context),
@@ -1306,14 +1315,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   AppButton.secondary(
                     label: hasPhoto ? 'Changer la photo' : 'Ajouter une photo',
-                    icon: Icons.photo_camera_outlined,
+                    icon: UniIcons.camera(UniIconStyle.bold),
                     loading: _uploading,
                     onPressed: _pickAndUpload,
                   ),
                   if (hasPhoto)
                     AppButton.ghost(
                       label: 'Retirer',
-                      icon: Icons.delete_outline,
+                      icon: UniIcons.delete(UniIconStyle.bold),
                       onPressed: _uploading ? null : _removePhoto,
                     ),
                 ],
@@ -1342,14 +1351,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 // se confondaient.
                 AppButton.secondary(
                   label: 'Se déconnecter',
-                  icon: Icons.logout_rounded,
+                  icon: UniIcons.signOut(UniIconStyle.bold),
                   onPressed: () => signOutToLogin(context, ref),
                 ),
                 if (currentUser != null)
                   AppButton.danger(
                     key: const Key('delete-account-open'),
                     label: 'Supprimer mon compte',
-                    icon: Icons.delete_forever_outlined,
+                    icon: UniIcons.trashSimple(UniIconStyle.bold),
                     onPressed: () => showDeleteAccountFlow(context, ref),
                   ),
               ],
@@ -1393,8 +1402,10 @@ class AboutPanel extends StatelessWidget {
                     height: 36,
                     fit: BoxFit.contain,
                     filterQuality: FilterQuality.high,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.code,
-                        size: 28, color: AppColors.primaryBlue),
+                    errorBuilder: (_, __, ___) => PhosphorIcon(
+                        UniIcons.code(UniIconStyle.bold),
+                        size: 28,
+                        color: AppColors.primaryBlue),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   const Expanded(
@@ -1587,7 +1598,7 @@ class _ManagementPage extends StatelessWidget {
             if (action != null)
               AppButton(
                 label: action!,
-                icon: icon ?? Icons.arrow_forward,
+                icon: icon ?? UniIcons.arrowRight(UniIconStyle.bold),
                 onPressed: onAction,
               ),
           ],
@@ -1619,6 +1630,7 @@ class _ManagementPage extends StatelessWidget {
                                 hint: stats[i].detail,
                                 icon: stats[i].icon,
                                 iconBackground: _palette[i % _palette.length],
+                                index: i,
                               ),
                             ),
                         ],
@@ -1833,12 +1845,13 @@ class SentinelleManagementScreen extends StatelessWidget {
                     color: Colors.black,
                     borderRadius: BorderRadius.circular(12)),
                 alignment: Alignment.center,
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.videocam_off, color: Colors.white54, size: 48),
-                    SizedBox(height: 12),
-                    Text('Flux sécurisé LAN uniquement',
+                    PhosphorIcon(UniIcons.videoOff(),
+                        color: Colors.white54, size: 48),
+                    const SizedBox(height: 12),
+                    const Text('Flux sécurisé LAN uniquement',
                         style: TextStyle(color: Colors.white54)),
                   ],
                 ),
@@ -1873,12 +1886,12 @@ class SentinelleManagementScreen extends StatelessWidget {
 class StructureManagementScreen extends StatelessWidget {
   const StructureManagementScreen({super.key});
   @override
-  Widget build(BuildContext context) => const _ManagementPage(
+  Widget build(BuildContext context) => _ManagementPage(
         title: 'Structure Académique',
         subtitle: 'Gérez les facultés, départements et niveaux',
-        stats: [],
+        stats: const [],
         child: DataEmptyView(
-          icon: Icons.account_tree_outlined,
+          icon: UniIcons.treeStructure(UniIcons.defaultStyle),
           title: 'Structure non configurée',
           message: 'Les facultés, départements et niveaux ne sont pas encore '
               'modélisés côté Appwrite : la hiérarchie s\'affichera ici dès que la '
@@ -1890,14 +1903,14 @@ class StructureManagementScreen extends StatelessWidget {
 class PaymentsManagementScreen extends StatelessWidget {
   const PaymentsManagementScreen({super.key});
   @override
-  Widget build(BuildContext context) => const _ManagementPage(
+  Widget build(BuildContext context) => _ManagementPage(
         title: 'Gestion des Paiements',
         subtitle: 'Suivi des abonnements et frais de scolarité',
         // Pas de recettes affichées : aucun flux de paiement n'alimente
         // l'application, un montant en dur donnerait une fausse vue des finances.
-        stats: [],
+        stats: const [],
         child: DataEmptyView(
-          icon: Icons.account_balance_wallet_outlined,
+          icon: UniIcons.wallet(),
           title: 'Aucun paiement enregistré',
           message:
               'Le suivi des frais de scolarité s\'affichera ici lorsque les '
@@ -1929,7 +1942,13 @@ class _InfoPanel extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 44, color: AppColors.textMuted),
+            IconTile(
+              icon: icon,
+              color: AppColors.textSecondary,
+              size: 56,
+              variant: IconTileVariant.soft,
+              semanticLabel: title,
+            ),
             const SizedBox(height: 16),
             Text(
               title,

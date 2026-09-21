@@ -8,6 +8,7 @@ import '../ui/app_button.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 
 /// Notifications du compte connecté (`notifications`, documents du
 /// propriétaire, alimentés par la Function `notification-alerts`).
@@ -46,7 +47,7 @@ class NotificationsScreen extends ConsumerWidget {
             if (unread > 0)
               AppButton.secondary(
                 label: 'Tout marquer comme lu',
-                icon: Icons.done_all,
+                icon: UniIcons.checks(UniIconStyle.bold),
                 onPressed: () => _markAll(context, ref),
               ),
           ],
@@ -59,8 +60,8 @@ class NotificationsScreen extends ConsumerWidget {
                 error: e, onRetry: () => ref.invalidate(notificationsProvider)),
             data: (items) {
               if (items.isEmpty) {
-                return const DataEmptyView(
-                  icon: Icons.notifications_none_outlined,
+                return DataEmptyView(
+                  icon: UniIcons.notifications(),
                   message:
                       'Aucune notification. Les rappels de cours, de devoirs et de séances arriveront ici.',
                 );
@@ -144,15 +145,15 @@ class _NotificationTile extends StatelessWidget {
 
   IconData get _icon => switch (notification.type.toLowerCase()) {
         final t when t.contains('assignment') || t.contains('devoir') =>
-          Icons.task_outlined,
+          UniIcons.assignments(),
         final t when t.contains('schedule') || t.contains('cours') =>
-          Icons.calendar_today_outlined,
+          UniIcons.schedule(),
         final t when t.contains('grade') || t.contains('note') =>
-          Icons.grade_outlined,
+          UniIcons.grades(),
         final t when t.contains('attendance') || t.contains('presence') =>
-          Icons.event_available_outlined,
-        final t when t.contains('message') => Icons.chat_bubble_outline,
-        _ => Icons.notifications_outlined,
+          UniIcons.attendance(),
+        final t when t.contains('message') => UniIcons.messaging(),
+        _ => UniIcons.notifications(),
       };
 
   @override
@@ -173,8 +174,13 @@ class _NotificationTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_icon,
-              color: unread ? AppColors.primaryBlue : AppColors.textMuted),
+          IconTile(
+            icon: _icon,
+            color: unread ? AppColors.primaryBlue : AppColors.textSecondary,
+            size: 36,
+            variant: unread ? IconTileVariant.filled : IconTileVariant.soft,
+            semanticLabel: notification.type,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -199,16 +205,16 @@ class _NotificationTile extends StatelessWidget {
           IconButton(
             tooltip: unread ? 'Marquer comme lu' : 'Marquer comme non lu',
             onPressed: onToggleRead,
-            icon: Icon(
+            icon: PhosphorIcon(
                 unread
-                    ? Icons.mark_email_read_outlined
-                    : Icons.mark_email_unread_outlined,
+                    ? UniIcons.readAll(UniIconStyle.bold)
+                    : UniIcons.mail(UniIconStyle.bold),
                 size: 19),
           ),
           IconButton(
             tooltip: 'Supprimer',
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline,
+            icon: PhosphorIcon(UniIcons.delete(UniIconStyle.bold),
                 size: 19, color: AppColors.textMuted),
           ),
         ],

@@ -10,6 +10,7 @@ import '../ui/app_dialog.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni_icons.dart';
 
 /// Espace personnel d'un compte indépendant (`PERSONAL`) : ses matières,
 /// lues dans `personal_subjects`. C'est l'équivalent de
@@ -35,7 +36,7 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
           actions: [
             AppButton(
               label: 'Nouvelle matière',
-              icon: Icons.add,
+              icon: UniIcons.add(UniIconStyle.bold),
               onPressed: user == null
                   ? null
                   : () => _addSubject(context, ref, user.id),
@@ -52,8 +53,8 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
             ),
             data: (items) {
               if (items.isEmpty) {
-                return const DataEmptyView(
-                  icon: Icons.auto_awesome_outlined,
+                return DataEmptyView(
+                  icon: UniIcons.assistant(),
                   message:
                       'Aucune matière pour l\'instant. Ajoutez votre première '
                       'matière pour organiser votre travail.',
@@ -70,6 +71,7 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
                         index: i,
                         child: _SubjectCard(
                           subject: items[i],
+                          index: i,
                           onDelete: () =>
                               _deleteSubject(context, ref, items[i]),
                         ),
@@ -180,16 +182,22 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
 class _SubjectCard extends StatelessWidget {
   final PersonalSubject subject;
   final VoidCallback onDelete;
-  const _SubjectCard({required this.subject, required this.onDelete});
 
-  Color get _accent {
-    final hex = (subject.colorHex ?? '').replaceFirst('#', '');
-    if (hex.length == 6) {
-      final value = int.tryParse(hex, radix: 16);
-      if (value != null) return Color(0xFF000000 | value);
-    }
-    return AppColors.teal;
-  }
+  /// Rang dans la grille, pour la cascade de la tuile.
+  final int index;
+
+  const _SubjectCard({
+    required this.subject,
+    required this.onDelete,
+    this.index = 0,
+  });
+
+  /// `colorHex` de la matière, sinon la palette par hachage du code ou du nom
+  /// (`subjectColor`) : même cours → même couleur que sur le web et le mobile.
+  Color get _accent => subjectColor(
+        (subject.code ?? '').trim().isEmpty ? subject.name : subject.code!,
+        colorHex: subject.colorHex,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -206,13 +214,14 @@ class _SubjectCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration:
-                    BoxDecoration(color: _accent, shape: BoxShape.circle),
+              IconTile(
+                icon: subjectIcon(subject.name, code: subject.code),
+                color: _accent,
+                size: 44,
+                index: index,
+                semanticLabel: subject.name,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   subject.name,
@@ -224,7 +233,7 @@ class _SubjectCard extends StatelessWidget {
               IconButton(
                 tooltip: 'Supprimer',
                 onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline,
+                icon: PhosphorIcon(UniIcons.delete(UniIconStyle.bold),
                     size: 18, color: AppColors.textMuted),
               ),
             ],

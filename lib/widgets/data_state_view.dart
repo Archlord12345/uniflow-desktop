@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
 import 'uni/uni_mascot.dart';
+import 'uni_icons.dart';
 
 /// États vides, de chargement et d'erreur, partagés par les écrans desktop qui
 /// lisent Appwrite.
@@ -49,7 +50,11 @@ class DataLoadingView extends StatelessWidget {
 
 class DataEmptyView extends StatelessWidget {
   final String message;
-  final IconData icon;
+
+  /// Icône Phosphor qui « type » l'état vide (devoirs, notes…). Rendue en
+  /// petite tuile `soft` sous la mascotte quand elle est fournie ; `null`
+  /// laisse Uni seul, comme avant.
+  final IconData? icon;
   final bool compact;
 
   /// Titre en gras au-dessus de l'explication (« Aucune note saisie »).
@@ -64,7 +69,7 @@ class DataEmptyView extends StatelessWidget {
   const DataEmptyView({
     super.key,
     required this.message,
-    this.icon = Icons.inbox_outlined,
+    this.icon,
     this.compact = false,
     this.title,
     this.action,
@@ -91,6 +96,16 @@ class DataEmptyView extends StatelessWidget {
           // les appels qui la personnalisent, en petit sous le personnage.
           UniMascot(pose: UniPose.search, size: compact ? 72 : 110),
           const SizedBox(height: AppSpacing.md),
+          if (icon != null) ...[
+            IconTile(
+              icon: icon!,
+              color: AppColors.primaryBlue,
+              size: 36,
+              variant: IconTileVariant.soft,
+              semanticLabel: title ?? message,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
           if (title != null) ...[
             Text(
               title!,
@@ -164,7 +179,7 @@ class DataErrorView extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           AppButton.secondary(
             label: 'Réessayer',
-            icon: Icons.refresh,
+            icon: UniIcons.refresh(UniIconStyle.bold),
             height: 40,
             onPressed: onRetry,
           ),

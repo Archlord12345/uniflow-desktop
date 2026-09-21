@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/team_member.dart';
 import '../repositories/team_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../ui/toast.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
@@ -318,7 +319,7 @@ class _CarteMembre extends StatelessWidget {
               if (membre.github.isNotEmpty)
                 Flexible(
                   child: _BoutonLien(
-                    icone: Icons.code,
+                    icone: UniIcons.code(UniIconStyle.bold),
                     label: '@${membre.github}',
                     onTap: onGithub,
                   ),
@@ -328,7 +329,7 @@ class _CarteMembre extends StatelessWidget {
               const Spacer(),
               if (membre.email.isNotEmpty)
                 _BoutonIcone(
-                  icone: Icons.mail_outline,
+                  icone: UniIcons.mail(UniIconStyle.bold),
                   tooltip: membre.email,
                   onTap: onMail,
                 ),
@@ -361,7 +362,7 @@ class _BoutonLien extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icone, size: 14, color: AppColors.textSecondary),
+              PhosphorIcon(icone, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
@@ -407,7 +408,8 @@ class _BoutonIcone extends StatelessWidget {
               borderRadius: BorderRadius.circular(9),
               border: Border.all(color: AppColors.inputBorder),
             ),
-            child: Icon(icone, size: 16, color: AppColors.textSecondary),
+            child:
+                PhosphorIcon(icone, size: 16, color: AppColors.textSecondary),
           ),
         ),
       ),
@@ -485,12 +487,13 @@ class _Intro extends StatelessWidget {
                     color: AppColors.primary50,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.code, size: 13, color: AppColors.teal),
-                      SizedBox(width: 6),
-                      Flexible(
+                      PhosphorIcon(UniIcons.code(UniIconStyle.bold),
+                          size: 13, color: AppColors.teal),
+                      const SizedBox(width: 6),
+                      const Flexible(
                         child: Text(
                           'KERNEL FORGE — UY1',
                           maxLines: 1,
@@ -532,14 +535,14 @@ class _Statistiques extends StatelessWidget {
     // « 9 », « 5 », « 3 », « 1 », et ces chiffres seraient devenus faux dès le
     // premier ajout de membre depuis l'administration.
     final tuiles = <Widget>[
-      _tuile('Membres au total', membres.length, Icons.groups_outlined,
+      _tuile('Membres au total', membres.length, UniIcons.team(),
           AppColors.primaryBlue),
-      _tuile('Ingénieurs Frontend', _compter('Frontend'), Icons.laptop_outlined,
-          AppColors.purple),
-      _tuile('Ingénieurs Backend & BD', _compter('Backend'), Icons.dns_outlined,
-          AppColors.teal),
-      _tuile('Lead & Architecture', _compter('Leadership'),
-          Icons.workspace_premium_outlined, AppColors.warning),
+      _tuile('Ingénieurs Frontend', _compter('Frontend'),
+          UniIcons.laptop(UniIcons.defaultStyle), AppColors.purple),
+      _tuile('Ingénieurs Backend & BD', _compter('Backend'),
+          UniIcons.hardDrives(UniIcons.defaultStyle), AppColors.teal),
+      _tuile('Lead & Architecture', _compter('Leadership'), UniIcons.badges(),
+          AppColors.warning),
     ];
 
     return LayoutBuilder(
@@ -581,7 +584,7 @@ class _Statistiques extends StatelessWidget {
               color: couleur.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(9),
             ),
-            child: Icon(icone, size: 17, color: couleur),
+            child: PhosphorIcon(icone, size: 17, color: couleur),
           ),
           const SizedBox(height: 8),
           Text(
@@ -651,7 +654,7 @@ class _BandeauTechnologies extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check_circle_outline,
+                          PhosphorIcon(UniIcons.checkCircle(UniIconStyle.bold),
                               size: 13, color: AppColors.teal),
                           const SizedBox(width: 5),
                           // `Flexible` : même correctif que sur le mobile, où
@@ -697,7 +700,8 @@ class _AppelGithub extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.auto_awesome, color: AppColors.warning, size: 28),
+          PhosphorIcon(UniIcons.assistant(UniIconStyle.fill),
+              color: AppColors.warning, size: 28),
           const SizedBox(height: 8),
           const Text(
             'Rejoignez l\'organisation KERNEL FORGE',
@@ -719,18 +723,20 @@ class _AppelGithub extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(11),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.code, size: 16, color: AppColors.primaryBlue),
-                    SizedBox(width: 7),
+                    PhosphorIcon(UniIcons.code(UniIconStyle.bold),
+                        size: 16, color: AppColors.primaryBlue),
+                    const SizedBox(width: 7),
                     // `Flexible` : le libellé n'avait aucune marge de repli. À
                     // 420 px de large avec le texte agrandi (×1.3), ce bouton
                     // débordait de 68 px — la fenêtre du desktop se réduit
                     // jusqu'à cette largeur, ce n'est pas un cas théorique.
-                    Flexible(
+                    const Flexible(
                       child: Text(
                         'Organisation GitHub',
                         maxLines: 1,
@@ -742,8 +748,8 @@ class _AppelGithub extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 6),
-                    Icon(Icons.open_in_new,
+                    const SizedBox(width: 6),
+                    PhosphorIcon(UniIcons.openExternal(UniIconStyle.bold),
                         size: 13, color: AppColors.primaryBlue),
                   ],
                 ),

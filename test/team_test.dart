@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:uniflow/models/team_member.dart';
 import 'package:uniflow/screens/teams_screen.dart';
+import 'package:uniflow/widgets/uni_icons.dart';
 import 'package:uniflow/widgets/user_avatar.dart';
 
 import 'layout_test_support.dart';
@@ -146,26 +147,26 @@ void main() {
       expect(
           teamMemberIcon(
               membre('Backend Developer', 'SGBD & Infrastructure', 'Backend')),
-          Icons.storage_outlined);
+          UniIcons.database());
     });
 
     test('le mobile se reconnaît à la sous-équipe', () {
       expect(
           teamMemberIcon(
               membre('Mobile Developer', 'Frontend Mobile App', 'Frontend')),
-          Icons.smartphone_outlined);
+          UniIcons.deviceMobile(UniIcons.defaultStyle));
     });
 
     test('sinon l\'icône suit l\'équipe', () {
       expect(
           teamMemberIcon(membre('Chef de projet', 'Direction', 'Leadership')),
-          Icons.workspace_premium_outlined);
+          UniIcons.badges());
       expect(
           teamMemberIcon(
               membre('Backend Developer', 'Microservices', 'Backend')),
-          Icons.dns_outlined);
+          UniIcons.hardDrives(UniIcons.defaultStyle));
       expect(teamMemberIcon(membre('Frontend Developer', 'Web', 'Frontend')),
-          Icons.code_outlined);
+          UniIcons.code(UniIcons.defaultStyle));
     });
   });
 
@@ -174,7 +175,7 @@ void main() {
         (tester) async {
       await tester.pumpWidget(host(const SilhouetteAvatar(avatarFileId: '')));
 
-      expect(find.byIcon(Icons.person_outline), findsOneWidget);
+      expect(find.byIcon(UniIcons.person(UniIconStyle.fill)), findsOneWidget);
       // Exigence du propriétaire : aucune écriture sur la photo de profil. Des
       // initiales donneraient l'impression d'une image ratée.
       expect(find.byType(Text), findsNothing);
@@ -183,7 +184,7 @@ void main() {
     testWidgets('un identifiant vide ou nul donne le même résultat',
         (tester) async {
       await tester.pumpWidget(host(const SilhouetteAvatar()));
-      expect(find.byIcon(Icons.person_outline), findsOneWidget);
+      expect(find.byIcon(UniIcons.person(UniIconStyle.fill)), findsOneWidget);
     });
   });
 
@@ -213,7 +214,7 @@ void main() {
 
       // Aucun des membres de test n'a de photo : chacun a sa silhouette, et
       // aucune carte n'affiche d'initiales.
-      expect(find.byIcon(Icons.person_outline),
+      expect(find.byIcon(UniIcons.person(UniIconStyle.fill)),
           findsNWidgets(equipeDeTest().length));
     });
 
@@ -242,7 +243,7 @@ void main() {
       // Deux membres de test sur trois ont un pseudo : le troisième, qui n'en a
       // pas, ne doit pas produire de bouton menant à `github.com/`.
       expect(find.textContaining('@'), findsNWidgets(2));
-      expect(find.byIcon(Icons.mail_outline), findsNWidgets(2));
+      expect(find.byIcon(UniIcons.mail(UniIconStyle.bold)), findsNWidgets(2));
     });
   });
 }

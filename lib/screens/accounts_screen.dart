@@ -7,6 +7,7 @@ import '../repositories/management_repository.dart';
 import '../repositories/reference_repository.dart';
 import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../ui/app_button.dart';
 import '../ui/app_dialog.dart';
 import '../widgets/app_top_bar.dart';
@@ -57,7 +58,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           actions: [
             AppButton(
               label: 'Créer un compte',
-              icon: Icons.person_add_alt_1_outlined,
+              icon: UniIcons.addPerson(UniIconStyle.bold),
               onPressed: () => _openEditor(context),
             ),
           ],
@@ -74,9 +75,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 child: TextField(
                   onChanged: (v) =>
                       setState(() => _search = v.trim().toLowerCase()),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     isDense: true,
-                    prefixIcon: Icon(Icons.search, size: 18),
+                    prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
+                        size: 18),
                     hintText: 'Nom, email ou matricule',
                   ),
                 ),
@@ -93,7 +95,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               IconButton(
                   tooltip: 'Actualiser',
                   onPressed: _refresh,
-                  icon: const Icon(Icons.refresh)),
+                  icon: PhosphorIcon(UniIcons.refresh(UniIconStyle.bold))),
             ],
           ),
         ),
@@ -111,8 +113,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               }).toList()
                 ..sort((a, b) => a.name.compareTo(b.name));
               if (filtered.isEmpty) {
-                return const DataEmptyView(
-                  icon: Icons.manage_accounts_outlined,
+                return DataEmptyView(
+                  icon: UniIcons.accounts(),
                   message: 'Aucun compte ne correspond à ce filtre.',
                 );
               }
@@ -261,17 +263,17 @@ class _AccountTile extends StatelessWidget {
             IconButton(
                 tooltip: 'Modifier',
                 onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined, size: 19)),
+                icon: PhosphorIcon(UniIcons.edit(UniIconStyle.bold), size: 19)),
             IconButton(
               tooltip: 'Supprimer',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline,
+              icon: PhosphorIcon(UniIcons.delete(UniIconStyle.bold),
                   size: 19, color: AppColors.textMuted),
             ),
           ] else
-            const Tooltip(
+            Tooltip(
               message: 'Réservé à l\'administrateur de la plateforme',
-              child: Icon(Icons.lock_outline,
+              child: PhosphorIcon(UniIcons.lock(UniIconStyle.bold),
                   size: 18, color: AppColors.textMuted),
             ),
         ],

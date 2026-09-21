@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../ui/app_button.dart';
+import '../uni_icons.dart';
 import 'uni_mascot.dart';
 
 /// Scènes prêtes à l'emploi autour d'Uni : chargement, erreur, vide, et la
@@ -151,7 +152,7 @@ class UniCrashScreen extends StatelessWidget {
                 ? null
                 : AppButton(
                     label: 'Réessayer',
-                    icon: Icons.refresh_rounded,
+                    icon: UniIcons.refresh(UniIconStyle.bold),
                     onPressed: onRetry,
                   ),
             secondaryAction: details == null

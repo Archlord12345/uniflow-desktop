@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni_icons.dart';
 
 /// Largeur sous laquelle les actions de la barre passent sous le titre.
 ///
@@ -148,7 +149,12 @@ class TopBarIconButton extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Center(child: Icon(icon, size: 20, color: AppColors.textSecondary)),
+            // `PhosphorIcon` et non `Icon` : une donnée duotone passée ici
+            // perdrait son calque secondaire avec le widget Material.
+            Center(
+              child:
+                  PhosphorIcon(icon, size: 20, color: AppColors.textSecondary),
+            ),
             if (showDot)
               Positioned(
                 top: 9,

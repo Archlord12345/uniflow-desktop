@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import 'app_button.dart';
 
 /// État vide (`EmptyState.tsx` du web) : icône dans une pastille dégradée
@@ -27,7 +28,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = UniFlowColors.of(context);
-    final size = compact ? 44.0 : 64.0;
+    final size = compact ? 44.0 : 56.0;
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
           vertical: compact ? AppSpacing.xl : AppSpacing.section,
@@ -35,14 +36,11 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              gradient: AppColors.meshGradient,
-              borderRadius: BorderRadius.circular(size * 0.3),
-            ),
-            child: Icon(icon, size: size * 0.45, color: AppColors.primaryBlue),
+          IconTile(
+            icon: icon,
+            color: AppColors.primaryBlue,
+            size: size,
+            semanticLabel: title,
           ),
           SizedBox(height: compact ? AppSpacing.md : AppSpacing.lg),
           Text(

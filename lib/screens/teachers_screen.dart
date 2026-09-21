@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
+import '../widgets/uni_icons.dart';
 import '../models/teacher.dart';
 import '../providers/directory_provider.dart';
 import '../ui/app_button.dart';
@@ -109,7 +110,7 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
       cells: (teacher, _) => _TeacherRow.cells(context, teacher),
       onRowTap: (teacher) => _TeacherRow.open(context, teacher),
       empty: DataEmptyView(
-        icon: Icons.school_outlined,
+        icon: UniIcons.teachers(),
         message: query.isEmpty
             ? 'Aucun enseignant dans l\'annuaire académique.'
             : 'Aucun enseignant ne correspond à « $query ».',
@@ -119,7 +120,7 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(directoryProvider),
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: PhosphorIcon(UniIcons.refresh(UniIconStyle.bold), size: 18),
             color: AppColors.textSecondary,
             tooltip: 'Recharger depuis Appwrite',
           ),
@@ -134,14 +135,14 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
       actions: [
         AppButton.secondary(
           label: 'Filtres avancés',
-          icon: Icons.tune,
+          icon: UniIcons.sliders(UniIconStyle.bold),
           onPressed: () {
             // TODO: ouvrir le panneau de filtres avancés
           },
         ),
         AppButton(
           label: 'Ajouter enseignant',
-          icon: Icons.add,
+          icon: UniIcons.add(UniIconStyle.bold),
           onPressed: () {
             // TODO: ouvrir le formulaire de création d'enseignant
           },
@@ -156,8 +157,8 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
       decoration: InputDecoration(
         hintText: 'Rechercher un enseignant...',
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        prefixIcon:
-            const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+        prefixIcon: PhosphorIcon(UniIcons.search(UniIconStyle.bold),
+            size: 20, color: AppColors.textMuted),
         filled: true,
         fillColor: AppColors.cardWhite,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -237,13 +238,13 @@ class _TeacherRow {
         mainAxisSize: MainAxisSize.min,
         children: [
           TableActionIcon(
-            icon: Icons.remove_red_eye_outlined,
+            icon: UniIcons.eye(UniIconStyle.bold),
             color: AppColors.primaryBlue,
             tooltip: 'Voir la fiche',
             onPressed: () => open(context, teacher),
           ),
           TableActionIcon(
-            icon: Icons.edit_outlined,
+            icon: UniIcons.edit(UniIconStyle.bold),
             color: AppColors.warning,
             tooltip: 'Modifier',
             onPressed: () {
