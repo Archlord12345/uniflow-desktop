@@ -42,3 +42,34 @@ String greetingFor(DateTime now) {
   if (now.hour < 18) return 'Bon après-midi';
   return 'Bonsoir';
 }
+
+String _two(int value) => value.toString().padLeft(2, '0');
+
+/// « 08:05 » — l'heure d'une arrivée ou d'un départ sur une feuille de
+/// présence ; les secondes n'y apportent rien.
+String formatClock(DateTime date) => '${_two(date.hour)}:${_two(date.minute)}';
+
+/// « 21/09/2026 », la date courte des tableaux.
+String formatShortDate(DateTime date) =>
+    '${_two(date.day)}/${_two(date.month)}/${date.year}';
+
+/// « 21/09/2026 08:05 ».
+String formatShortDateTime(DateTime date) =>
+    '${formatShortDate(date)} ${formatClock(date)}';
+
+/// « 2026-09-21 » : la date des noms de fichiers, qui se trient par ordre
+/// chronologique dans un dossier.
+String formatIsoDate(DateTime date) =>
+    '${date.year}-${_two(date.month)}-${_two(date.day)}';
+
+/// « 1 h 05 min », « 12 min », « 45 s » — une durée telle qu'on la lit sur une
+/// feuille de présence. En dessous de la minute, les secondes disent qu'il y a
+/// bien eu une connexion, là où « 0 min » ressemblerait à une absence.
+String formatDurationFr(Duration duration) {
+  if (duration.isNegative) duration = Duration.zero;
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  if (hours > 0) return '$hours h ${_two(minutes)} min';
+  if (minutes > 0) return '$minutes min';
+  return '${duration.inSeconds} s';
+}
