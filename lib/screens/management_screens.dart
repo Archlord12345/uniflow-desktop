@@ -3,6 +3,8 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app_info.dart';
+import '../models/appwrite_models.dart';
 import '../models/statistics_models.dart';
 import '../providers/analytics_provider.dart';
 import '../providers/conference_provider.dart';
@@ -19,6 +21,7 @@ import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/preferences_provider.dart';
 import '../widgets/motion.dart';
+import '../widgets/uni/archlord_mascot.dart';
 import 'session_flow.dart';
 
 /// Console d'hébergement des visioconférences.
@@ -89,7 +92,13 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
               onStop: _stopConference,
               onEnableInternet: _enableInternetMode,
             )
-          else
+          else ...[
+            const _ArchlordNote(
+              text: 'Le serveur de réunion tourne sur ce poste : aucun '
+                  'Internet requis, les participants se connectent en réseau '
+                  'local.',
+            ),
+            const SizedBox(height: 16),
             const _InfoPanel(
               icon: Icons.videocam_outlined,
               title: 'Aucune réunion en cours',
@@ -98,6 +107,7 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
                   'sans passer par une machine centrale. Le serveur média doit '
                   'être installé sur cette machine.',
             ),
+          ],
           if (!host.isRunning && !_working) ...[
             const SizedBox(height: 16),
             Align(
@@ -190,6 +200,26 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
   void _notify(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// Archlord, seul, qui souligne un point précis de l'écran. Réservé aux pages
+/// sans tableau dense : sur une liste, une mascotte détournerait l'attention.
+class _ArchlordNote extends StatelessWidget {
+  final String text;
+  const _ArchlordNote({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ArchlordMascot(
+        pose: ArchlordPose.explain,
+        size: 96,
+        speaking: true,
+        bubble: Text(text),
+      ),
+    );
   }
 }
 
@@ -830,7 +860,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       title: 'Paramètres',
       subtitle: 'Configurez votre espace UniFlow',
       stats: const [],
-      child: _ResponsivePanels(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _settingsPanels(context, currentUser, prefs, hasPhoto),
+          const SizedBox(height: 18),
+          const AboutPanel(),
+        ],
+      ),
+    );
+  }
+
+  Widget _settingsPanels(BuildContext context, UniFlowUser? currentUser,
+      AppPreferences prefs, bool hasPhoto) {
+    return _ResponsivePanels(
         left: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1025,6 +1068,101 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
         ),
+    );
+  }
+}
+
+/// « À propos » : version, éditeur, et la scène du poing entre Archlord et
+/// Uni. Ajouté aux Paramètres (2026-09-21) : l'application n'indiquait nulle
+/// part sa version ni qui la fait.
+class AboutPanel extends StatelessWidget {
+  const AboutPanel({super.key});
+
+  /// Sous cette largeur, la scène passe au-dessus du texte : côte à côte, le
+  /// texte n'aurait plus qu'une colonne de quelques mots.
+  static const double _sideBySideMinWidth = 640;
+
+  static const String _logoAsset = 'assets/logos/kernel_forge.webp';
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: 'À propos',
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final sideBySide = constraints.maxWidth >= _sideBySideMinWidth;
+          const scene = ArchlordUniFistBump(size: 150);
+          final text = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Image.asset(
+                    _logoAsset,
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.code,
+                        size: 28, color: AppColors.primaryBlue),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${AppInfo.name} · version ${AppInfo.version}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 15),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Édité par ${AppInfo.publisher} — Université de Yaoundé I',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.body,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const Text(AppInfo.publisherPitch,
+                  style: AppTextStyles.body),
+              const SizedBox(height: AppSpacing.md),
+              const ArchlordMascot(
+                pose: ArchlordPose.thumbs,
+                size: 72,
+                still: true,
+                bubble: Text('UniFlow est notre premier produit. '
+                    'Merci de le faire vivre avec nous.'),
+              ),
+            ],
+          );
+          if (!sideBySide) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Center(child: scene),
+                const SizedBox(height: AppSpacing.lg),
+                text,
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              scene,
+              const SizedBox(width: AppSpacing.xxl),
+              Expanded(child: text),
+            ],
+          );
+        },
       ),
     );
   }

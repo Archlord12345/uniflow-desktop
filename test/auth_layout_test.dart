@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:uniflow/screens/login_screen.dart';
 import 'package:uniflow/screens/register_screen.dart';
 import 'package:uniflow/widgets/auth_chrome.dart';
+import 'package:uniflow/widgets/uni/archlord_mascot.dart';
+import 'package:uniflow/widgets/uni/mascot_dialogue.dart';
+import 'package:uniflow/widgets/uni/uni_mascot.dart';
 
 import 'layout_test_support.dart';
 
@@ -67,6 +70,22 @@ void main() {
       expect(_isTwoColumns(tester), isFalse);
       await _pump(tester, entry.value, const Size(920, 700));
       expect(_isTwoColumns(tester), isTrue);
+    });
+
+    testWidgets(
+        '${entry.key} : Archlord et Uni discutent sur le panneau quand la '
+        'hauteur le permet, et s’effacent sinon', (tester) async {
+      await _pump(tester, entry.value, const Size(1366, 768));
+      expect(find.byType(MascotDialogue), findsOneWidget);
+      expect(find.byType(ArchlordMascot), findsOneWidget);
+      expect(find.byType(UniMascot), findsOneWidget);
+      expect(find.text(kAuthMascotDialogue.first.text), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      // 920×540 : deux colonnes mais panneau trop bas pour les mascottes.
+      await _pump(tester, entry.value, const Size(920, 540));
+      expect(find.byType(MascotDialogue), findsNothing);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('${entry.key} : le titre grandit avec la fenêtre',

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/user_role.dart';
 import '../theme/app_theme.dart';
 import 'motion.dart';
+import 'uni/archlord_mascot.dart';
+import 'uni/mascot_dialogue.dart';
 import 'uni/uni_mascot.dart';
 
 /// Habillage commun des écrans d'authentification (connexion, inscription) :
@@ -301,6 +303,16 @@ const List<({IconData icon, String title, String desc, Color color})>
   ),
 ];
 
+/// Échange d'accueil entre Archlord et Uni sur le panneau de marque : court,
+/// parce que la bulle tient entre les deux personnages dans 45 % d'une fenêtre
+/// de 900 px, soit ~140 px de large.
+const List<MascotLine> kAuthMascotDialogue = [
+  MascotLine.archlord('Bienvenue ! UniFlow, c’est l’université dans une seule application.'),
+  MascotLine.uni('Cours, devoirs, notes, emploi du temps : tout est là.'),
+  MascotLine.archlord('Et ça marche même sans Internet.'),
+  MascotLine.uni('Connecte-toi, je te guide !'),
+];
+
 /// Panneau de marque : dégradé indigo `#1e3a8a` → `#2d4fa8` → teal `#0d9488`
 /// (celui du web), halos, logo, accroche, trois arguments, illustration.
 ///
@@ -409,9 +421,10 @@ class AuthHeroPanel extends StatelessWidget {
         // Sous ~620 px de haut, les cartes d'arguments n'ont plus leur place :
         // on les retire plutôt que de faire défiler un panneau décoratif.
         final showFeatures = constraints.maxHeight >= 620;
-        // Uni salue au-dessus du logo dès que la hauteur le permet ; sous
-        // 560 px il céderait la place au formulaire.
-        final showUni = constraints.maxHeight >= 560;
+        // Archlord et Uni discutent au-dessus du logo dès que la hauteur le
+        // permet ; sous 560 px ils céderaient la place au formulaire.
+        final showMascots = constraints.maxHeight >= 560;
+        final mascotSize = (scale.title * 4.2).clamp(96.0, 132.0);
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: pad, vertical: pad * 0.8),
           child: ConstrainedBox(
@@ -424,11 +437,13 @@ class AuthHeroPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (showUni) ...[
+                    if (showMascots) ...[
                       Center(
-                        child: UniMascot(
-                          pose: UniPose.wave,
-                          size: (scale.title * 5.2).clamp(110.0, 160.0),
+                        child: MascotDialogue(
+                          lines: kAuthMascotDialogue,
+                          size: mascotSize,
+                          archlordPose: ArchlordPose.wave,
+                          uniPose: UniPose.wave,
                         ),
                       ),
                       SizedBox(height: pad * 0.4),
