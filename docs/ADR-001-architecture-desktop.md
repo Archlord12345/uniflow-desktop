@@ -22,6 +22,17 @@ La fiche mentionne `preload`, `contextIsolation` et IPC, qui sont des mécanisme
 
 L’approche permet une navigation cohérente, un code réutilisable et une migration progressive vers Appwrite. Elle impose de compléter ultérieurement la couche repository, la persistance du cache hors ligne, la synchronisation après reconnexion et les tests multi-OS.
 
+## Feuille de présence des visioconférences (ajout du 21 septembre 2026)
+
+Le poste qui héberge une réunion est le seul à savoir qui y était : aucun serveur central n’intervient, et il doit pouvoir rendre compte d’une séance tenue sans Internet. La feuille de présence est donc **produite et conservée sur le poste hôte**, dans `lib/services/conference/` :
+
+- `ConferenceAttendance` / `AttendanceEntry` (`conference_attendance.dart`) décrivent une réunion et ses participants : identité LiveKit, nom affiché, `userId` Appwrite déclaré par le client au moment du ticket, connexions successives (`joinedAt` / `leftAt`), durée cumulée. Un participant est **présent** si sa durée cumulée atteint un seuil réglable, 50 % de la durée de la réunion par défaut ; **partiel** en dessous ; **absent** s’il a reçu un ticket sans jamais se connecter.
+- Deux sources indépendantes alimentent la feuille, appliquées dans l’ordre reçu par `LiveAttendanceController` (`providers/attendance_provider.dart`) : les tickets délivrés par l’API de jonction (`ConferenceHostServer`), et les webhooks `participant_joined` / `participant_left` que le serveur média embarqué poste sur la boucle locale, signés HS256 avec la clé de la salle et vérifiés (`livekit_webhook.dart`) avant d’être pris en compte. L’hôte n’est jamais compté parmi les participants.
+- La feuille est écrite après chaque événement dans `~/.uniflow/conference/presences/<id>.json` (`FileAttendanceStore`, écriture atomique), une par réunion. Une feuille laissée ouverte par un arrêt brutal est close à sa dernière activité lors de la relecture, pour que ses connexions « encore ouvertes » ne cumulent pas des jours de présence.
+- Les exports PDF et Excel (`attendance_export.dart`, fonction pure testée indépendamment du rendu) sont enregistrés dans `Documents/UniFlow/Présences/presence-<slug>-<AAAA-MM-JJ>.pdf|.xlsx` puis proposés à l’ouverture (`attendance_export_service.dart`).
+
+La remontée de ces présences vers `course_attendances` d’Appwrite n’est pas faite : elle suppose de rattacher la réunion à une séance d’emploi du temps et une file d’attente hors ligne ; `scheduleId` est prévu sur la feuille pour cela.
+
 ## Arborescence
 
 ```text
