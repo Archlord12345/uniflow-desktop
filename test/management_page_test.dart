@@ -42,7 +42,8 @@ void main() {
     expect(find.byType(Scaffold), findsOneWidget);
   });
 
-  testWidgets('Statistiques sans note : état vide commun, pas un panneau maison',
+  testWidgets(
+      'Statistiques sans note : état vide commun, pas un panneau maison',
       (tester) async {
     await _pump(tester, const StatisticsScreen());
     expect(find.byType(DataEmptyView), findsOneWidget);

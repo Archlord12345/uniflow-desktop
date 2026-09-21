@@ -157,7 +157,8 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
             onRefresh: () => ref.invalidate(activeConferencesProvider),
             onJoin: _working
                 ? null
-                : (item) => _joinConference(apiUrl: item.apiUrl, name: item.name),
+                : (item) =>
+                    _joinConference(apiUrl: item.apiUrl, name: item.name),
           ),
         ],
       ),
@@ -410,12 +411,14 @@ class _RunningConferencePanel extends StatelessWidget {
                   if (conference.publicUrl != null &&
                       conference.publicUrl!.isNotEmpty)
                     _CopyField(
-                        label: 'Adresse publique', value: conference.publicUrl!),
+                        label: 'Adresse publique',
+                        value: conference.publicUrl!),
                 ],
               );
               final qr = _InviteQr(link: conference.participantLink);
               if (constraints.maxWidth < 720) {
-                return Column(children: [fields, const SizedBox(height: 12), qr]);
+                return Column(
+                    children: [fields, const SizedBox(height: 12), qr]);
               }
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -903,8 +906,7 @@ class StatisticsScreen extends ConsumerWidget {
       subtitle: 'Analysez les performances académiques de votre établissement',
       stats: const [],
       child: statsAsync.when(
-        loading: () =>
-            const DataLoadingView(label: 'Calcul des statistiques…'),
+        loading: () => const DataLoadingView(label: 'Calcul des statistiques…'),
         error: (error, _) => DataErrorView(
           title: 'Statistiques indisponibles',
           error: error,
@@ -1167,199 +1169,194 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _settingsPanels(BuildContext context, UniFlowUser? currentUser,
       AppPreferences prefs, bool hasPhoto) {
     return _ResponsivePanels(
-        left: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      left: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Panel(
+            title: 'Préférences du poste',
+            child: Column(
+              children: [
+                _SettingRow(
+                  title: 'Bandeaux de notification',
+                  subtitle:
+                      'Afficher un bandeau à l\'arrivée d\'une notification',
+                  value: prefs.notificationBanners,
+                  onChanged: ref
+                      .read(preferencesProvider.notifier)
+                      .setNotificationBanners,
+                ),
+                _SettingRow(
+                  title: 'Rester connecté',
+                  subtitle: 'Conserver la session d\'une ouverture à l\'autre',
+                  value: prefs.keepSession,
+                  onChanged:
+                      ref.read(preferencesProvider.notifier).setKeepSession,
+                ),
+                _SettingRow(
+                  title: 'Réduire les animations',
+                  subtitle: 'Cascades et transitions désactivées',
+                  value: prefs.reduceMotion,
+                  onChanged:
+                      ref.read(preferencesProvider.notifier).setReduceMotion,
+                ),
+                _SettingRow(
+                  title: 'Barre latérale compacte',
+                  subtitle: 'Icônes seules au démarrage',
+                  value: prefs.compactSidebar,
+                  onChanged:
+                      ref.read(preferencesProvider.notifier).setCompactSidebar,
+                ),
+                _SettingRow(
+                  title: 'Thème sombre',
+                  subtitle: 'Fond bleu nuit, comme le web en mode sombre',
+                  value: prefs.darkMode,
+                  onChanged: ref.read(preferencesProvider.notifier).setDarkMode,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _Panel(
+            title: 'Sécurité',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                    'Changez votre mot de passe ; la session reste ouverte.',
+                    style: AppTextStyles.body),
+                const SizedBox(height: 12),
+                AppButton.secondary(
+                  label: 'Changer le mot de passe',
+                  icon: Icons.lock_reset_outlined,
+                  onPressed: currentUser == null
+                      ? null
+                      : () => _changePassword(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      right: _Panel(
+        title: 'Profil utilisateur',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Panel(
-              title: 'Préférences du poste',
-              child: Column(
-                children: [
-                  _SettingRow(
-                    title: 'Bandeaux de notification',
-                    subtitle:
-                        'Afficher un bandeau à l\'arrivée d\'une notification',
-                    value: prefs.notificationBanners,
-                    onChanged: ref
-                        .read(preferencesProvider.notifier)
-                        .setNotificationBanners,
-                  ),
-                  _SettingRow(
-                    title: 'Rester connecté',
-                    subtitle:
-                        'Conserver la session d\'une ouverture à l\'autre',
-                    value: prefs.keepSession,
-                    onChanged:
-                        ref.read(preferencesProvider.notifier).setKeepSession,
-                  ),
-                  _SettingRow(
-                    title: 'Réduire les animations',
-                    subtitle: 'Cascades et transitions désactivées',
-                    value: prefs.reduceMotion,
-                    onChanged:
-                        ref.read(preferencesProvider.notifier).setReduceMotion,
-                  ),
-                  _SettingRow(
-                    title: 'Barre latérale compacte',
-                    subtitle: 'Icônes seules au démarrage',
-                    value: prefs.compactSidebar,
-                    onChanged: ref
-                        .read(preferencesProvider.notifier)
-                        .setCompactSidebar,
-                  ),
-                  _SettingRow(
-                    title: 'Thème sombre',
-                    subtitle: 'Fond bleu nuit, comme le web en mode sombre',
-                    value: prefs.darkMode,
-                    onChanged:
-                        ref.read(preferencesProvider.notifier).setDarkMode,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            _Panel(
-              title: 'Sécurité',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                      'Changez votre mot de passe ; la session reste ouverte.',
-                      style: AppTextStyles.body),
-                  const SizedBox(height: 12),
-                  AppButton.secondary(
-                    label: 'Changer le mot de passe',
-                    icon: Icons.lock_reset_outlined,
-                    onPressed: currentUser == null
-                        ? null
-                        : () => _changePassword(context),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        right: _Panel(
-          title: 'Profil utilisateur',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _PhotoAvatar(
-                    initials: currentUser == null
-                        ? '?'
-                        : initialsOf(currentUser.name),
-                    avatarFileId: currentUser?.avatarFileId,
-                    uploading: _uploading,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentUser?.name ?? 'Utilisateur non connecté',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 15),
-                        ),
-                        const SizedBox(height: 4),
-                        // Le pseudo identifie le compte ; l'email ne
-                        // sert que de repli tant que le backfill n'a pas
-                        // couvert tous les documents.
-                        Text(
-                          currentUser == null
-                              ? '---'
-                              : (currentUser.username == null ||
-                                      currentUser.username!.isEmpty
-                                  ? currentUser.email
-                                  : '@${currentUser.username} · ${currentUser.email}'),
-                          style: AppTextStyles.body,
-                        ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _PhotoAvatar(
+                  initials:
+                      currentUser == null ? '?' : initialsOf(currentUser.name),
+                  avatarFileId: currentUser?.avatarFileId,
+                  uploading: _uploading,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentUser?.name ?? 'Utilisateur non connecté',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15),
+                      ),
+                      const SizedBox(height: 4),
+                      // Le pseudo identifie le compte ; l'email ne
+                      // sert que de repli tant que le backfill n'a pas
+                      // couvert tous les documents.
+                      Text(
+                        currentUser == null
+                            ? '---'
+                            : (currentUser.username == null ||
+                                    currentUser.username!.isEmpty
+                                ? currentUser.email
+                                : '@${currentUser.username} · ${currentUser.email}'),
+                        style: AppTextStyles.body,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Rôle : ${currentUser?.role ?? '---'} · Type de compte : ${currentUser?.accountType ?? '---'}',
+                        style: AppTextStyles.body,
+                      ),
+                      if (currentUser?.university != null) ...[
                         const SizedBox(height: 6),
                         Text(
-                          'Rôle : ${currentUser?.role ?? '---'} · Type de compte : ${currentUser?.accountType ?? '---'}',
+                          'Université : ${currentUser!.university}',
                           style: AppTextStyles.body,
                         ),
-                        if (currentUser?.university != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            'Université : ${currentUser!.university}',
-                            style: AppTextStyles.body,
-                          ),
-                        ],
                       ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
-              if (currentUser != null) ...[
-                const SizedBox(height: 16),
-                // `Wrap` et non `Row` : dans une fenêtre étroite les
-                // deux panneaux tiennent encore côte à côte, et le
-                // panneau « Profil » ne dispose plus que de 135 px.
-                // « Ajouter une photo » et « Retirer » en réclament 300
-                // à eux deux — la `Row` débordait de 166 px (236 px en
-                // texte agrandi). Ici le second bouton descend.
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    AppButton.secondary(
-                      label:
-                          hasPhoto ? 'Changer la photo' : 'Ajouter une photo',
-                      icon: Icons.photo_camera_outlined,
-                      loading: _uploading,
-                      onPressed: _pickAndUpload,
-                    ),
-                    if (hasPhoto)
-                      AppButton.ghost(
-                        label: 'Retirer',
-                        icon: Icons.delete_outline,
-                        onPressed: _uploading ? null : _removePhoto,
-                      ),
-                  ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'JPEG, PNG ou WebP · 5 Mo maximum',
-                  style: AppTextStyles.body.copyWith(fontSize: 11.5),
-                ),
-                if (_photoError != null) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    _photoError!,
-                    style: const TextStyle(color: AppColors.danger, fontSize: 12),
-                  ),
-                ],
               ],
-              const SizedBox(height: 26),
+            ),
+            if (currentUser != null) ...[
+              const SizedBox(height: 16),
+              // `Wrap` et non `Row` : dans une fenêtre étroite les
+              // deux panneaux tiennent encore côte à côte, et le
+              // panneau « Profil » ne dispose plus que de 135 px.
+              // « Ajouter une photo » et « Retirer » en réclament 300
+              // à eux deux — la `Row` débordait de 166 px (236 px en
+              // texte agrandi). Ici le second bouton descend.
               Wrap(
                 spacing: 10,
                 runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  // Déconnexion en secondaire : c'est une action ordinaire.
-                  // Le rouge plein est réservé à la suppression du compte,
-                  // la seule irréversible ; avant, les deux étaient rouges et
-                  // se confondaient.
                   AppButton.secondary(
-                    label: 'Se déconnecter',
-                    icon: Icons.logout_rounded,
-                    onPressed: () => signOutToLogin(context, ref),
+                    label: hasPhoto ? 'Changer la photo' : 'Ajouter une photo',
+                    icon: Icons.photo_camera_outlined,
+                    loading: _uploading,
+                    onPressed: _pickAndUpload,
                   ),
-                  if (currentUser != null)
-                    AppButton.danger(
-                      key: const Key('delete-account-open'),
-                      label: 'Supprimer mon compte',
-                      icon: Icons.delete_forever_outlined,
-                      onPressed: () => showDeleteAccountFlow(context, ref),
+                  if (hasPhoto)
+                    AppButton.ghost(
+                      label: 'Retirer',
+                      icon: Icons.delete_outline,
+                      onPressed: _uploading ? null : _removePhoto,
                     ),
                 ],
               ),
+              const SizedBox(height: 6),
+              Text(
+                'JPEG, PNG ou WebP · 5 Mo maximum',
+                style: AppTextStyles.body.copyWith(fontSize: 11.5),
+              ),
+              if (_photoError != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _photoError!,
+                  style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                ),
+              ],
             ],
-          ),
+            const SizedBox(height: 26),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              children: [
+                // Déconnexion en secondaire : c'est une action ordinaire.
+                // Le rouge plein est réservé à la suppression du compte,
+                // la seule irréversible ; avant, les deux étaient rouges et
+                // se confondaient.
+                AppButton.secondary(
+                  label: 'Se déconnecter',
+                  icon: Icons.logout_rounded,
+                  onPressed: () => signOutToLogin(context, ref),
+                ),
+                if (currentUser != null)
+                  AppButton.danger(
+                    key: const Key('delete-account-open'),
+                    label: 'Supprimer mon compte',
+                    icon: Icons.delete_forever_outlined,
+                    onPressed: () => showDeleteAccountFlow(context, ref),
+                  ),
+              ],
+            ),
+          ],
         ),
+      ),
     );
   }
 }
@@ -1424,8 +1421,7 @@ class AboutPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              const Text(AppInfo.publisherPitch,
-                  style: AppTextStyles.body),
+              const Text(AppInfo.publisherPitch, style: AppTextStyles.body),
               const SizedBox(height: AppSpacing.md),
               const ArchlordMascot(
                 pose: ArchlordPose.thumbs,

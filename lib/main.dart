@@ -15,7 +15,8 @@ void main() async {
   await dotenv.load(fileName: ".env");
   // Une erreur de rendu non rattrapée affiche Uni qui s'excuse plutôt que le
   // rectangle rouge de Flutter.
-  ErrorWidget.builder = (details) => UniCrashScreen(details: details.exceptionAsString());
+  ErrorWidget.builder =
+      (details) => UniCrashScreen(details: details.exceptionAsString());
   runApp(const ProviderScope(child: UniFlowApp()));
 }
 

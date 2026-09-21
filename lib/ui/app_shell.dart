@@ -68,8 +68,11 @@ class AppShell extends ConsumerWidget {
                           child: Consumer(
                             builder: (context, ref, _) => UniPeek(
                               id: 'hello-shell',
-                              message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’application ? Clique-moi.',
-                              onTap: () => ref.read(uniPanelOpenProvider.notifier).state = true,
+                              message:
+                                  'Salut ! Je suis Uni. Une question sur tes cours ou l’application ? Clique-moi.',
+                              onTap: () => ref
+                                  .read(uniPanelOpenProvider.notifier)
+                                  .state = true,
                             ),
                           ),
                         ),

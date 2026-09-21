@@ -167,7 +167,8 @@ class ConferenceClient {
           '${error.osError?.message ?? error.message}. Vérifiez que vous êtes '
           'sur le même réseau et que la réunion est ouverte.');
     } on HttpException catch (error) {
-      throw ConferenceException('Réponse HTTP invalide de l\'hôte : ${error.message}');
+      throw ConferenceException(
+          'Réponse HTTP invalide de l\'hôte : ${error.message}');
     } on Object catch (error) {
       throw ConferenceException('La demande de jonction a échoué : $error');
     } finally {

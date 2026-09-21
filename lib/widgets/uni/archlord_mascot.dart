@@ -40,7 +40,8 @@ enum ArchlordPose {
 class ArchlordUniScene {
   ArchlordUniScene._();
 
-  static const String fistBumpAsset = 'assets/mascot/archlord_uni_fistbump.webp';
+  static const String fistBumpAsset =
+      'assets/mascot/archlord_uni_fistbump.webp';
   static const double fistBumpRatio = 768 / 714;
   static const String fistBumpAlt = 'Archlord et Uni se saluent du poing';
 }
@@ -187,7 +188,8 @@ class _ArchlordMascotState extends State<ArchlordMascot>
       );
     }
 
-    Widget figure = SizedBox(width: box.width, height: box.height, child: image);
+    Widget figure =
+        SizedBox(width: box.width, height: box.height, child: image);
 
     figure = TweenAnimationBuilder<double>(
       tween: Tween(begin: reduce ? 1 : 0, end: 1),

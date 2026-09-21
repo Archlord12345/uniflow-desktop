@@ -71,8 +71,8 @@ void main() {
     await tester.pump();
 
     expect(find.byType(DataEmptyView), findsOneWidget);
-    expect(find.text('Aucun enseignant ne correspond à « zzz ».'),
-        findsOneWidget);
+    expect(
+        find.text('Aucun enseignant ne correspond à « zzz ».'), findsOneWidget);
     expect(find.text('0 enseignant'), findsOneWidget);
     // L'en-tête reste visible au-dessus de l'état vide.
     expect(find.text('NOM COMPLET'), findsOneWidget);

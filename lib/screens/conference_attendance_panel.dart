@@ -73,7 +73,8 @@ class _AttendancePanelState extends ConsumerState<AttendancePanel> {
                 .setPresenceThreshold(value),
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Réunions terminées', style: AppTextStyles.h2.copyWith(fontSize: 14)),
+          Text('Réunions terminées',
+              style: AppTextStyles.h2.copyWith(fontSize: 14)),
           const SizedBox(height: AppSpacing.md),
         ],
         pastAsync.when(
@@ -255,7 +256,8 @@ class _LiveSheet extends StatelessWidget {
           runSpacing: AppSpacing.sm,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            _ThresholdPicker(value: sheet.presenceThreshold, onChanged: onThreshold),
+            _ThresholdPicker(
+                value: sheet.presenceThreshold, onChanged: onThreshold),
             AppButton.secondary(
               label: 'PDF',
               icon: Icons.picture_as_pdf_outlined,
@@ -307,7 +309,8 @@ class _ThresholdPicker extends StatelessWidget {
         child: DropdownButton<double>(
           value: current,
           hint: Text('Seuil ${(value * 100).round()} %',
-              style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
           icon: const Icon(Icons.keyboard_arrow_down,
               size: 18, color: AppColors.textMuted),
           style: const TextStyle(
@@ -345,13 +348,16 @@ class _SummaryLine extends StatelessWidget {
       runSpacing: AppSpacing.sm,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        StatusBadge(label: 'Présents ${summary.present}', tone: BadgeTone.success),
-        StatusBadge(label: 'Partiels ${summary.partial}', tone: BadgeTone.warning),
+        StatusBadge(
+            label: 'Présents ${summary.present}', tone: BadgeTone.success),
+        StatusBadge(
+            label: 'Partiels ${summary.partial}', tone: BadgeTone.warning),
         StatusBadge(label: 'Absents ${summary.absent}', tone: BadgeTone.danger),
         Text(
           'Seuil ${(sheet.presenceThreshold * 100).round()} % '
           '(${formatDurationFr(sheet.requiredPresenceAt(now))})',
-          style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+          style:
+              const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -426,7 +432,9 @@ class AttendanceTable extends StatelessWidget {
             ],
           ),
           Text(
-            entry.firstJoinedAt == null ? '—' : formatClock(entry.firstJoinedAt!),
+            entry.firstJoinedAt == null
+                ? '—'
+                : formatClock(entry.firstJoinedAt!),
             style: cell,
           ),
           Text(

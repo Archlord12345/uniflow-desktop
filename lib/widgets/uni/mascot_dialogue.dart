@@ -257,7 +257,8 @@ class _Dots extends StatelessWidget {
             width: i == active ? 14 : 6,
             height: 6,
             decoration: BoxDecoration(
-              color: i == active ? AppColors.primaryBlue : AppColors.inputBorder,
+              color:
+                  i == active ? AppColors.primaryBlue : AppColors.inputBorder,
               borderRadius: BorderRadius.circular(AppRadius.pill),
             ),
           ),

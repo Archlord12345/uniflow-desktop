@@ -168,7 +168,8 @@ class AppTableFooter extends StatelessWidget {
   final String label;
   final List<Widget> actions;
 
-  const AppTableFooter({super.key, required this.label, this.actions = const []});
+  const AppTableFooter(
+      {super.key, required this.label, this.actions = const []});
 
   /// « 1 enseignant », « 12 enseignants », « 0 salle ».
   static String count(int n, String singular, [String? plural]) =>

@@ -32,7 +32,8 @@ HostedConference _conference({String id = 'kf-0000abcd'}) => HostedConference(
       createdAt: DateTime(2026, 9, 21, 8, 0),
     );
 
-String _base64Url(List<int> bytes) => base64Url.encode(bytes).replaceAll('=', '');
+String _base64Url(List<int> bytes) =>
+    base64Url.encode(bytes).replaceAll('=', '');
 
 /// Signe un webhook comme le fait `livekit-server` : JWT HS256, `iss` = clé,
 /// `sha256` = empreinte base64 standard du corps.
@@ -44,15 +45,16 @@ String _signWebhook(
   String? sha256Override,
 }) {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  final header = _base64Url(utf8.encode(jsonEncode({'alg': 'HS256', 'typ': 'JWT'})));
+  final header =
+      _base64Url(utf8.encode(jsonEncode({'alg': 'HS256', 'typ': 'JWT'})));
   final payload = _base64Url(utf8.encode(jsonEncode({
     'iss': apiKey,
     'nbf': now - 10,
     'exp': exp ?? now + 300,
     'sha256': sha256Override ?? base64.encode(sha256.convert(body).bytes),
   })));
-  final signature =
-      Hmac(sha256, utf8.encode(apiSecret)).convert(utf8.encode('$header.$payload'));
+  final signature = Hmac(sha256, utf8.encode(apiSecret))
+      .convert(utf8.encode('$header.$payload'));
   return '$header.$payload.${_base64Url(signature.bytes)}';
 }
 
@@ -98,11 +100,12 @@ void main() {
     test('createdAt numérique ou absent', () {
       final fallback = DateTime(2030);
       final numeric = LiveKitWebhookEvent.fromJson(
-        jsonDecode(utf8.decode(_event('participant_left',
-            identity: 'a', createdAt: 1758441601))),
+        jsonDecode(utf8.decode(
+            _event('participant_left', identity: 'a', createdAt: 1758441601))),
         now: fallback,
       )!;
-      expect(numeric.createdAt.toUtc().millisecondsSinceEpoch, 1758441601 * 1000);
+      expect(
+          numeric.createdAt.toUtc().millisecondsSinceEpoch, 1758441601 * 1000);
       final missing = LiveKitWebhookEvent.fromJson(
         jsonDecode(utf8.decode(_event('participant_left', identity: 'a'))),
         now: fallback,
@@ -120,7 +123,8 @@ void main() {
       expect(other.concernsParticipant, isFalse);
       expect(LiveKitWebhookEvent.fromJson({'room': {}}, now: DateTime.now()),
           isNull);
-      expect(LiveKitWebhookEvent.fromJson('texte', now: DateTime.now()), isNull);
+      expect(
+          LiveKitWebhookEvent.fromJson('texte', now: DateTime.now()), isNull);
     });
   });
 
@@ -128,7 +132,8 @@ void main() {
     const verifier = LiveKitWebhookVerifier();
     final body = _event('participant_joined', identity: 'alice');
 
-    String? check(String? authorization, {List<int>? withBody}) => verifier.verify(
+    String? check(String? authorization, {List<int>? withBody}) =>
+        verifier.verify(
           body: withBody ?? body,
           authorization: authorization,
           apiKey: _credentials.apiKey,
@@ -150,7 +155,8 @@ void main() {
     test('refuse un autre secret, une autre clé, un jeton expiré ou vide', () {
       expect(check(_signWebhook(body, apiSecret: 'autre-secret')),
           'signature invalide');
-      expect(check(_signWebhook(body, apiKey: 'APIautre')), 'clé d\'API inconnue');
+      expect(
+          check(_signWebhook(body, apiKey: 'APIautre')), 'clé d\'API inconnue');
       final old = DateTime.now().millisecondsSinceEpoch ~/ 1000 - 3600;
       expect(check(_signWebhook(body, exp: old)), 'jeton expiré');
       expect(check(null), 'en-tête Authorization absent');
@@ -170,7 +176,8 @@ void main() {
       );
       expect(config, contains('webhook:\n  api_key: ${_credentials.apiKey}'));
       expect(config, contains('    - http://127.0.0.1:8090/livekit/webhook'));
-      expect(config, contains('${_credentials.apiKey}: ${_credentials.apiSecret}'));
+      expect(config,
+          contains('${_credentials.apiKey}: ${_credentials.apiSecret}'));
     });
 
     test('sans URL, pas de section webhook', () {
@@ -206,8 +213,8 @@ void main() {
     Future<HttpClientResponse> post(String path, List<int> body,
         {String? authorization}) async {
       final client = HttpClient();
-      final request =
-          await client.postUrl(Uri.parse('http://127.0.0.1:${server.port}$path'));
+      final request = await client
+          .postUrl(Uri.parse('http://127.0.0.1:${server.port}$path'));
       request.headers.contentType = ContentType('application', 'webhook+json');
       if (authorization != null) {
         request.headers.set(HttpHeaders.authorizationHeader, authorization);
@@ -221,9 +228,9 @@ void main() {
 
     test('un ticket délivré est signalé avec le userId déclaré', () async {
       final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(
-          'http://127.0.0.1:${server.port}/rooms/kf-0000abcd/join'
-          '?code=k7m2qp&identity=alice&name=Alice%20K&userId=u-alice'));
+      final request = await client.getUrl(
+          Uri.parse('http://127.0.0.1:${server.port}/rooms/kf-0000abcd/join'
+              '?code=k7m2qp&identity=alice&name=Alice%20K&userId=u-alice'));
       final response = await request.close();
       final json = jsonDecode(await response.transform(utf8.decoder).join());
       client.close();
@@ -238,9 +245,9 @@ void main() {
 
     test('un mauvais code ne délivre pas de ticket', () async {
       final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(
-          'http://127.0.0.1:${server.port}/rooms/kf-0000abcd/join'
-          '?code=XXXXXX&identity=alice'));
+      final request = await client.getUrl(
+          Uri.parse('http://127.0.0.1:${server.port}/rooms/kf-0000abcd/join'
+              '?code=XXXXXX&identity=alice'));
       final response = await request.close();
       await response.drain<void>();
       client.close();
@@ -250,7 +257,8 @@ void main() {
 
     test('un webhook signé est relayé, un webhook falsifié est refusé',
         () async {
-      final body = _event('participant_joined', identity: 'alice', name: 'Alice');
+      final body =
+          _event('participant_joined', identity: 'alice', name: 'Alice');
       final ok = await post(ConferenceHostServer.webhookPath, body,
           authorization: _signWebhook(body));
       expect(ok.statusCode, 200);
@@ -265,7 +273,8 @@ void main() {
       expect(events, hasLength(1));
     });
 
-    test('une salle inconnue est ignorée sans erreur, un corps illisible refusé',
+    test(
+        'une salle inconnue est ignorée sans erreur, un corps illisible refusé',
         () async {
       final body = _event('participant_joined', room: 'autre', identity: 'a');
       final ignored = await post(ConferenceHostServer.webhookPath, body,
@@ -294,8 +303,9 @@ void main() {
     LiveAttendanceController controller() =>
         container.read(liveAttendanceProvider.notifier);
 
-    LiveKitWebhookEvent webhook(LiveKitWebhookEventType type, String identity,
-            DateTime at, {String name = '', String room = 'kf-0000abcd'}) =>
+    LiveKitWebhookEvent webhook(
+            LiveKitWebhookEventType type, String identity, DateTime at,
+            {String name = '', String room = 'kf-0000abcd'}) =>
         LiveKitWebhookEvent(
           type: type,
           rawType: type.wireName,
@@ -317,19 +327,24 @@ void main() {
           issuedAt: t0));
       controller().recordTicket(IssuedTicket(
           roomId: 'autre-salle', identity: 'intrus', issuedAt: t0));
-      controller().recordTicket(
-          IssuedTicket(roomId: 'kf-0000abcd', identity: 'host-1', issuedAt: t0));
+      controller().recordTicket(IssuedTicket(
+          roomId: 'kf-0000abcd', identity: 'host-1', issuedAt: t0));
       controller().recordWebhook(webhook(
-          LiveKitWebhookEventType.participantJoined, 'alice',
+          LiveKitWebhookEventType.participantJoined,
+          'alice',
           t0.add(const Duration(minutes: 1))));
       controller().recordWebhook(webhook(
-          LiveKitWebhookEventType.participantJoined, 'bob',
-          t0.add(const Duration(minutes: 2)), name: 'Bob'));
+          LiveKitWebhookEventType.participantJoined,
+          'bob',
+          t0.add(const Duration(minutes: 2)),
+          name: 'Bob'));
       controller().recordWebhook(webhook(
-          LiveKitWebhookEventType.participantJoined, 'host-1',
+          LiveKitWebhookEventType.participantJoined,
+          'host-1',
           t0.add(const Duration(minutes: 2))));
       controller().recordWebhook(webhook(
-          LiveKitWebhookEventType.participantLeft, 'alice',
+          LiveKitWebhookEventType.participantLeft,
+          'alice',
           t0.add(const Duration(minutes: 30))));
 
       final sheet = container.read(liveAttendanceProvider)!;

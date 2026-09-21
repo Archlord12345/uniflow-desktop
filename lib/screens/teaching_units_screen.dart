@@ -270,7 +270,6 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
       ],
     );
   }
-
 }
 
 /// Petite carte statistique (icône + valeur + libellé), utilisée pour les
@@ -318,8 +317,7 @@ class _UeStatCard extends StatelessWidget {
 /// Cellules d'une ligne du tableau des UE, dans l'ordre de
 /// `_TeachingUnitsScreenState._columns`.
 abstract final class _UnitRow {
-  static const _muted =
-      TextStyle(fontSize: 13, color: AppColors.textSecondary);
+  static const _muted = TextStyle(fontSize: 13, color: AppColors.textSecondary);
   static const _counter =
       TextStyle(fontSize: 12.5, color: AppColors.textSecondary);
 

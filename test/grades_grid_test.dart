@@ -118,8 +118,8 @@ void main() {
 
     expect(find.text('2 apprenants'), findsOneWidget);
     // L'action d'en-tête est le bouton du design system.
-    expect(find.widgetWithText(AppButton, 'Nouvelle évaluation'),
-        findsOneWidget);
+    expect(
+        find.widgetWithText(AppButton, 'Nouvelle évaluation'), findsOneWidget);
   });
 
   testWidgets('sans apprenant : état vide commun', (tester) async {

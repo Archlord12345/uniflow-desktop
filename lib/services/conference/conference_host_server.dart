@@ -162,8 +162,7 @@ class ConferenceHostServer {
 
     // GET /  et  GET /join[/<CODE>] : page navigateur du participant.
     if (request.method == 'GET' &&
-        (segments.isEmpty ||
-            (segments[0] == 'join' && segments.length <= 2))) {
+        (segments.isEmpty || (segments[0] == 'join' && segments.length <= 2))) {
       final code = segments.length == 2 ? segments[1] : null;
       return _joinPage(request, code);
     }
@@ -227,8 +226,8 @@ class ConferenceHostServer {
     final now = DateTime.now();
     LiveKitWebhookEvent? event;
     try {
-      event = LiveKitWebhookEvent.fromJson(jsonDecode(utf8.decode(body)),
-          now: now);
+      event =
+          LiveKitWebhookEvent.fromJson(jsonDecode(utf8.decode(body)), now: now);
     } on FormatException {
       event = null;
     }
@@ -383,8 +382,8 @@ class ConferenceHostServer {
     final script = _clientScript!;
     request.response
       ..statusCode = HttpStatus.ok
-      ..headers.contentType = ContentType('application', 'javascript',
-          charset: 'utf-8')
+      ..headers.contentType =
+          ContentType('application', 'javascript', charset: 'utf-8')
       ..headers.set(HttpHeaders.cacheControlHeader, 'public, max-age=86400')
       ..headers.contentLength = script.length;
     request.response.add(script);

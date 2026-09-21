@@ -71,7 +71,8 @@ class UniOops extends StatelessWidget {
       builder: (context, constraints) => SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight: constraints.maxHeight.isFinite ? constraints.maxHeight : 0,
+            minHeight:
+                constraints.maxHeight.isFinite ? constraints.maxHeight : 0,
           ),
           child: Center(
             child: Padding(
@@ -140,7 +141,8 @@ class UniCrashScreen extends StatelessWidget {
         child: SafeArea(
           child: UniOops(
             title: 'Oups, quelque chose s’est mal passé',
-            message: 'Uni est désolé. Cette partie de l’écran n’a pas pu s’afficher. '
+            message:
+                'Uni est désolé. Cette partie de l’écran n’a pas pu s’afficher. '
                 'Vous pouvez revenir en arrière ou réessayer.',
             // Le bouton du design system se contente du `Material` posé
             // au-dessus et retombe sur la palette claire sans thème : il reste
@@ -159,7 +161,8 @@ class UniCrashScreen extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF)),
+                    style:
+                        const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF)),
                   ),
           ),
         ),
@@ -234,8 +237,12 @@ class _UniPeekState extends State<UniPeek> {
   @override
   Widget build(BuildContext context) {
     final reduce = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final pose = widget.edge == UniPeekEdge.right ? UniPose.peekRight : UniPose.peekBottom;
-    final hidden = widget.edge == UniPeekEdge.right ? const Offset(1.2, 0) : const Offset(0, 1.2);
+    final pose = widget.edge == UniPeekEdge.right
+        ? UniPose.peekRight
+        : UniPose.peekBottom;
+    final hidden = widget.edge == UniPeekEdge.right
+        ? const Offset(1.2, 0)
+        : const Offset(0, 1.2);
 
     final body = GestureDetector(
       onTap: () {
@@ -251,7 +258,10 @@ class _UniPeekState extends State<UniPeek> {
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Flexible(child: UniBubble(side: UniBubbleSide.left, child: Text(widget.message))),
+                  Flexible(
+                      child: UniBubble(
+                          side: UniBubbleSide.left,
+                          child: Text(widget.message))),
                   const SizedBox(width: 4),
                   UniMascot(pose: pose, size: 96, effects: false),
                 ],
@@ -259,7 +269,8 @@ class _UniPeekState extends State<UniPeek> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  UniBubble(side: UniBubbleSide.top, child: Text(widget.message)),
+                  UniBubble(
+                      side: UniBubbleSide.top, child: Text(widget.message)),
                   UniMascot(pose: pose, size: 90, effects: false),
                 ],
               ),
@@ -276,7 +287,9 @@ class _UniPeekState extends State<UniPeek> {
           opacity: _visible ? 1 : 0,
           duration: const Duration(milliseconds: 250),
           child: Align(
-            alignment: widget.edge == UniPeekEdge.right ? Alignment.bottomRight : Alignment.bottomCenter,
+            alignment: widget.edge == UniPeekEdge.right
+                ? Alignment.bottomRight
+                : Alignment.bottomCenter,
             child: body,
           ),
         ),

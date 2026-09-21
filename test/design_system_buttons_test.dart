@@ -37,7 +37,8 @@ void main() {
   setUpAll(loadTestEnv);
 
   group('Authentification', () {
-    testWidgets('Connexion : inscription en AppButton, lien « oublié » sans '
+    testWidgets(
+        'Connexion : inscription en AppButton, lien « oublié » sans '
         'TextButton', (tester) async {
       await _pump(tester, const LoginScreen(), const Size(1366, 768));
       _expectNoMaterialButtons();
@@ -47,7 +48,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Connexion : le dialogue « Mot de passe oublié » n\'a que des '
+    testWidgets(
+        'Connexion : le dialogue « Mot de passe oublié » n\'a que des '
         'AppButton', (tester) async {
       await _pump(tester, const LoginScreen(), const Size(1366, 768));
       await tester.tap(find.text('Mot de passe oublié ?'));
@@ -78,7 +80,8 @@ void main() {
   });
 
   group('Conférences', () {
-    testWidgets('le dialogue « Nouvelle réunion » : Annuler / Ouvrir en '
+    testWidgets(
+        'le dialogue « Nouvelle réunion » : Annuler / Ouvrir en '
         'AppButton', (tester) async {
       await _pump(tester, const ConferencesScreen(), const Size(1440, 900));
       await tester.tap(find.text('Nouvelle conférence'));

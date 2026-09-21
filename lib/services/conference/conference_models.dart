@@ -132,9 +132,8 @@ class HostedConference {
 
   /// Construit le lien de participation à partir de la racine de l'API.
   static String participantLinkFor(String apiUrl, String code) {
-    final base = apiUrl.endsWith('/')
-        ? apiUrl.substring(0, apiUrl.length - 1)
-        : apiUrl;
+    final base =
+        apiUrl.endsWith('/') ? apiUrl.substring(0, apiUrl.length - 1) : apiUrl;
     return '$base/join/${code.toUpperCase()}';
   }
 

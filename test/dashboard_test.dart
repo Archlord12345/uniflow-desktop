@@ -210,7 +210,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
 
-    testWidgets('étudiant : ses quatre indicateurs, pas ceux de l’administration',
+    testWidgets(
+        'étudiant : ses quatre indicateurs, pas ceux de l’administration',
         (tester) async {
       await pumpAs(tester, 'STUDENT');
 
@@ -230,7 +231,8 @@ void main() {
 
       // Accès rapide filtré par rôle : pas d'écran d'administration.
       expect(find.text('Accès rapide'), findsOneWidget);
-      expect(find.byKey(const ValueKey('quick-emploi-du-temps')), findsOneWidget);
+      expect(
+          find.byKey(const ValueKey('quick-emploi-du-temps')), findsOneWidget);
       expect(find.byKey(const ValueKey('quick-comptes')), findsNothing);
     });
 

@@ -87,7 +87,8 @@ class _UniMascotState extends State<UniMascot>
   @override
   void initState() {
     super.initState();
-    _loop = AnimationController(vsync: this, duration: _loopDuration(widget.pose));
+    _loop =
+        AnimationController(vsync: this, duration: _loopDuration(widget.pose));
   }
 
   @override
@@ -99,7 +100,9 @@ class _UniMascotState extends State<UniMascot>
   @override
   void didUpdateWidget(covariant UniMascot oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.pose != widget.pose) _loop.duration = _loopDuration(widget.pose);
+    if (oldWidget.pose != widget.pose) {
+      _loop.duration = _loopDuration(widget.pose);
+    }
     _syncLoop(restart: oldWidget.pose != widget.pose);
   }
 
@@ -222,7 +225,8 @@ class _UniMascotState extends State<UniMascot>
         children: [
           image,
           if (widget.effects && animated)
-            Positioned.fill(child: _PoseEffects(pose: widget.pose, loop: _loop)),
+            Positioned.fill(
+                child: _PoseEffects(pose: widget.pose, loop: _loop)),
         ],
       ),
     );
@@ -234,7 +238,8 @@ class _UniMascotState extends State<UniMascot>
       curve: Curves.easeOutBack,
       builder: (context, v, child) => Opacity(
         opacity: v.clamp(0.0, 1.0),
-        child: Transform.scale(scale: v, alignment: Alignment.bottomCenter, child: child),
+        child: Transform.scale(
+            scale: v, alignment: Alignment.bottomCenter, child: child),
       ),
       child: figure,
     );
@@ -281,7 +286,8 @@ class _Fallback extends StatelessWidget {
       height: size * 0.7,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)]),
+        gradient:
+            LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF0D9488)]),
       ),
       alignment: Alignment.center,
       child: Text(
@@ -301,7 +307,8 @@ class UniBubble extends StatelessWidget {
   final Widget child;
   final UniBubbleSide side;
 
-  const UniBubble({super.key, required this.child, this.side = UniBubbleSide.right});
+  const UniBubble(
+      {super.key, required this.child, this.side = UniBubbleSide.right});
 
   @override
   Widget build(BuildContext context) {
@@ -355,7 +362,8 @@ class _BubblePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const tail = 8.0;
     final body = switch (side) {
-      UniBubbleSide.right => Rect.fromLTWH(tail, 0, size.width - tail, size.height),
+      UniBubbleSide.right =>
+        Rect.fromLTWH(tail, 0, size.width - tail, size.height),
       UniBubbleSide.left => Rect.fromLTWH(0, 0, size.width - tail, size.height),
       UniBubbleSide.top => Rect.fromLTWH(0, 0, size.width, size.height - tail),
     };
@@ -413,8 +421,15 @@ class _PoseEffects extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (pose) {
       UniPose.celebrate => _Confetti(loop: loop),
-      UniPose.sleeping => _FloatingGlyphs(loop: loop, glyphs: const ['z', 'z', 'Z'], color: const Color(0xFF6366F1)),
-      UniPose.search => _FloatingGlyphs(loop: loop, glyphs: const ['?'], color: const Color(0xFF0D9488), size: 22),
+      UniPose.sleeping => _FloatingGlyphs(
+          loop: loop,
+          glyphs: const ['z', 'z', 'Z'],
+          color: const Color(0xFF6366F1)),
+      UniPose.search => _FloatingGlyphs(
+          loop: loop,
+          glyphs: const ['?'],
+          color: const Color(0xFF0D9488),
+          size: 22),
       UniPose.thinking => _ThinkingDots(loop: loop),
       UniPose.sorry => _SweatDrop(loop: loop),
       _ => const SizedBox.shrink(),
@@ -596,15 +611,17 @@ class UniDots extends StatefulWidget {
   final Color color;
   final double size;
 
-  const UniDots({super.key, this.color = const Color(0xFF1E3A8A), this.size = 7});
+  const UniDots(
+      {super.key, this.color = const Color(0xFF1E3A8A), this.size = 7});
 
   @override
   State<UniDots> createState() => _UniDotsState();
 }
 
 class _UniDotsState extends State<UniDots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 900))
+    ..repeat();
 
   @override
   void dispose() {
@@ -620,7 +637,8 @@ class _UniDotsState extends State<UniDots> with SingleTickerProviderStateMixin {
       builder: (context, _) => Row(
         mainAxisSize: MainAxisSize.min,
         children: List.generate(3, (i) {
-          final phase = reduce ? 0.0 : math.sin((_c.value * 2 * math.pi) - i * 0.9);
+          final phase =
+              reduce ? 0.0 : math.sin((_c.value * 2 * math.pi) - i * 0.9);
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: widget.size * 0.35),
             child: Transform.translate(
@@ -628,7 +646,8 @@ class _UniDotsState extends State<UniDots> with SingleTickerProviderStateMixin {
               child: Container(
                 width: widget.size,
                 height: widget.size,
-                decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: widget.color, shape: BoxShape.circle),
               ),
             ),
           );

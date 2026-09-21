@@ -841,8 +841,8 @@ class _GradeGrid extends ConsumerWidget {
             // Toute la cellule est cliquable, pas seulement la pastille : une
             // case vide (« — ») serait sinon presque impossible à viser.
             InkWell(
-              onTap: () => _edit(context, ref, student, t,
-                  roster.gradeOf(student.userId, t)),
+              onTap: () => _edit(
+                  context, ref, student, t, roster.gradeOf(student.userId, t)),
               borderRadius: BorderRadius.circular(AppRadius.sm),
               child: SizedBox(
                 width: evaluationWidth,
@@ -1166,8 +1166,8 @@ class LibraryManagementScreen extends ConsumerWidget {
         ),
         Expanded(
           child: items.when(
-            loading: () => const DataLoadingView(
-                label: 'Chargement de la bibliothèque…'),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement de la bibliothèque…'),
             error: (e, _) => DataErrorView(
                 error: e, onRetry: () => ref.invalidate(libraryProvider)),
             data: (list) {

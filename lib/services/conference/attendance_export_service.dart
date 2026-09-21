@@ -45,7 +45,8 @@ class AttendanceExportService {
   static Future<Directory> defaultDirectory() async {
     final documents = await getApplicationDocumentsDirectory();
     final separator = Platform.pathSeparator;
-    return Directory('${documents.path}$separator${subfolders.join(separator)}');
+    return Directory(
+        '${documents.path}$separator${subfolders.join(separator)}');
   }
 
   /// Produit le fichier et le renvoie ; lève si l'écriture échoue.
@@ -92,8 +93,7 @@ class AttendanceExportService {
     var candidate = File('${directory.path}$separator$stem.$extension');
     var index = 2;
     while (await candidate.exists()) {
-      candidate =
-          File('${directory.path}$separator$stem-$index.$extension');
+      candidate = File('${directory.path}$separator$stem-$index.$extension');
       index++;
     }
     return candidate;

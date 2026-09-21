@@ -9,7 +9,8 @@ Widget _wrap(Widget child, {bool reduceMotion = false, double width = 700}) {
     data: MediaQueryData(disableAnimations: reduceMotion),
     child: MaterialApp(
       home: Scaffold(
-        body: Center(child: SizedBox(width: width, child: Center(child: child))),
+        body:
+            Center(child: SizedBox(width: width, child: Center(child: child))),
       ),
     ),
   );
@@ -38,16 +39,20 @@ void main() {
         expect(pose.asset, startsWith('assets/mascot/archlord_'));
         expect(pose.asset, endsWith('.webp'));
         expect(pose.ratio, greaterThan(0));
-        expect(pose.ratio, lessThan(1), reason: 'un humain debout est plus haut que large');
+        expect(pose.ratio, lessThan(1),
+            reason: 'un humain debout est plus haut que large');
         expect(pose.alt, isNotEmpty);
       }
-      expect(ArchlordUniScene.fistBumpAsset, startsWith('assets/mascot/archlord_uni_'));
+      expect(ArchlordUniScene.fistBumpAsset,
+          startsWith('assets/mascot/archlord_uni_'));
     });
   });
 
   group('ArchlordMascot', () {
-    testWidgets('réserve la boîte au ratio de la pose et expose l’alt', (tester) async {
-      await tester.pumpWidget(_wrap(const ArchlordMascot(pose: ArchlordPose.wave, size: 120)));
+    testWidgets('réserve la boîte au ratio de la pose et expose l’alt',
+        (tester) async {
+      await tester.pumpWidget(
+          _wrap(const ArchlordMascot(pose: ArchlordPose.wave, size: 120)));
       await tester.pump(const Duration(milliseconds: 600));
       final box = tester.getSize(find.byType(Image));
       expect(box.height, 120);
@@ -56,7 +61,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('la bulle s’affiche des trois côtés sans déborder', (tester) async {
+    testWidgets('la bulle s’affiche des trois côtés sans déborder',
+        (tester) async {
       for (final side in UniBubbleSide.values) {
         await tester.pumpWidget(_wrap(
           ArchlordMascot(
@@ -68,14 +74,18 @@ void main() {
           ),
         ));
         await tester.pump(const Duration(milliseconds: 600));
-        expect(find.text('Le serveur tourne sur ce poste.'), findsOneWidget, reason: '$side');
+        expect(find.text('Le serveur tourne sur ce poste.'), findsOneWidget,
+            reason: '$side');
         expect(find.byType(UniBubble), findsOneWidget);
-        expect(tester.takeException(), isNull, reason: 'débordement côté $side');
+        expect(tester.takeException(), isNull,
+            reason: 'débordement côté $side');
       }
     });
 
-    testWidgets('la boucle tourne quand il parle et se coupe sans mouvement', (tester) async {
-      await tester.pumpWidget(_wrap(const ArchlordMascot(pose: ArchlordPose.explain, speaking: true)));
+    testWidgets('la boucle tourne quand il parle et se coupe sans mouvement',
+        (tester) async {
+      await tester.pumpWidget(_wrap(
+          const ArchlordMascot(pose: ArchlordPose.explain, speaking: true)));
       await tester.pump(const Duration(milliseconds: 500));
       // Une boucle infinie laisse toujours des frames planifiées.
       expect(tester.binding.hasScheduledFrame, isTrue);
@@ -90,8 +100,10 @@ void main() {
       expect(find.byType(Image), findsOneWidget);
     });
 
-    testWidgets('still coupe la boucle même avec animations autorisées', (tester) async {
-      await tester.pumpWidget(_wrap(const ArchlordMascot(pose: ArchlordPose.thumbs, still: true)));
+    testWidgets('still coupe la boucle même avec animations autorisées',
+        (tester) async {
+      await tester.pumpWidget(
+          _wrap(const ArchlordMascot(pose: ArchlordPose.thumbs, still: true)));
       await tester.pumpAndSettle();
       expect(find.byType(Image), findsOneWidget);
     });
@@ -99,7 +111,8 @@ void main() {
     testWidgets('onTap rend le personnage cliquable', (tester) async {
       var taps = 0;
       await tester.pumpWidget(_wrap(
-        ArchlordMascot(pose: ArchlordPose.pointing, size: 100, onTap: () => taps++),
+        ArchlordMascot(
+            pose: ArchlordPose.pointing, size: 100, onTap: () => taps++),
       ));
       await tester.pump(const Duration(milliseconds: 600));
       await tester.tap(find.byType(Image));
@@ -108,19 +121,25 @@ void main() {
   });
 
   group('ArchlordUniFistBump', () {
-    testWidgets('respecte le ratio de la scène et se stabilise sans mouvement', (tester) async {
-      await tester.pumpWidget(_wrap(const ArchlordUniFistBump(size: 100), reduceMotion: true));
+    testWidgets('respecte le ratio de la scène et se stabilise sans mouvement',
+        (tester) async {
+      await tester.pumpWidget(
+          _wrap(const ArchlordUniFistBump(size: 100), reduceMotion: true));
       await tester.pumpAndSettle();
       final box = tester.getSize(find.byType(Image));
       expect(box.height, 100);
       expect(box.width, closeTo(100 * ArchlordUniScene.fistBumpRatio, 0.5));
-      expect(find.bySemanticsLabel(ArchlordUniScene.fistBumpAlt), findsOneWidget);
+      expect(
+          find.bySemanticsLabel(ArchlordUniScene.fistBumpAlt), findsOneWidget);
     });
   });
 
   group('MascotDialogue', () {
-    testWidgets('montre une réplique à la fois et avance toutes les 3,5 s en boucle', (tester) async {
-      await tester.pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
+    testWidgets(
+        'montre une réplique à la fois et avance toutes les 3,5 s en boucle',
+        (tester) async {
+      await tester
+          .pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.text(_lines[0].text), findsOneWidget);
       expect(find.text(_lines[1].text), findsNothing);
@@ -141,8 +160,10 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('un clic passe à la réplique suivante et relance la cadence', (tester) async {
-      await tester.pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
+    testWidgets('un clic passe à la réplique suivante et relance la cadence',
+        (tester) async {
+      await tester
+          .pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
       await tester.pump(const Duration(milliseconds: 600));
       // À 3,1 s, on est à 0,4 s de l'avancement automatique.
       await tester.pump(const Duration(milliseconds: 2500));
@@ -159,17 +180,21 @@ void main() {
     });
 
     testWidgets('la queue de la bulle pointe vers le locuteur', (tester) async {
-      await tester.pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
+      await tester
+          .pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
       await tester.pump(const Duration(milliseconds: 600));
       // Archlord est à gauche : la bulle est « à droite » du personnage.
-      expect(tester.widget<UniBubble>(find.byType(UniBubble)).side, UniBubbleSide.right);
+      expect(tester.widget<UniBubble>(find.byType(UniBubble)).side,
+          UniBubbleSide.right);
       await tester.tap(find.byType(MascotDialogue));
       await _settleSwitch(tester);
-      expect(tester.widget<UniBubble>(find.byType(UniBubble)).side, UniBubbleSide.left);
+      expect(tester.widget<UniBubble>(find.byType(UniBubble)).side,
+          UniBubbleSide.left);
     });
 
     testWidgets('le locuteur s’anime, l’autre écoute immobile', (tester) async {
-      await tester.pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
+      await tester
+          .pumpWidget(_wrap(const MascotDialogue(lines: _lines, size: 100)));
       await tester.pump(const Duration(milliseconds: 600));
       var archlord = tester.widget<ArchlordMascot>(find.byType(ArchlordMascot));
       var uni = tester.widget<UniMascot>(find.byType(UniMascot));
@@ -186,7 +211,9 @@ void main() {
       expect(uni.still, isFalse);
     });
 
-    testWidgets('sans mouvement, toutes les répliques sont visibles et rien ne tourne', (tester) async {
+    testWidgets(
+        'sans mouvement, toutes les répliques sont visibles et rien ne tourne',
+        (tester) async {
       await tester.pumpWidget(_wrap(
         const MascotDialogue(lines: _lines, size: 100),
         reduceMotion: true,
@@ -199,7 +226,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('autoAdvance désactivé : la réplique reste, le clic avance', (tester) async {
+    testWidgets('autoAdvance désactivé : la réplique reste, le clic avance',
+        (tester) async {
       await tester.pumpWidget(_wrap(
         const MascotDialogue(lines: _lines, size: 100, autoAdvance: false),
       ));

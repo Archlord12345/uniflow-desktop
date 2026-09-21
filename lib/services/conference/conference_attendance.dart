@@ -142,7 +142,8 @@ class AttendanceEntry {
         'identity': identity,
         'displayName': displayName,
         if (userId != null) 'userId': userId,
-        if (invitedAt != null) 'invitedAt': invitedAt!.toUtc().toIso8601String(),
+        if (invitedAt != null)
+          'invitedAt': invitedAt!.toUtc().toIso8601String(),
         'sessions': [for (final session in sessions) session.toJson()],
       };
 
@@ -339,8 +340,7 @@ class ConferenceAttendance {
     // Un second ticket pour la même identité (page rechargée, nouvel
     // appareil) complète ce qu'on sait sans effacer l'historique.
     return _replace(existing.copyWith(
-      displayName:
-          existing.displayName.isEmpty ? displayName.trim() : null,
+      displayName: existing.displayName.isEmpty ? displayName.trim() : null,
       userId: existing.userId ?? _cleanId(userId),
       invitedAt: existing.invitedAt ?? at,
     ));

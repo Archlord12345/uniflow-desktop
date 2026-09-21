@@ -40,6 +40,24 @@ IP du poste hôte, **sans passer par internet**. Appwrite ne sert qu'à
 l'annuaire des réunions (collection `conference_rooms`) quand une connexion
 existe ; sans connexion, la salle reste utilisable sur le réseau local.
 
+Concrètement, « Créer une réunion » :
+
+1. choisit l'adresse LAN du poste (cartes physiques avant ponts Docker, VPN et
+   machines virtuelles ; bouclage et lien-local écartés — `conference_network.dart`) ;
+2. lance `livekit-server` et l'API de jonction sur des ports libres ;
+3. ouvre **la salle dans l'application** (`conference_room_screen.dart`,
+   `livekit_client`) : vidéo, micro, caméra, partage d'écran, épinglage,
+   participants, et un panneau d'invitation avec QR ;
+4. sert aux participants sans application une **page navigateur**
+   `http://<IP du poste>:<port>/join/<CODE>` (bundle `livekit-client` embarqué
+   dans `assets/conference_web/`). En `http://`, les navigateurs refusent micro
+   et caméra : la page l'explique et bascule en mode écoute ; l'application de
+   bureau, elle, n'a pas cette limite.
+
+Un autre poste rejoint par « Rejoindre une réunion » (adresse ou lien collé +
+code) ou depuis l'annuaire ; il obtient son jeton directement auprès de
+l'hôte (`GET /rooms/by-code/<CODE>` puis `GET /rooms/<id>/join?code=…`).
+
 Le binaire `livekit-server` est cherché dans `LIVEKIT_SERVER_PATH` (`.env`),
 puis dans `~/.local/bin`, `~/bin`, `/usr/local/bin`, `/usr/bin`,
 `/opt/livekit` et `C:\Program Files\LiveKit`. Installation :
@@ -110,7 +128,18 @@ flutter test
 ```
 
 Les tests couvrent le modèle de rôles (`user_role_test.dart`), la mise en page
-aux différentes largeurs (`layout_test.dart`), la page Équipe et le logo.
+aux différentes largeurs (`layout_test.dart`), la page Équipe et le logo, et
+la visioconférence sans serveur média (`conference_join_test.dart`,
+`conference_host_attendance_test.dart`).
+
+`test_live/` n'est pas lancé par `flutter test` : il exige le vrai
+`livekit-server` installé et vérifie de bout en bout ce que fait « Créer une
+réunion » puis « Rejoindre » — jusqu'à la validation du jeton par le serveur
+média (`GET /rtc/validate`) et la page navigateur servie à l'adresse LAN :
+
+```bash
+flutter test test_live/conference_host_live_test.dart
+```
 
 ## Organisation du dépôt
 

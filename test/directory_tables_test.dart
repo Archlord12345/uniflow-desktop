@@ -131,8 +131,7 @@ void main() {
       await tester.tap(boxes.first);
       await tester.pump();
       expect(find.text('2 sélectionnés'), findsOneWidget);
-      expect(
-          tester.widget<Checkbox>(boxes.first).value, isTrue,
+      expect(tester.widget<Checkbox>(boxes.first).value, isTrue,
           reason: 'la case d\'en-tête reflète « tout coché »');
     });
 
@@ -260,7 +259,8 @@ void main() {
       await _pump(tester, const ProgramsScreen(), overrides: [
         programTreeProvider.overrideWith((ref) async => [faculty(const [])]),
       ]);
-      expect(find.text('Aucune UE enregistrée pour ce niveau.'), findsOneWidget);
+      expect(
+          find.text('Aucune UE enregistrée pour ce niveau.'), findsOneWidget);
       expect(find.byType(DataEmptyView), findsOneWidget);
     });
   });
@@ -308,8 +308,10 @@ void main() {
         width: width,
         overrides: [
           teachingUnitsProvider.overrideWith((ref) async => [
-                _unit('INF301', 'Intelligence artificielle et apprentissage '
-                    'automatique appliqué aux systèmes distribués'),
+                _unit(
+                    'INF301',
+                    'Intelligence artificielle et apprentissage '
+                        'automatique appliqué aux systèmes distribués'),
               ]),
         ],
       );

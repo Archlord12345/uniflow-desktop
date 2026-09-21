@@ -160,15 +160,36 @@ String slugify(String value, {int maxLength = 48}) {
 }
 
 const Map<String, String> _accentFold = {
-  'à': 'a', 'â': 'a', 'ä': 'a', 'á': 'a', 'ã': 'a', 'å': 'a',
+  'à': 'a',
+  'â': 'a',
+  'ä': 'a',
+  'á': 'a',
+  'ã': 'a',
+  'å': 'a',
   'ç': 'c',
-  'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-  'î': 'i', 'ï': 'i', 'í': 'i', 'ì': 'i',
-  'ô': 'o', 'ö': 'o', 'ó': 'o', 'ò': 'o', 'õ': 'o',
-  'û': 'u', 'ù': 'u', 'ü': 'u', 'ú': 'u',
-  'ÿ': 'y', 'ý': 'y',
+  'é': 'e',
+  'è': 'e',
+  'ê': 'e',
+  'ë': 'e',
+  'î': 'i',
+  'ï': 'i',
+  'í': 'i',
+  'ì': 'i',
+  'ô': 'o',
+  'ö': 'o',
+  'ó': 'o',
+  'ò': 'o',
+  'õ': 'o',
+  'û': 'u',
+  'ù': 'u',
+  'ü': 'u',
+  'ú': 'u',
+  'ÿ': 'y',
+  'ý': 'y',
   'ñ': 'n',
-  'æ': 'ae', 'œ': 'oe', 'ß': 'ss',
+  'æ': 'ae',
+  'œ': 'oe',
+  'ß': 'ss',
 };
 
 /// Polices embarquées pour le PDF.
@@ -231,9 +252,7 @@ Future<Uint8List> buildAttendancePdf(
           pw.Expanded(
             child: pw.Text(value,
                 style: pw.TextStyle(
-                    fontSize: 10,
-                    color: ink,
-                    fontWeight: pw.FontWeight.bold)),
+                    fontSize: 10, color: ink, fontWeight: pw.FontWeight.bold)),
           ),
         ]),
       );

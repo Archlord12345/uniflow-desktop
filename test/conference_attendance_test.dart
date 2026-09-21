@@ -128,8 +128,8 @@ void main() {
 
     test('un invité jamais connecté reste sur la feuille, absent', () {
       final sheet = _sheet()
-          .recordTicket(identity: 'eva', displayName: 'Eva', userId: 'u-eva',
-              at: _at(2))
+          .recordTicket(
+              identity: 'eva', displayName: 'Eva', userId: 'u-eva', at: _at(2))
           .close(at: _at(60));
       final eva = sheet.entryFor('eva')!;
       expect(eva.hasConnected, isFalse);
@@ -183,8 +183,8 @@ void main() {
     test('un second ticket complète sans écraser', () {
       final sheet = _sheet()
           .recordTicket(identity: 'f', displayName: 'Fatou', at: _at(0))
-          .recordTicket(identity: 'f', displayName: 'Autre', userId: 'u-f',
-              at: _at(3));
+          .recordTicket(
+              identity: 'f', displayName: 'Autre', userId: 'u-f', at: _at(3));
       final f = sheet.entryFor('f')!;
       expect(f.displayName, 'Fatou');
       expect(f.userId, 'u-f');
@@ -196,8 +196,8 @@ void main() {
   group('ConferenceAttendance — JSON', () {
     test('aller-retour complet, dates en UTC relues en heure locale', () {
       final sheet = _sheet()
-          .recordTicket(identity: 'alice', displayName: 'Alice', userId: 'u1',
-              at: _at(0))
+          .recordTicket(
+              identity: 'alice', displayName: 'Alice', userId: 'u1', at: _at(0))
           .recordJoin(identity: 'alice', at: _at(1))
           .recordLeave(identity: 'alice', at: _at(20))
           .recordJoin(identity: 'alice', at: _at(25))
@@ -266,7 +266,8 @@ void main() {
       await store.save(newer);
 
       final listed = await store.list();
-      expect([for (final s in listed) s.conferenceId], ['kf-recent', 'kf-3f9a2c81']);
+      expect([for (final s in listed) s.conferenceId],
+          ['kf-recent', 'kf-3f9a2c81']);
       expect((await store.read('kf-3f9a2c81'))!.title, 'Cours de Réseaux — L3');
       // Le fichier temporaire de l'écriture atomique ne traîne pas.
       final leftovers = temp.listSync().where((e) => e.path.endsWith('.tmp'));
@@ -308,8 +309,10 @@ void main() {
 
   group('Formats français', () {
     test('durées lisibles', () {
-      expect(formatDurationFr(const Duration(hours: 1, minutes: 5)), '1 h 05 min');
-      expect(formatDurationFr(const Duration(minutes: 12, seconds: 30)), '12 min');
+      expect(
+          formatDurationFr(const Duration(hours: 1, minutes: 5)), '1 h 05 min');
+      expect(
+          formatDurationFr(const Duration(minutes: 12, seconds: 30)), '12 min');
       expect(formatDurationFr(const Duration(seconds: 45)), '45 s');
       expect(formatDurationFr(const Duration(seconds: -3)), '0 s');
     });

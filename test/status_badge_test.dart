@@ -60,8 +60,8 @@ void main() {
   testWidgets('tinted : fond à 15 % et texte de la teinte pleine',
       (tester) async {
     const tint = Color(0xFF0D9488);
-    await tester.pumpWidget(
-        _host(const StatusBadge.tinted(label: 'TD', color: tint)));
+    await tester
+        .pumpWidget(_host(const StatusBadge.tinted(label: 'TD', color: tint)));
 
     final container = tester.widget<Container>(find.descendant(
         of: find.byType(StatusBadge), matching: find.byType(Container)));

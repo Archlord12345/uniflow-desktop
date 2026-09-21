@@ -20,7 +20,11 @@ ConferenceAttendance _closedSheet() => ConferenceAttendance(
       hostName: 'Pr. Fouda',
       startedAt: _t0,
     )
-        .recordTicket(identity: 'alice', displayName: 'Alice K.', userId: 'u-1', at: _at(0))
+        .recordTicket(
+            identity: 'alice',
+            displayName: 'Alice K.',
+            userId: 'u-1',
+            at: _at(0))
         .recordTicket(identity: 'chloe', displayName: 'Chloé', at: _at(0))
         .recordJoin(identity: 'alice', at: _at(2))
         .recordLeave(identity: 'alice', at: _at(20))
@@ -42,7 +46,8 @@ void main() {
     test('met en forme les lignes, triées, avec statut et cumul', () {
       final data = buildAttendanceExport(_closedSheet(), now: _at(90));
       final byName = {for (final row in data.rows) row.name: row};
-      expect([for (final row in data.rows) row.name], ['Alice K.', 'Bob', 'Chloé']);
+      expect([for (final row in data.rows) row.name],
+          ['Alice K.', 'Bob', 'Chloé']);
 
       final alice = byName['Alice K.']!;
       expect(alice.arrival, '08:02');
@@ -153,7 +158,8 @@ void main() {
       expect(rows[headerIndex + 1][5], '2');
       expect(rows[headerIndex + 3].take(5),
           ['Chloé', exportDash, exportDash, exportDash, 'Absent']);
-      final synthese = rows.firstWhere((row) => row.isNotEmpty && row.first == 'Synthèse');
+      final synthese =
+          rows.firstWhere((row) => row.isNotEmpty && row.first == 'Synthèse');
       expect(synthese.take(5), [
         'Synthèse',
         'Invités : 3',
@@ -161,7 +167,8 @@ void main() {
         'Partiels : 1',
         'Absents : 1',
       ]);
-      expect(rows.any((row) => row.isNotEmpty && row.first == exportFooterLabel),
+      expect(
+          rows.any((row) => row.isNotEmpty && row.first == exportFooterLabel),
           isTrue);
     });
   });
@@ -180,7 +187,8 @@ void main() {
     });
 
     AttendanceExportService service() => AttendanceExportService(
-          resolveDirectory: () async => Directory('${temp.path}/UniFlow/Présences'),
+          resolveDirectory: () async =>
+              Directory('${temp.path}/UniFlow/Présences'),
           launch: (uri) async {
             opened.add(uri);
             return true;
@@ -190,21 +198,29 @@ void main() {
 
     test('écrit le PDF et le classeur dans le dossier, sans écraser', () async {
       final sheet = _closedSheet();
-      final pdf = await service().export(sheet, AttendanceExportFormat.pdf, now: _at(90));
-      final xlsx = await service().export(sheet, AttendanceExportFormat.excel, now: _at(90));
-      expect(pdf.path, endsWith('/UniFlow/Présences/presence-cours-de-reseaux-l3-2026-09-21.pdf'));
-      expect(xlsx.path, endsWith('presence-cours-de-reseaux-l3-2026-09-21.xlsx'));
+      final pdf = await service()
+          .export(sheet, AttendanceExportFormat.pdf, now: _at(90));
+      final xlsx = await service()
+          .export(sheet, AttendanceExportFormat.excel, now: _at(90));
+      expect(
+          pdf.path,
+          endsWith(
+              '/UniFlow/Présences/presence-cours-de-reseaux-l3-2026-09-21.pdf'));
+      expect(
+          xlsx.path, endsWith('presence-cours-de-reseaux-l3-2026-09-21.xlsx'));
       expect(await pdf.length(), greaterThan(500));
       expect(await xlsx.length(), greaterThan(500));
 
-      final again = await service().export(sheet, AttendanceExportFormat.pdf, now: _at(90));
-      expect(again.path, endsWith('presence-cours-de-reseaux-l3-2026-09-21-2.pdf'));
+      final again = await service()
+          .export(sheet, AttendanceExportFormat.pdf, now: _at(90));
+      expect(again.path,
+          endsWith('presence-cours-de-reseaux-l3-2026-09-21-2.pdf'));
       expect(await pdf.exists(), isTrue);
     });
 
     test('ouvre le fichier en file://', () async {
-      final file = await service().export(
-          _closedSheet(), AttendanceExportFormat.excel, now: _at(90));
+      final file = await service()
+          .export(_closedSheet(), AttendanceExportFormat.excel, now: _at(90));
       expect(await service().open(file), isTrue);
       expect(opened.single.scheme, 'file');
       expect(opened.single.toFilePath(), file.absolute.path);

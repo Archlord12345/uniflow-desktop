@@ -858,8 +858,7 @@ class _AttendanceStatsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(studentAttendanceProvider);
     return stats.when(
-      loading: () =>
-          const DataLoadingView(label: 'Calcul de l\'assiduité…'),
+      loading: () => const DataLoadingView(label: 'Calcul de l\'assiduité…'),
       error: (e, _) => DataErrorView(
           error: e, onRetry: () => ref.invalidate(studentAttendanceProvider)),
       data: (students) {

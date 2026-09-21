@@ -307,7 +307,8 @@ const List<({IconData icon, String title, String desc, Color color})>
 /// parce que la bulle tient entre les deux personnages dans 45 % d'une fenêtre
 /// de 900 px, soit ~140 px de large.
 const List<MascotLine> kAuthMascotDialogue = [
-  MascotLine.archlord('Bienvenue ! UniFlow, c’est l’université dans une seule application.'),
+  MascotLine.archlord(
+      'Bienvenue ! UniFlow, c’est l’université dans une seule application.'),
   MascotLine.uni('Cours, devoirs, notes, emploi du temps : tout est là.'),
   MascotLine.archlord('Et ça marche même sans Internet.'),
   MascotLine.uni('Connecte-toi, je te guide !'),

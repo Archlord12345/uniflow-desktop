@@ -206,8 +206,7 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
       await local.setScreenShareEnabled(!local.isScreenShareEnabled());
     } on Object catch (error) {
       if (mounted) {
-        Toast.error(context, 'Partage d\'écran impossible',
-            detail: '$error');
+        Toast.error(context, 'Partage d\'écran impossible', detail: '$error');
       }
     }
   }
@@ -293,8 +292,8 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
   @override
   Widget build(BuildContext context) {
     final tiles = _tiles();
-    final stage = stageIdentity([for (final t in tiles) t.model],
-        pinned: _pinned);
+    final stage =
+        stageIdentity([for (final t in tiles) t.model], pinned: _pinned);
     final elapsed = DateTime.now().difference(_openedAt);
     final wide = MediaQuery.sizeOf(context).width >= 980;
 
@@ -344,8 +343,8 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
                             tiles: [for (final t in tiles) t.model],
                             isHost: widget.isHost,
                             pinned: _pinned,
-                            onPin: (identity) => setState(() =>
-                                _pinned = _pinned == identity ? null : identity),
+                            onPin: (identity) => setState(() => _pinned =
+                                _pinned == identity ? null : identity),
                             onClose: () =>
                                 setState(() => _panel = _SidePanel.none),
                           ),
@@ -361,10 +360,12 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
             onMic: _toggleMic,
             onCamera: _toggleCamera,
             onScreen: _toggleScreenShare,
-            onInvite: () => setState(() => _panel =
-                _panel == _SidePanel.invite ? _SidePanel.none : _SidePanel.invite),
-            onPeople: () => setState(() => _panel =
-                _panel == _SidePanel.people ? _SidePanel.none : _SidePanel.people),
+            onInvite: () => setState(() => _panel = _panel == _SidePanel.invite
+                ? _SidePanel.none
+                : _SidePanel.invite),
+            onPeople: () => setState(() => _panel = _panel == _SidePanel.people
+                ? _SidePanel.none
+                : _SidePanel.people),
             onLeave: _leave,
             onEnd: widget.isHost ? _endForEveryone : null,
             onRetry: _phase == _Phase.failed ? _connect : null,
@@ -427,7 +428,8 @@ class _ConferenceRoomScreenState extends ConsumerState<ConferenceRoomScreen> {
                   child: _TileView(
                     tile: others[i],
                     compact: true,
-                    onTap: () => setState(() => _pinned = others[i].model.identity),
+                    onTap: () =>
+                        setState(() => _pinned = others[i].model.identity),
                   ),
                 ),
               ),
@@ -527,7 +529,9 @@ class _TileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final track = preferScreen ? (tile.screen ?? tile.camera) : (tile.camera ?? tile.screen);
+    final track = preferScreen
+        ? (tile.screen ?? tile.camera)
+        : (tile.camera ?? tile.screen);
     final showingScreen = track != null && identical(track, tile.screen);
     final border = tile.model.isSpeaking
         ? AppColors.success
@@ -542,7 +546,8 @@ class _TileView extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF16213A),
           borderRadius: BorderRadius.circular(compact ? 12 : 18),
-          border: Border.all(color: border, width: tile.model.isSpeaking ? 2.5 : 1.5),
+          border: Border.all(
+              color: border, width: tile.model.isSpeaking ? 2.5 : 1.5),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -551,7 +556,9 @@ class _TileView extends StatelessWidget {
             if (track != null)
               lk.VideoTrackRenderer(
                 track,
-                fit: showingScreen ? lk.VideoViewFit.contain : lk.VideoViewFit.cover,
+                fit: showingScreen
+                    ? lk.VideoViewFit.contain
+                    : lk.VideoViewFit.cover,
                 mirrorMode: tile.isLocalCamera && !showingScreen
                     ? lk.VideoViewMirrorMode.mirror
                     : lk.VideoViewMirrorMode.off,
@@ -588,7 +595,8 @@ class _TileView extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 5),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.55),
                         borderRadius: BorderRadius.circular(999),
@@ -597,9 +605,13 @@ class _TileView extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            tile.model.micOn ? Icons.mic_rounded : Icons.mic_off_rounded,
+                            tile.model.micOn
+                                ? Icons.mic_rounded
+                                : Icons.mic_off_rounded,
                             size: 14,
-                            color: tile.model.micOn ? Colors.white : const Color(0xFFFCA5A5),
+                            color: tile.model.micOn
+                                ? Colors.white
+                                : const Color(0xFFFCA5A5),
                           ),
                           const SizedBox(width: 6),
                           Flexible(
@@ -621,13 +633,17 @@ class _TileView extends StatelessWidget {
                   if (showingScreen) ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
                         color: AppColors.teal.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: const Text('Écran partagé',
-                          style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ],
@@ -637,7 +653,8 @@ class _TileView extends StatelessWidget {
               const Positioned(
                 top: 10,
                 right: 10,
-                child: Icon(Icons.push_pin_rounded, size: 16, color: Colors.white70),
+                child: Icon(Icons.push_pin_rounded,
+                    size: 16, color: Colors.white70),
               ),
           ],
         ),
@@ -681,7 +698,8 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
-        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
+        border: Border(
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
       ),
       child: Row(
         children: [
@@ -694,11 +712,15 @@ class _TopBar extends StatelessWidget {
                 Text(title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 15.5, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(
                   '${isHost ? 'Vous êtes l\'hôte · ' : ''}$participants · $duration',
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                  style:
+                      const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ],
             ),
@@ -712,9 +734,17 @@ class _TopBar extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 8, height: 8, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
+                Container(
+                    width: 8,
+                    height: 8,
+                    decoration:
+                        BoxDecoration(color: dotColor, shape: BoxShape.circle)),
                 const SizedBox(width: 7),
-                Text(stateLabel, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(stateLabel,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -726,7 +756,8 @@ class _TopBar extends StatelessWidget {
                 onTap: onCopyCode,
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                   decoration: BoxDecoration(
                     color: AppColors.primaryBlue,
                     borderRadius: BorderRadius.circular(10),
@@ -734,11 +765,15 @@ class _TopBar extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.key_rounded, size: 15, color: Colors.white),
+                      const Icon(Icons.key_rounded,
+                          size: 15, color: Colors.white),
                       const SizedBox(width: 8),
                       Text(code!,
                           style: const TextStyle(
-                              color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 2.5)),
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 2.5)),
                     ],
                   ),
                 ),
@@ -767,7 +802,12 @@ class _Banner extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: TextStyle(color: color, fontSize: 12.5, fontWeight: FontWeight.w600))),
+          Expanded(
+              child: Text(text,
+                  style: TextStyle(
+                      color: color,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600))),
         ],
       ),
     );
@@ -798,17 +838,25 @@ class _CenterMessage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (spinner)
-              const SizedBox(width: 40, height: 40, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white))
+              const SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 3, color: Colors.white))
             else
               Icon(icon, size: 48, color: tone),
             const SizedBox(height: 18),
             Text(title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5, height: 1.5)),
+                style: const TextStyle(
+                    color: Color(0xFF94A3B8), fontSize: 13.5, height: 1.5)),
           ],
         ),
       ),
@@ -871,9 +919,12 @@ class _InvitePanel extends StatelessWidget {
                       version: QrVersions.auto,
                       size: 176,
                       gapless: true,
-                      eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppColors.primaryBlue),
-                      dataModuleStyle:
-                          const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF111827)),
+                      eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: AppColors.primaryBlue),
+                      dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Color(0xFF111827)),
                     ),
                   ),
                 ),
@@ -881,7 +932,8 @@ class _InvitePanel extends StatelessWidget {
                 const Text(
                   'Les participants scannent ce QR ou ouvrent le lien depuis un téléphone ou un ordinateur connecté au même réseau : aucune application n\'est nécessaire.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5),
+                  style: TextStyle(
+                      color: AppColors.textMuted, fontSize: 12, height: 1.5),
                 ),
                 const SizedBox(height: 16),
                 const _SideLabel('Depuis l\'application de bureau UniFlow'),
@@ -892,14 +944,17 @@ class _InvitePanel extends StatelessWidget {
                 const SizedBox(height: 6),
                 const Text(
                   'Conférences → « Rejoindre une réunion », puis cette adresse et le code.',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5),
+                  style: TextStyle(
+                      color: AppColors.textMuted, fontSize: 12, height: 1.5),
                 ),
-                if (conference.publicUrl != null && conference.publicUrl!.isNotEmpty) ...[
+                if (conference.publicUrl != null &&
+                    conference.publicUrl!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   const _SideLabel('Adresse publique (internet)'),
                   _CopyRow(
                     value: conference.publicUrl!,
-                    onCopy: () => onCopy(conference.publicUrl!, 'Adresse publique'),
+                    onCopy: () =>
+                        onCopy(conference.publicUrl!, 'Adresse publique'),
                   ),
                 ],
               ],
@@ -943,16 +998,20 @@ class _PeoplePanel extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  _MiniStat('En ligne', '${summary.connectedNow}', AppColors.success),
-                  _MiniStat('Présents', '${summary.present}', AppColors.primaryBlue),
-                  _MiniStat('Invités', '${summary.invited}', AppColors.textSecondary),
+                  _MiniStat(
+                      'En ligne', '${summary.connectedNow}', AppColors.success),
+                  _MiniStat(
+                      'Présents', '${summary.present}', AppColors.primaryBlue),
+                  _MiniStat(
+                      'Invités', '${summary.invited}', AppColors.textSecondary),
                 ],
               ),
             ),
             const SizedBox(height: 6),
             const Text(
               'La feuille de présence se remplit à chaque arrivée et départ ; export PDF/Excel depuis l\'écran Conférences.',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 11.5, height: 1.5),
+              style: TextStyle(
+                  color: AppColors.textMuted, fontSize: 11.5, height: 1.5),
             ),
             const SizedBox(height: 12),
           ],
@@ -964,34 +1023,55 @@ class _PeoplePanel extends ConsumerWidget {
                 radius: 17,
                 backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.12),
                 child: Text(tile.initials,
-                    style: const TextStyle(color: AppColors.primaryBlue, fontSize: 12, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        color: AppColors.primaryBlue,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800)),
               ),
               title: Text(tile.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary)),
               subtitle: Text(
                 [
                   if (tile.sharingScreen) 'partage son écran',
                   if (tile.isSpeaking) 'parle',
                 ].join(' · '),
-                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(tile.micOn ? Icons.mic_rounded : Icons.mic_off_rounded,
-                      size: 16, color: tile.micOn ? AppColors.success : AppColors.textMuted),
+                      size: 16,
+                      color:
+                          tile.micOn ? AppColors.success : AppColors.textMuted),
                   const SizedBox(width: 6),
-                  Icon(tile.cameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
-                      size: 16, color: tile.cameraOn ? AppColors.success : AppColors.textMuted),
+                  Icon(
+                      tile.cameraOn
+                          ? Icons.videocam_rounded
+                          : Icons.videocam_off_rounded,
+                      size: 16,
+                      color: tile.cameraOn
+                          ? AppColors.success
+                          : AppColors.textMuted),
                   IconButton(
-                    tooltip: pinned == tile.identity ? 'Désépingler' : 'Mettre en avant',
+                    tooltip: pinned == tile.identity
+                        ? 'Désépingler'
+                        : 'Mettre en avant',
                     onPressed: () => onPin(tile.identity),
                     icon: Icon(
-                      pinned == tile.identity ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                      pinned == tile.identity
+                          ? Icons.push_pin_rounded
+                          : Icons.push_pin_outlined,
                       size: 16,
-                      color: pinned == tile.identity ? AppColors.primaryBlue : AppColors.textMuted,
+                      color: pinned == tile.identity
+                          ? AppColors.primaryBlue
+                          : AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -1014,8 +1094,11 @@ class _MiniStat extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(value, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w800)),
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+          Text(value,
+              style: TextStyle(
+                  color: color, fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(label,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
         ],
       ),
     );
@@ -1026,7 +1109,8 @@ class _SideCard extends StatelessWidget {
   final String title;
   final Widget child;
   final VoidCallback onClose;
-  const _SideCard({required this.title, required this.child, required this.onClose});
+  const _SideCard(
+      {required this.title, required this.child, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -1044,12 +1128,16 @@ class _SideCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(title,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
               ),
               IconButton(
                 tooltip: 'Fermer le volet',
                 onPressed: onClose,
-                icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textSecondary),
+                icon: const Icon(Icons.close_rounded,
+                    size: 18, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -1071,7 +1159,10 @@ class _SideLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(text,
           style: const TextStyle(
-              fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 0.3)),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.3)),
     );
   }
 }
@@ -1108,7 +1199,8 @@ class _CopyRow extends StatelessWidget {
           IconButton(
             tooltip: 'Copier',
             onPressed: onCopy,
-            icon: const Icon(Icons.copy_rounded, size: 16, color: AppColors.textSecondary),
+            icon: const Icon(Icons.copy_rounded,
+                size: 16, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -1157,7 +1249,8 @@ class _ControlBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
+        border: Border(
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
       ),
       child: Wrap(
         alignment: WrapAlignment.center,
@@ -1180,7 +1273,9 @@ class _ControlBar extends StatelessWidget {
             onPressed: onCamera,
           ),
           _RoundControl(
-            icon: sharing ? Icons.stop_screen_share_rounded : Icons.screen_share_rounded,
+            icon: sharing
+                ? Icons.stop_screen_share_rounded
+                : Icons.screen_share_rounded,
             label: sharing ? 'Arrêter le partage' : 'Partager l\'écran',
             active: sharing,
             enabled: live,
@@ -1218,7 +1313,8 @@ class _ControlBar extends StatelessWidget {
           AppButton(
             label: isHost ? 'Quitter la salle' : 'Quitter',
             icon: Icons.call_end_rounded,
-            variant: isHost ? AppButtonVariant.secondary : AppButtonVariant.danger,
+            variant:
+                isHost ? AppButtonVariant.secondary : AppButtonVariant.danger,
             onPressed: onLeave,
           ),
         ],

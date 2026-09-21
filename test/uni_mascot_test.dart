@@ -24,8 +24,10 @@ void main() {
   });
 
   group('UniMascot', () {
-    testWidgets('réserve la boîte au ratio de la pose et expose l’alt', (tester) async {
-      await tester.pumpWidget(_wrap(const UniMascot(pose: UniPose.sorry, size: 100)));
+    testWidgets('réserve la boîte au ratio de la pose et expose l’alt',
+        (tester) async {
+      await tester
+          .pumpWidget(_wrap(const UniMascot(pose: UniPose.sorry, size: 100)));
       await tester.pump(const Duration(milliseconds: 600));
       final box = tester.getSize(find.byType(Image));
       expect(box.height, 100);
@@ -36,14 +38,17 @@ void main() {
 
     testWidgets('la bulle s’affiche à côté du personnage', (tester) async {
       await tester.pumpWidget(_wrap(
-        const UniMascot(pose: UniPose.wave, size: 80, bubble: Text('Bonjour !')),
+        const UniMascot(
+            pose: UniPose.wave, size: 80, bubble: Text('Bonjour !')),
       ));
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.text('Bonjour !'), findsOneWidget);
       expect(find.byType(UniBubble), findsOneWidget);
     });
 
-    testWidgets('sans mouvement demandé par le système, aucune boucle ne tourne', (tester) async {
+    testWidgets(
+        'sans mouvement demandé par le système, aucune boucle ne tourne',
+        (tester) async {
       await tester.pumpWidget(_wrap(
         const UniMascot(pose: UniPose.celebrate, size: 80),
         reduceMotion: true,
@@ -56,7 +61,8 @@ void main() {
   });
 
   group('UniScenes', () {
-    testWidgets('UniLoading montre Uni qui réfléchit et le libellé', (tester) async {
+    testWidgets('UniLoading montre Uni qui réfléchit et le libellé',
+        (tester) async {
       await tester.pumpWidget(_wrap(const UniLoading(label: 'Chargement…')));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Chargement…'), findsOneWidget);
@@ -70,7 +76,8 @@ void main() {
         title: 'Rien trouvé',
         message: 'Essayez autre chose.',
         pose: UniPose.search,
-        action: FilledButton(onPressed: () => tapped = true, child: const Text('Réessayer')),
+        action: FilledButton(
+            onPressed: () => tapped = true, child: const Text('Réessayer')),
       )));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Rien trouvé'), findsOneWidget);
@@ -79,7 +86,8 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('UniCrashScreen s’affiche sans thème ni provider', (tester) async {
+    testWidgets('UniCrashScreen s’affiche sans thème ni provider',
+        (tester) async {
       await tester.pumpWidget(const UniCrashScreen(details: 'Boom'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.textContaining('Oups'), findsOneWidget);
@@ -87,12 +95,16 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('UniPeek n’apparaît qu’une fois par identifiant', (tester) async {
+    testWidgets('UniPeek n’apparaît qu’une fois par identifiant',
+        (tester) async {
       UniPeek.shown.clear();
       await tester.pumpWidget(_wrap(const SizedBox(
         width: 300,
         height: 400,
-        child: Stack(children: [UniPeek(id: 'test', message: 'Coucou', delay: Duration(milliseconds: 10))]),
+        child: Stack(children: [
+          UniPeek(
+              id: 'test', message: 'Coucou', delay: Duration(milliseconds: 10))
+        ]),
       )));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump(const Duration(milliseconds: 600));
@@ -104,7 +116,13 @@ void main() {
       await tester.pumpWidget(_wrap(const SizedBox(
         width: 300,
         height: 400,
-        child: Stack(children: [UniPeek(key: ValueKey('bis'), id: 'test', message: 'Coucou', delay: Duration(milliseconds: 10))]),
+        child: Stack(children: [
+          UniPeek(
+              key: ValueKey('bis'),
+              id: 'test',
+              message: 'Coucou',
+              delay: Duration(milliseconds: 10))
+        ]),
       )));
       await tester.pump(const Duration(milliseconds: 100));
       final again = tester.widget<AnimatedSlide>(find.byType(AnimatedSlide));

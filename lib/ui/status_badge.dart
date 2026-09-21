@@ -93,7 +93,9 @@ class StatusBadge extends StatelessWidget {
     // (CM bleu, TD sarcelle, TP ambre), que la base écrive le sigle ou le nom.
     if (s == 'CM' || s == 'COURS MAGISTRAL') return BadgeTone.primary;
     if (s.startsWith('TD') || s == 'TRAVAUX DIRIGÉS') return BadgeTone.teal;
-    if (s.startsWith('TP') || s == 'TRAVAUX PRATIQUES') return BadgeTone.warning;
+    if (s.startsWith('TP') || s == 'TRAVAUX PRATIQUES') {
+      return BadgeTone.warning;
+    }
     return BadgeTone.neutral;
   }
 

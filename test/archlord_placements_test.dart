@@ -67,7 +67,8 @@ void _expectLegibleBubble(WidgetTester tester) {
   expect(find.byType(UniBubble), findsWidgets);
   final ratio = _contrast(_bubbleTextColor(tester), Colors.white);
   expect(ratio, greaterThanOrEqualTo(4.5),
-      reason: 'texte de bulle trop pâle sur fond blanc (${ratio.toStringAsFixed(1)}:1)');
+      reason:
+          'texte de bulle trop pâle sur fond blanc (${ratio.toStringAsFixed(1)}:1)');
 }
 
 void main() {
@@ -142,7 +143,8 @@ void main() {
           size,
         );
         expect(tester.takeException(), isNull);
-        expect(find.textContaining('version ${AppInfo.version}'), findsOneWidget);
+        expect(
+            find.textContaining('version ${AppInfo.version}'), findsOneWidget);
         expect(find.text(AppInfo.publisherPitch), findsOneWidget);
         expect(find.byType(ArchlordUniFistBump), findsOneWidget);
         expect(find.byType(ArchlordMascot), findsOneWidget);

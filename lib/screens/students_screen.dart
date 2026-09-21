@@ -348,8 +348,7 @@ class _FilterDropdown extends StatelessWidget {
 /// Cellules d'une ligne du tableau des étudiants, dans l'ordre des colonnes de
 /// `_StudentsScreenState._columns`.
 abstract final class _StudentRow {
-  static const _muted =
-      TextStyle(fontSize: 13, color: AppColors.textSecondary);
+  static const _muted = TextStyle(fontSize: 13, color: AppColors.textSecondary);
 
   static void open(BuildContext context, Student student) {
     Navigator.of(context).push(MaterialPageRoute(

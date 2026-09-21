@@ -174,7 +174,6 @@ class _TeachersScreenState extends ConsumerState<TeachersScreen> {
       ),
     );
   }
-
 }
 
 /// Cellules d'une ligne du tableau des enseignants, dans l'ordre de

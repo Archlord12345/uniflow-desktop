@@ -330,14 +330,16 @@ class _RoleStats extends ConsumerWidget {
         StatCard(
           label: 'Devoirs à rendre',
           value: '${overview.assignmentCount}',
-          hint: overview.assignmentCount == 0 ? 'Rien en attente' : 'En attente',
+          hint:
+              overview.assignmentCount == 0 ? 'Rien en attente' : 'En attente',
           icon: Icons.task_outlined,
           iconBackground: AppColors.warning,
         ),
         StatCard(
           label: 'Moyenne générale',
           value: overview.averageLabel,
-          hint: '${overview.gradeCount} note${overview.gradeCount > 1 ? 's' : ''}',
+          hint:
+              '${overview.gradeCount} note${overview.gradeCount > 1 ? 's' : ''}',
           icon: Icons.grade_outlined,
           iconBackground: AppColors.teal,
         ),
@@ -763,8 +765,8 @@ class _AttendanceDonutCard extends ConsumerWidget {
         },
         loading: () => const SizedBox(
           height: _ChartEmpty.chartHeight,
-          child:
-              DataLoadingView(label: 'Chargement des présences…', compact: true),
+          child: DataLoadingView(
+              label: 'Chargement des présences…', compact: true),
         ),
         error: (error, _) => SizedBox(
           height: _ChartEmpty.chartHeight,

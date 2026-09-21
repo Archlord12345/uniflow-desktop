@@ -80,6 +80,7 @@ List<RoomTile> orderTiles(List<RoomTile> tiles) {
     if (t.isSpeaking) return 1;
     return 2;
   }
+
   final indexed = ordered.asMap().entries.toList()
     ..sort((a, b) {
       final byRank = rank(a.value).compareTo(rank(b.value));

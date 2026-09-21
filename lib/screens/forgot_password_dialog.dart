@@ -174,8 +174,7 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
           ],
         _Step.done => [
             AppButton(
-                label: 'Se connecter',
-                onPressed: () => Navigator.pop(context)),
+                label: 'Se connecter', onPressed: () => Navigator.pop(context)),
           ],
       },
     );

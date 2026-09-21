@@ -47,7 +47,9 @@ void main() {
     test('le lien participant porte l\'adresse de l\'API et le code', () {
       expect(_conference().participantLink,
           'http://192.168.1.10:8090/join/K7M2QP');
-      expect(HostedConference.participantLinkFor('http://10.0.0.5:8090/', 'ab12cd'),
+      expect(
+          HostedConference.participantLinkFor(
+              'http://10.0.0.5:8090/', 'ab12cd'),
           'http://10.0.0.5:8090/join/AB12CD');
     });
 
@@ -91,8 +93,7 @@ void main() {
       expect(html, contains(ConferenceJoinPage.clientScriptPath));
     });
 
-    test('un titre malveillant ne sort ni du <title> ni du JSON embarqué',
-        () {
+    test('un titre malveillant ne sort ni du <title> ni du JSON embarqué', () {
       final html = ConferenceJoinPage.render(
         roomId: 'kf-1',
         roomName: '</script><script>alert(1)</script>',
@@ -171,8 +172,8 @@ void main() {
           final response = await request.close();
           final body = await utf8.decodeStream(response);
           expect(response.statusCode, HttpStatus.ok);
-          expect(response.headers.contentType?.mimeType,
-              'application/javascript');
+          expect(
+              response.headers.contentType?.mimeType, 'application/javascript');
           expect(response.headers.value(HttpHeaders.cacheControlHeader),
               contains('max-age'));
           expect(body, 'window.LivekitClient={fake:true};');
@@ -197,8 +198,8 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, HttpStatus.internalServerError);
         await utf8.decodeStream(response);
-        final health = await (await client.getUrl(
-                Uri.parse('http://127.0.0.1:${broken.port}/health')))
+        final health = await (await client
+                .getUrl(Uri.parse('http://127.0.0.1:${broken.port}/health')))
             .close();
         expect(health.statusCode, HttpStatus.ok);
         client.close(force: true);
@@ -334,8 +335,8 @@ void main() {
     });
 
     test('les noms Windows (« vEthernet (WSL) ») sont reconnus virtuels', () {
-      const wsl = LocalAddress(
-          interfaceName: 'vEthernet (WSL)', address: '172.20.0.1');
+      const wsl =
+          LocalAddress(interfaceName: 'vEthernet (WSL)', address: '172.20.0.1');
       const wifi = LocalAddress(interfaceName: 'Wi-Fi', address: '192.168.1.5');
       expect(wsl.isVirtualInterface, isTrue);
       expect(wifi.isVirtualInterface, isFalse);
@@ -393,8 +394,8 @@ void main() {
         RoomTile(identity: 'c', name: 'C', sharingScreen: true),
         RoomTile(identity: 'd', name: 'D'),
       ];
-      expect(orderTiles(tiles).map((t) => t.identity),
-          ['c', 'b', 'a', 'd', 'me']);
+      expect(
+          orderTiles(tiles).map((t) => t.identity), ['c', 'b', 'a', 'd', 'me']);
     });
 
     test('libellés : compteur et raisons de déconnexion', () {
@@ -402,7 +403,8 @@ void main() {
       expect(participantCountLabel(1), '1 participant');
       expect(participantCountLabel(4), '4 participants');
       expect(disconnectReasonLabel('ROOM_DELETED'), contains('terminé'));
-      expect(disconnectReasonLabel('duplicateIdentity'), contains('autre appareil'));
+      expect(disconnectReasonLabel('duplicateIdentity'),
+          contains('autre appareil'));
       expect(disconnectReasonLabel('stateMismatch'), contains('perdue'));
       expect(disconnectReasonLabel(null), contains('interrompue'));
     });

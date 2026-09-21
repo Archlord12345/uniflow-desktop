@@ -72,8 +72,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               );
             },
             loading: () => const Center(
-              child: DataLoadingView(
-                  label: 'Chargement de l\'emploi du temps…'),
+              child:
+                  DataLoadingView(label: 'Chargement de l\'emploi du temps…'),
             ),
             error: (error, _) => Center(
               child: DataErrorView(
@@ -128,8 +128,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             child: Text(
               '$count créneau${count > 1 ? 'x' : ''} de la base n\'ont pas pu être '
               'positionnés (jour ou horaire illisible) et ne figurent pas dans la grille.',
-              style: const TextStyle(
-                  fontSize: 12.5, color: AppColors.warningDark),
+              style:
+                  const TextStyle(fontSize: 12.5, color: AppColors.warningDark),
             ),
           ),
         ],

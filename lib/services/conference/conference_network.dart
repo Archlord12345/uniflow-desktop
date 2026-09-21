@@ -129,9 +129,25 @@ class LocalAddress {
   /// la salle. Comparés en minuscules ; Windows nomme ses cartes en clair
   /// (« Ethernet », « Wi-Fi », « vEthernet (WSL) »).
   static const List<String> _virtualPrefixes = [
-    'docker', 'br-', 'virbr', 'veth', 'vmnet', 'vboxnet', 'vethernet',
-    'tun', 'tap', 'wg', 'zt', 'tailscale', 'utun', 'lxc', 'lxd', 'cni',
-    'flannel', 'ham', 'nordlynx',
+    'docker',
+    'br-',
+    'virbr',
+    'veth',
+    'vmnet',
+    'vboxnet',
+    'vethernet',
+    'tun',
+    'tap',
+    'wg',
+    'zt',
+    'tailscale',
+    'utun',
+    'lxc',
+    'lxd',
+    'cni',
+    'flannel',
+    'ham',
+    'nordlynx',
   ];
 
   bool get isVirtualInterface {
@@ -141,7 +157,9 @@ class LocalAddress {
 
   bool get isWireless {
     final name = interfaceName.toLowerCase();
-    return name.startsWith('wl') || name.contains('wi-fi') || name.contains('wifi');
+    return name.startsWith('wl') ||
+        name.contains('wi-fi') ||
+        name.contains('wifi');
   }
 
   bool get isWired {

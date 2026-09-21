@@ -261,8 +261,11 @@ class _AppSidebarState extends ConsumerState<AppSidebar>
             ),
             if (user != null)
               Padding(
-                padding: EdgeInsets.fromLTRB(collapsed ? 0 : AppSpacing.md,
-                    AppSpacing.xs, collapsed ? 0 : AppSpacing.md, AppSpacing.md),
+                padding: EdgeInsets.fromLTRB(
+                    collapsed ? 0 : AppSpacing.md,
+                    AppSpacing.xs,
+                    collapsed ? 0 : AppSpacing.md,
+                    AppSpacing.md),
                 child: collapsed
                     ? Center(
                         child: SignOutButton(
@@ -409,7 +412,8 @@ class _RoleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
         color: palette.roleBackground,
         borderRadius: BorderRadius.circular(AppRadius.pill),

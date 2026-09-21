@@ -21,13 +21,17 @@ class UniTurn {
   final bool failed;
   final DateTime at;
 
-  UniTurn({required this.role, required this.content, this.failed = false, DateTime? at})
+  UniTurn(
+      {required this.role,
+      required this.content,
+      this.failed = false,
+      DateTime? at})
       : at = at ?? DateTime.now();
 
   bool get isUser => role == 'user';
 
-  UniTurn copyWith({bool? failed}) =>
-      UniTurn(role: role, content: content, failed: failed ?? this.failed, at: at);
+  UniTurn copyWith({bool? failed}) => UniTurn(
+      role: role, content: content, failed: failed ?? this.failed, at: at);
 }
 
 class UniAssistantState {
@@ -102,7 +106,9 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
         final g = (data['greeting'] as String?)?.trim();
         if (g != null && g.isNotEmpty) greeting = g;
         final raw = data['suggestions'];
-        if (raw is List && raw.isNotEmpty) suggestions = raw.whereType<String>().toList();
+        if (raw is List && raw.isNotEmpty) {
+          suggestions = raw.whereType<String>().toList();
+        }
       }
     } catch (_) {}
     if (state.turns.isNotEmpty) return;
@@ -130,7 +136,8 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
           .toList();
       final data = await _call({'action': 'chat', 'messages': history});
       if (data['ok'] != true) {
-        throw StateError((data['message'] as String?) ?? 'Uni n’a pas pu répondre.');
+        throw StateError(
+            (data['message'] as String?) ?? 'Uni n’a pas pu répondre.');
       }
       final reply = (data['reply'] as String?)?.trim();
       final raw = data['suggestions'];
@@ -139,7 +146,9 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
           ...state.turns,
           UniTurn(
             role: 'assistant',
-            content: reply != null && reply.isNotEmpty ? reply : 'Je n’ai pas de réponse, réessaie autrement.',
+            content: reply != null && reply.isNotEmpty
+                ? reply
+                : 'Je n’ai pas de réponse, réessaie autrement.',
           ),
         ],
         pending: false,
@@ -150,7 +159,8 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
       final turns = [...state.turns];
       final idx = turns.lastIndexWhere((t) => t == mine);
       if (idx >= 0) turns[idx] = mine.copyWith(failed: true);
-      state = state.copyWith(turns: turns, pending: false, error: _humanError(e));
+      state =
+          state.copyWith(turns: turns, pending: false, error: _humanError(e));
     }
   }
 
@@ -158,7 +168,8 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
     final failed = state.turns.where((t) => t.failed).toList();
     if (failed.isEmpty) return;
     final last = failed.last;
-    state = state.copyWith(turns: state.turns.where((t) => t != last).toList(), clearError: true);
+    state = state.copyWith(
+        turns: state.turns.where((t) => t != last).toList(), clearError: true);
     await send(last.content);
   }
 
@@ -166,8 +177,13 @@ class UniAssistantController extends StateNotifier<UniAssistantState> {
 
   static String _humanError(Object e) {
     if (e is ApiException) return e.message;
-    final text = e.toString().replaceFirst('Bad state: ', '').replaceFirst('Exception: ', '');
-    if (text.contains('SocketException') || text.contains('Failed host lookup') || text.contains('Connection')) {
+    final text = e
+        .toString()
+        .replaceFirst('Bad state: ', '')
+        .replaceFirst('Exception: ', '');
+    if (text.contains('SocketException') ||
+        text.contains('Failed host lookup') ||
+        text.contains('Connection')) {
       return 'Pas de réseau : Uni a besoin d’une connexion pour répondre.';
     }
     return text.length > 180 ? '${text.substring(0, 180)}…' : text;
@@ -206,15 +222,19 @@ class UniAssistantDock extends ConsumerWidget {
             child: AnimatedScale(
               scale: open ? 1 : 0.92,
               alignment: Alignment.bottomRight,
-              duration: reduce ? Duration.zero : const Duration(milliseconds: 220),
+              duration:
+                  reduce ? Duration.zero : const Duration(milliseconds: 220),
               curve: Curves.easeOutBack,
               child: AnimatedOpacity(
                 opacity: open ? 1 : 0,
-                duration: reduce ? Duration.zero : const Duration(milliseconds: 180),
+                duration:
+                    reduce ? Duration.zero : const Duration(milliseconds: 180),
                 child: SizedBox(
                   width: panelWidth,
                   height: panelHeight,
-                  child: open ? const UniAssistantPanel() : const SizedBox.shrink(),
+                  child: open
+                      ? const UniAssistantPanel()
+                      : const SizedBox.shrink(),
                 ),
               ),
             ),
@@ -225,7 +245,8 @@ class UniAssistantDock extends ConsumerWidget {
           bottom: 20,
           child: UniLauncher(
             open: open,
-            onToggle: () => ref.read(uniPanelOpenProvider.notifier).state = !open,
+            onToggle: () =>
+                ref.read(uniPanelOpenProvider.notifier).state = !open,
           ),
         ),
       ],
@@ -245,9 +266,10 @@ class UniLauncher extends StatefulWidget {
   State<UniLauncher> createState() => _UniLauncherState();
 }
 
-class _UniLauncherState extends State<UniLauncher> with SingleTickerProviderStateMixin {
-  late final AnimationController _nudge =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+class _UniLauncherState extends State<UniLauncher>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _nudge = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 900));
   Timer? _timer;
   bool _hover = false;
 
@@ -308,9 +330,13 @@ class _UniLauncherState extends State<UniLauncher> with SingleTickerProviderStat
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFDCE5FD), width: 2),
+                        border: Border.all(
+                            color: const Color(0xFFDCE5FD), width: 2),
                         boxShadow: const [
-                          BoxShadow(color: Color(0x331E3A8A), blurRadius: 18, offset: Offset(0, 8)),
+                          BoxShadow(
+                              color: Color(0x331E3A8A),
+                              blurRadius: 18,
+                              offset: Offset(0, 8)),
                         ],
                       ),
                       child: ClipOval(
@@ -319,15 +345,17 @@ class _UniLauncherState extends State<UniLauncher> with SingleTickerProviderStat
                           child: widget.open
                               ? const Center(
                                   key: ValueKey('close'),
-                                  child: Icon(Icons.close_rounded, color: Color(0xFF1E3A8A), size: 26),
+                                  child: Icon(Icons.close_rounded,
+                                      color: Color(0xFF1E3A8A), size: 26),
                                 )
                               : Image.asset(
                                   'assets/assistant/uni_avatar.webp',
                                   key: const ValueKey('avatar'),
                                   fit: BoxFit.cover,
                                   filterQuality: FilterQuality.high,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(Icons.smart_toy_rounded, color: Color(0xFF1E3A8A)),
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.smart_toy_rounded,
+                                      color: Color(0xFF1E3A8A)),
                                 ),
                         ),
                       ),
@@ -339,7 +367,8 @@ class _UniLauncherState extends State<UniLauncher> with SingleTickerProviderStat
                         right: 0,
                         child: Center(
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 1.5),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E3A8A),
                               borderRadius: BorderRadius.circular(999),
@@ -347,7 +376,10 @@ class _UniLauncherState extends State<UniLauncher> with SingleTickerProviderStat
                             child: const Text(
                               'UNI',
                               style: TextStyle(
-                                  color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6),
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6),
                             ),
                           ),
                         ),
@@ -417,7 +449,8 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
   Widget build(BuildContext context) {
     final state = ref.watch(uniAssistantProvider);
     final user = ref.watch(currentUserProvider);
-    ref.listen(uniAssistantProvider.select((s) => s.turns.length), (_, __) => _scrollToEnd());
+    ref.listen(uniAssistantProvider.select((s) => s.turns.length),
+        (_, __) => _scrollToEnd());
 
     final pose = state.error != null
         ? UniPose.sorry
@@ -436,7 +469,10 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xFFE5E7EB)),
           borderRadius: BorderRadius.circular(22),
-          boxShadow: const [BoxShadow(color: Color(0x2E111827), blurRadius: 40, offset: Offset(0, 20))],
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x2E111827), blurRadius: 40, offset: Offset(0, 20))
+          ],
         ),
         child: Column(
           children: [
@@ -453,7 +489,8 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
                       ref.read(uniAssistantProvider.notifier).greet();
                     }
                   : null,
-              onClose: () => ref.read(uniPanelOpenProvider.notifier).state = false,
+              onClose: () =>
+                  ref.read(uniPanelOpenProvider.notifier).state = false,
             ),
             Expanded(
               child: ListView(
@@ -464,7 +501,10 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
                     _Bubble(
                       turn: turn,
                       initials: _initials(user?.name),
-                      onRetry: turn.failed ? () => ref.read(uniAssistantProvider.notifier).retry() : null,
+                      onRetry: turn.failed
+                          ? () =>
+                              ref.read(uniAssistantProvider.notifier).retry()
+                          : null,
                     ),
                   if (state.pending) const _Typing(),
                   if (state.error != null)
@@ -472,13 +512,16 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
                       padding: const EdgeInsets.only(top: 6),
                       child: Row(
                         children: [
-                          const UniMascot(pose: UniPose.sorry, size: 54, effects: false),
+                          const UniMascot(
+                              pose: UniPose.sorry, size: 54, effects: false),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               state.error!,
                               style: const TextStyle(
-                                  fontSize: 12.5, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                                  fontSize: 12.5,
+                                  color: Color(0xFFB91C1C),
+                                  fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -496,7 +539,9 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
                   children: [
                     for (final s in state.suggestions)
                       ActionChip(
-                        label: Text(s, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                        label: Text(s,
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w600)),
                         backgroundColor: Colors.white,
                         side: const BorderSide(color: Color(0xFFDCE5FD)),
                         shape: const StadiumBorder(),
@@ -505,7 +550,11 @@ class _UniAssistantPanelState extends ConsumerState<UniAssistantPanel> {
                   ],
                 ),
               ),
-            _Composer(controller: _input, focus: _focus, enabled: !state.pending, onSend: _send),
+            _Composer(
+                controller: _input,
+                focus: _focus,
+                enabled: !state.pending,
+                onSend: _send),
           ],
         ),
       ),
@@ -525,7 +574,11 @@ class _Header extends StatelessWidget {
   final VoidCallback? onClear;
   final VoidCallback onClose;
 
-  const _Header({required this.pose, required this.subtitle, required this.onClear, required this.onClose});
+  const _Header(
+      {required this.pose,
+      required this.subtitle,
+      required this.onClear,
+      required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +596,8 @@ class _Header extends StatelessWidget {
           SizedBox(
             width: 60,
             height: 60,
-            child: Center(child: UniMascot(pose: pose, size: 58, effects: false)),
+            child:
+                Center(child: UniMascot(pose: pose, size: 58, effects: false)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -552,7 +606,10 @@ class _Header extends StatelessWidget {
               children: [
                 const Text(
                   'Uni · Assistant UniFlow',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14.5),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14.5),
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -560,7 +617,8 @@ class _Header extends StatelessWidget {
                     Container(
                       width: 7,
                       height: 7,
-                      decoration: const BoxDecoration(color: Color(0xFF34D399), shape: BoxShape.circle),
+                      decoration: const BoxDecoration(
+                          color: Color(0xFF34D399), shape: BoxShape.circle),
                     ),
                     const SizedBox(width: 6),
                     Flexible(
@@ -568,7 +626,10 @@ class _Header extends StatelessWidget {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -580,12 +641,14 @@ class _Header extends StatelessWidget {
             IconButton(
               tooltip: 'Effacer la conversation',
               onPressed: onClear,
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 20),
+              icon: const Icon(Icons.delete_outline_rounded,
+                  color: Colors.white, size: 20),
             ),
           IconButton(
             tooltip: 'Fermer',
             onPressed: onClose,
-            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
+            icon:
+                const Icon(Icons.close_rounded, color: Colors.white, size: 20),
           ),
         ],
       ),
@@ -615,7 +678,14 @@ class _Bubble extends StatelessWidget {
           bottomRight: Radius.circular(mine ? 6 : 18),
         ),
         border: mine ? null : Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: mine ? null : const [BoxShadow(color: Color(0x0F111827), blurRadius: 10, offset: Offset(0, 4))],
+        boxShadow: mine
+            ? null
+            : const [
+                BoxShadow(
+                    color: Color(0x0F111827),
+                    blurRadius: 10,
+                    offset: Offset(0, 4))
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -624,7 +694,10 @@ class _Bubble extends StatelessWidget {
           SelectionArea(
             child: UniMarkdownLite(
               turn.content,
-              baseStyle: TextStyle(fontSize: 13.5, height: 1.45, color: mine ? Colors.white : const Color(0xFF1F2937)),
+              baseStyle: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.45,
+                  color: mine ? Colors.white : const Color(0xFF1F2937)),
             ),
           ),
           if (turn.failed && onRetry != null)
@@ -637,7 +710,9 @@ class _Bubble extends StatelessWidget {
                 foregroundColor: const Color(0xFFFECACA),
               ),
               icon: const Icon(Icons.refresh_rounded, size: 14),
-              label: const Text('Non envoyé · réessayer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+              label: const Text('Non envoyé · réessayer',
+                  style:
+                      TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
             ),
         ],
       ),
@@ -649,12 +724,14 @@ class _Bubble extends StatelessWidget {
       curve: Curves.easeOutCubic,
       builder: (context, v, child) => Opacity(
         opacity: v,
-        child: Transform.translate(offset: Offset(0, (1 - v) * 10), child: child),
+        child:
+            Transform.translate(offset: Offset(0, (1 - v) * 10), child: child),
       ),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Row(
-          mainAxisAlignment: mine ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment:
+              mine ? MainAxisAlignment.end : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!mine) ...[const _UniAvatar(), const SizedBox(width: 8)],
@@ -665,9 +742,13 @@ class _Bubble extends StatelessWidget {
                 width: 28,
                 height: 28,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(color: Color(0xFFDCE5FD), shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                    color: Color(0xFFDCE5FD), shape: BoxShape.circle),
                 child: Text(initials,
-                    style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A))),
+                    style: const TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1E3A8A))),
               ),
             ],
           ],
@@ -694,7 +775,8 @@ class _UniAvatar extends StatelessWidget {
         child: Image.asset(
           'assets/assistant/uni_avatar.webp',
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_rounded, size: 16, color: Color(0xFF1E3A8A)),
+          errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_rounded,
+              size: 16, color: Color(0xFF1E3A8A)),
         ),
       ),
     );
@@ -733,7 +815,11 @@ class _Composer extends StatelessWidget {
   final bool enabled;
   final Future<void> Function([String?]) onSend;
 
-  const _Composer({required this.controller, required this.focus, required this.enabled, required this.onSend});
+  const _Composer(
+      {required this.controller,
+      required this.focus,
+      required this.enabled,
+      required this.onSend});
 
   @override
   Widget build(BuildContext context) {
@@ -761,7 +847,8 @@ class _Composer extends StatelessWidget {
                 isDense: true,
                 filled: true,
                 fillColor: const Color(0xFFF9FAFB),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -829,7 +916,8 @@ class UniMarkdownLite extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('•  ', style: baseStyle.copyWith(fontWeight: FontWeight.w800)),
+                  Text('•  ',
+                      style: baseStyle.copyWith(fontWeight: FontWeight.w800)),
                   Expanded(child: _richLine(item)),
                 ],
               ),
@@ -875,8 +963,12 @@ class UniMarkdownLite extends StatelessWidget {
     final pattern = RegExp(r'\*\*(.+?)\*\*');
     var index = 0;
     for (final match in pattern.allMatches(line)) {
-      if (match.start > index) spans.add(TextSpan(text: line.substring(index, match.start)));
-      spans.add(TextSpan(text: match.group(1), style: const TextStyle(fontWeight: FontWeight.w800)));
+      if (match.start > index) {
+        spans.add(TextSpan(text: line.substring(index, match.start)));
+      }
+      spans.add(TextSpan(
+          text: match.group(1),
+          style: const TextStyle(fontWeight: FontWeight.w800)));
       index = match.end;
     }
     if (index < line.length) spans.add(TextSpan(text: line.substring(index)));

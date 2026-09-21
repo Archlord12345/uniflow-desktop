@@ -71,9 +71,11 @@ void main() {
     expect(tester.takeException(), isNull);
 
     final sidebar = tester.widget<AnimatedContainer>(
-      find.descendant(
-          of: find.byType(AppSidebar),
-          matching: find.byType(AnimatedContainer)).first,
+      find
+          .descendant(
+              of: find.byType(AppSidebar),
+              matching: find.byType(AnimatedContainer))
+          .first,
     );
     final decoration = sidebar.decoration as BoxDecoration;
     expect(decoration.color, AppColors.cardWhite);
@@ -86,13 +88,16 @@ void main() {
     expect(label.style?.fontWeight, FontWeight.w700);
   });
 
-  testWidgets('thème sombre : le dégradé bleu nuit est conservé', (tester) async {
+  testWidgets('thème sombre : le dégradé bleu nuit est conservé',
+      (tester) async {
     await _pump(tester, theme: AppTheme.darkTheme);
     expect(tester.takeException(), isNull);
     final sidebar = tester.widget<AnimatedContainer>(
-      find.descendant(
-          of: find.byType(AppSidebar),
-          matching: find.byType(AnimatedContainer)).first,
+      find
+          .descendant(
+              of: find.byType(AppSidebar),
+              matching: find.byType(AnimatedContainer))
+          .first,
     );
     final decoration = sidebar.decoration as BoxDecoration;
     expect(decoration.gradient, isNotNull);
@@ -100,7 +105,8 @@ void main() {
     expect(active.color, AppColors.sidebarActive);
   });
 
-  testWidgets('repliée : rail d’icônes de 72 px, sans débordement', (tester) async {
+  testWidgets('repliée : rail d’icônes de 72 px, sans débordement',
+      (tester) async {
     await _pump(tester, theme: AppTheme.lightTheme, collapsed: true);
     expect(tester.takeException(), isNull);
     expect(tester.getSize(find.byType(AppSidebar)).width, AppSidebar.railWidth);

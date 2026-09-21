@@ -34,7 +34,12 @@ class LiveKitServerProcess {
   /// Renvoie `null` si rien n'est trouvé : l'écran doit alors expliquer quoi
   /// installer, pas échouer silencieusement.
   static Future<String?> locateBinary() async {
-    final configured = dotenv.maybeGet('LIVEKIT_SERVER_PATH')?.trim();
+    // `maybeGet` lève « DotEnv has not been initialized » quand le .env n'a
+    // pas été chargé (test hors application, .env absent du bundle) : la
+    // recherche doit alors simplement passer aux emplacements habituels.
+    final configured = dotenv.isInitialized
+        ? dotenv.maybeGet('LIVEKIT_SERVER_PATH')?.trim()
+        : null;
     if (configured != null && configured.isNotEmpty) {
       if (await File(configured).exists()) return configured;
     }

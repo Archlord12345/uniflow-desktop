@@ -64,7 +64,8 @@ class FileAttendanceStore implements AttendanceStore {
     try {
       final file = _file(conferenceId);
       if (!await file.exists()) return null;
-      return ConferenceAttendance.fromJson(jsonDecode(await file.readAsString()));
+      return ConferenceAttendance.fromJson(
+          jsonDecode(await file.readAsString()));
     } catch (error) {
       debugPrint('Feuille de présence illisible : $error');
       return null;
@@ -132,5 +133,6 @@ class InMemoryAttendanceStore implements AttendanceStore {
   }
 
   @override
-  Future<void> delete(String conferenceId) async => _sheets.remove(conferenceId);
+  Future<void> delete(String conferenceId) async =>
+      _sheets.remove(conferenceId);
 }

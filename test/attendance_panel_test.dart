@@ -34,11 +34,25 @@ ConferenceAttendance _liveSheet() => ConferenceAttendance(
       hostName: 'Pr. Fouda',
       startedAt: DateTime.now().subtract(const Duration(minutes: 30)),
     )
-        .recordTicket(identity: 'alice', displayName: 'Alice Kamga', userId: 'u-alice', at: DateTime.now().subtract(const Duration(minutes: 30)))
-        .recordJoin(identity: 'alice', at: DateTime.now().subtract(const Duration(minutes: 29)))
-        .recordJoin(identity: 'bob', displayName: 'Bob Essomba', at: DateTime.now().subtract(const Duration(minutes: 28)))
-        .recordLeave(identity: 'bob', at: DateTime.now().subtract(const Duration(minutes: 25)))
-        .recordTicket(identity: 'chloe', displayName: 'Chloé Mbappé', at: DateTime.now().subtract(const Duration(minutes: 20)));
+        .recordTicket(
+            identity: 'alice',
+            displayName: 'Alice Kamga',
+            userId: 'u-alice',
+            at: DateTime.now().subtract(const Duration(minutes: 30)))
+        .recordJoin(
+            identity: 'alice',
+            at: DateTime.now().subtract(const Duration(minutes: 29)))
+        .recordJoin(
+            identity: 'bob',
+            displayName: 'Bob Essomba',
+            at: DateTime.now().subtract(const Duration(minutes: 28)))
+        .recordLeave(
+            identity: 'bob',
+            at: DateTime.now().subtract(const Duration(minutes: 25)))
+        .recordTicket(
+            identity: 'chloe',
+            displayName: 'Chloé Mbappé',
+            at: DateTime.now().subtract(const Duration(minutes: 20)));
 
 ConferenceAttendance _pastSheet() => ConferenceAttendance(
       conferenceId: 'kf-past',
@@ -105,7 +119,8 @@ Future<void> _pumpPanel(
         theme: AppTheme.lightTheme,
         debugShowCheckedModeBanner: false,
         home: MediaQuery(
-          data: MediaQueryData(size: size, textScaler: TextScaler.linear(scale)),
+          data:
+              MediaQueryData(size: size, textScaler: TextScaler.linear(scale)),
           child: const Scaffold(
               body: SingleChildScrollView(child: AttendancePanel())),
         ),
@@ -264,7 +279,8 @@ void main() {
       expect(find.text('Export PDF enregistré'), findsOneWidget);
       final written = temp.listSync().whereType<File>().toList();
       expect(written, hasLength(1));
-      expect(written.single.path, endsWith('presence-cours-de-reseaux-l3-${_isoToday()}.pdf'));
+      expect(written.single.path,
+          endsWith('presence-cours-de-reseaux-l3-${_isoToday()}.pdf'));
 
       // La suite de `_export` (ouverture) vit dans la même chaîne asynchrone
       // réelle que l'export : on lui rend la boucle d'événements de la même

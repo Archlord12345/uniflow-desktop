@@ -230,7 +230,6 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       ),
     );
   }
-
 }
 
 /// Le schéma n'ouvre `classrooms` qu'en lecture au niveau collection : une
@@ -249,8 +248,7 @@ String _permissionHint(AppwriteException e) {
 /// administration (la colonne n'existe pas) et un espace vide pour une salle
 /// hors catalogue, qu'on ne peut ni modifier ni retirer.
 abstract final class _ClassroomRow {
-  static const _muted =
-      TextStyle(fontSize: 13, color: AppColors.textSecondary);
+  static const _muted = TextStyle(fontSize: 13, color: AppColors.textSecondary);
 
   static List<Widget> cells(Classroom classroom, {required Widget? actions}) {
     return [
