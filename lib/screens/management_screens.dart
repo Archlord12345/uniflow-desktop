@@ -16,6 +16,7 @@ import '../utils/avatar.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/stat_card.dart';
+import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../widgets/user_avatar.dart';
 import '../providers/appwrite_provider.dart';
@@ -1402,29 +1403,48 @@ class _Panel extends StatelessWidget {
       ]));
 }
 
+/// Tableau de synthèse des statistiques : première colonne libellée (souple),
+/// les suivantes sont des nombres alignés à droite. C'était un `DataTable`
+/// Material, seul tableau de l'application à avoir cet aspect.
 class _DataTableCard extends StatelessWidget {
   final String title;
   final List<String> columns;
   final List<List<String>> rows;
   const _DataTableCard(
       {required this.title, required this.columns, required this.rows});
+
   @override
-  Widget build(BuildContext context) => _Panel(
+  Widget build(BuildContext context) {
+    return _Panel(
       title: title,
-      child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-              headingTextStyle: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
-                  fontSize: 12),
-              dataTextStyle:
-                  const TextStyle(fontSize: 12.5, color: AppColors.textPrimary),
-              columns: columns.map((c) => DataColumn(label: Text(c))).toList(),
-              rows: rows
-                  .map((r) =>
-                      DataRow(cells: r.map((v) => DataCell(Text(v))).toList()))
-                  .toList())));
+      child: AppDataTable<List<String>>(
+        columns: [
+          for (var i = 0; i < columns.length; i++)
+            AppColumn(
+              columns[i],
+              flex: i == 0 ? 3 : 1,
+              align: i == 0 ? TextAlign.left : TextAlign.right,
+            ),
+        ],
+        rows: rows,
+        rowHeight: 40,
+        minWidth: 72.0 * columns.length + 160,
+        cells: (row, _) => [
+          for (var i = 0; i < columns.length; i++)
+            Text(
+              i < row.length ? row[i] : '—',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: i == 0 ? FontWeight.w600 : FontWeight.w400,
+                color: i == 0 ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Histogramme vertical. La hauteur des barres est mise à l'échelle du plus

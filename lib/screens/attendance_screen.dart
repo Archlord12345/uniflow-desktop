@@ -15,6 +15,7 @@ import '../providers/directory_provider.dart';
 import '../repositories/management_repository.dart';
 import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_data_table.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -183,8 +184,7 @@ class _SessionsView extends ConsumerWidget {
     final sessions = ref.watch(_sessionsProvider(courseId));
     final selectedSession = ref.watch(_selectedSessionProvider);
     return sessions.when(
-      loading: () =>
-          const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
+      loading: () => const DataLoadingView(label: 'Chargement des séances…'),
       error: (e, _) => DataErrorView(
           error: e, onRetry: () => ref.invalidate(_sessionsProvider(courseId))),
       data: (items) {
@@ -336,7 +336,8 @@ class _SessionDetail extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
           records.when(
-            loading: () => const TableSkeleton(rows: 4),
+            loading: () => const DataLoadingView(
+                compact: true, label: 'Chargement des émargements…'),
             error: (e, _) => DataErrorView(
                 error: e,
                 onRetry: () => ref.invalidate(_recordsProvider(session.id))),
@@ -855,8 +856,8 @@ class _AttendanceStatsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(studentAttendanceProvider);
     return stats.when(
-      loading: () => const Padding(
-          padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
+      loading: () =>
+          const DataLoadingView(label: 'Calcul de l\'assiduité…'),
       error: (e, _) => DataErrorView(
           error: e, onRetry: () => ref.invalidate(studentAttendanceProvider)),
       data: (students) {
@@ -867,56 +868,59 @@ class _AttendanceStatsView extends ConsumerWidget {
                 'Aucun émargement enregistré : l\'assiduité se calcule depuis les séances.',
           );
         }
+        // Les moins assidus d'abord : c'est eux que l'administration cherche.
         final sorted = [...students]..sort((a, b) => a.rate.compareTo(b.rate));
         return SingleChildScrollView(
           padding: const EdgeInsets.all(28),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.cardWhite,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.inputBorder),
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingTextStyle: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary,
-                    fontSize: 12),
-                columns: const [
-                  DataColumn(label: Text('Apprenant')),
-                  DataColumn(label: Text('Présent')),
-                  DataColumn(label: Text('Retard')),
-                  DataColumn(label: Text('Absent')),
-                  DataColumn(label: Text('Taux')),
-                ],
-                rows: [
-                  for (final s in sorted)
-                    DataRow(cells: [
-                      DataCell(Text(s.matricule.isEmpty
-                          ? s.name
-                          : '${s.name} · ${s.matricule}')),
-                      DataCell(Text('${s.present}')),
-                      DataCell(Text('${s.late}')),
-                      DataCell(Text('${s.absent}')),
-                      DataCell(Text(
-                        s.rateLabel,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: s.status == AttendanceStatus.regular
-                              ? AppColors.success
-                              : AppColors.danger,
-                        ),
-                      )),
-                    ]),
-                ],
+          child: AppDataTable<StudentAttendance>(
+            columns: _columns,
+            rows: sorted,
+            minWidth: 640,
+            rowHeight: 44,
+            cells: (s, _) => [
+              Text(
+                s.matricule.isEmpty ? s.name : '${s.name} · ${s.matricule}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary),
               ),
+              _count(s.present),
+              _count(s.late),
+              _count(s.absent),
+              Text(
+                s.rateLabel,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: s.status == AttendanceStatus.regular
+                      ? AppColors.success
+                      : AppColors.danger,
+                ),
+              ),
+            ],
+            footer: AppTableFooter(
+              label: AppTableFooter.count(sorted.length, 'apprenant'),
             ),
           ),
         );
       },
     );
   }
+
+  /// Compteurs alignés à droite pour que les chiffres se lisent en colonne.
+  static const List<AppColumn> _columns = [
+    AppColumn('Apprenant', flex: 3),
+    AppColumn('Présent', width: 80, align: TextAlign.right),
+    AppColumn('Retard', width: 80, align: TextAlign.right),
+    AppColumn('Absent', width: 80, align: TextAlign.right),
+    AppColumn('Taux', width: 90, align: TextAlign.right),
+  ];
+
+  static Widget _count(int n) => Text('$n',
+      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary));
 }
 
 String _formatDate(DateTime d) =>
