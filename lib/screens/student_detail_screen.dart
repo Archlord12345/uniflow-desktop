@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../models/student.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
-import '../widgets/status_badge.dart';
+import '../ui/status_badge.dart';
 import '../widgets/simple_tab_bar.dart';
 import 'messaging_screen.dart';
 
@@ -177,9 +177,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                       children: [
                         Text(student.matricule, style: AppTextStyles.body),
                         const SizedBox(width: 8),
-                        StatusBadge(
-                            label: student.statut,
-                            backgroundColor: student.statutColor),
+                        StatusBadge.fromStatus(student.statut),
                       ],
                     ),
                   ],

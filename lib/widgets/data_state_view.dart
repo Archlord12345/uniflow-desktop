@@ -51,12 +51,21 @@ class DataEmptyView extends StatelessWidget {
   final IconData icon;
   final bool compact;
 
+  /// Titre en gras au-dessus de l'explication (« Aucune note saisie »).
+  /// Optionnel : un état vide court se lit très bien sans.
+  final String? title;
+
   const DataEmptyView({
     super.key,
     required this.message,
     this.icon = Icons.inbox_outlined,
     this.compact = false,
+    this.title,
   });
+
+  /// Largeur de lecture de l'explication : au-delà, une phrase de trois
+  /// lignes s'étire sur toute la fenêtre et devient pénible à suivre.
+  static const double readingWidth = 520;
 
   @override
   Widget build(BuildContext context) {
@@ -75,10 +84,25 @@ class DataEmptyView extends StatelessWidget {
           // les appels qui la personnalisent, en petit sous le personnage.
           UniMascot(pose: UniPose.search, size: compact ? 72 : 110),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body,
+          if (title != null) ...[
+            Text(
+              title!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+          ],
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: readingWidth),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.body,
+            ),
           ),
         ],
       ),

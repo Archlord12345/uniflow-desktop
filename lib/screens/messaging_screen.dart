@@ -7,6 +7,7 @@ import '../repositories/messaging_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 import '../widgets/app_top_bar.dart';
+import '../widgets/data_state_view.dart';
 import '../widgets/user_avatar.dart';
 
 /// Messagerie du desktop : liste des conversations à gauche, fil de discussion
@@ -294,45 +295,31 @@ class _ConversationList extends StatelessWidget {
   }
 
   Widget _buildBody() {
+    // États compacts : la colonne des conversations fait 340 px de large,
+    // les versions pleine taille (Uni de 110 px, marges de 60 px) y prenaient
+    // toute la hauteur visible.
     if (state.isLoading && conversations.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: DataLoadingView(
+            label: 'Chargement des conversations…', compact: true),
+      );
     }
     if (state.hasError && conversations.isEmpty) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cloud_off_outlined,
-                  size: 34, color: AppColors.textMuted),
-              const SizedBox(height: 10),
-              Text(
-                state.error.toString(),
-                textAlign: TextAlign.center,
-                style:
-                    const TextStyle(fontSize: 12, color: AppColors.textMuted),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh, size: 15),
-                label: const Text('Réessayer'),
-              ),
-            ],
-          ),
+        child: DataErrorView(
+          title: 'Conversations indisponibles',
+          error: state.error ?? 'Erreur inconnue',
+          compact: true,
+          onRetry: onRetry,
         ),
       );
     }
     if (conversations.isEmpty) {
       return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Text(
-            'Aucune conversation.\nUtilisez « Nouvelle conversation » pour\nécrire à un contact par son pseudo.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
-          ),
+        child: DataEmptyView(
+          compact: true,
+          message: 'Aucune conversation. Utilisez « Nouvelle conversation » '
+              'pour écrire à un contact par son pseudo.',
         ),
       );
     }
@@ -501,11 +488,10 @@ class _Thread extends StatelessWidget {
                 Expanded(
                   child: current.messages.isEmpty
                       ? const Center(
-                          child: Text(
-                            'Aucun message pour l\'instant.\nÉcrivez le premier ci-dessous.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 12.5, color: AppColors.textMuted),
+                          child: DataEmptyView(
+                            compact: true,
+                            message: 'Aucun message pour l\'instant. '
+                                'Écrivez le premier ci-dessous.',
                           ),
                         )
                       : ListView.builder(
@@ -737,15 +723,18 @@ class _NewConversationDialogState
   Widget _buildResults() {
     if (_error != null) {
       return Center(
-        child: Text(
-          _error!,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: AppColors.danger, fontSize: 12),
+        child: DataErrorView(
+          title: 'Recherche impossible',
+          error: _error!,
+          compact: true,
+          onRetry: () => _onChanged(_input.text),
         ),
       );
     }
     if (_searching) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: DataLoadingView(label: 'Recherche…', compact: true),
+      );
     }
     if (_input.text.trim().replaceFirst(RegExp(r'^@'), '').length < 2) {
       return const Center(
@@ -757,10 +746,8 @@ class _NewConversationDialogState
     }
     if (_results.isEmpty) {
       return const Center(
-        child: Text(
-          'Aucun contact ne correspond.',
-          style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-        ),
+        child: DataEmptyView(
+            message: 'Aucun contact ne correspond.', compact: true),
       );
     }
     return ListView.separated(

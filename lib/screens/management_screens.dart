@@ -14,8 +14,9 @@ import '../services/profile_photo_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 import '../widgets/app_top_bar.dart';
+import '../widgets/data_state_view.dart';
 import '../widgets/stat_card.dart';
-import '../widgets/status_badge.dart';
+import '../ui/status_badge.dart';
 import '../widgets/user_avatar.dart';
 import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
@@ -245,24 +246,23 @@ class _RunningConferencePanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          // `Wrap` : trois pastilles côte à côte débordaient d'un panneau
+          // étroit ; elles passent à la ligne au besoin.
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
             children: [
               const StatusBadge(
-                  label: 'EN ÉCOUTE', backgroundColor: Color(0xFFDFF5E4)),
-              const SizedBox(width: 8),
+                  label: 'En écoute', tone: BadgeTone.success, dot: true),
               StatusBadge(
                 label: conference.mode.label,
-                backgroundColor: isInternet
-                    ? const Color(0xFFDCEBFF)
-                    : const Color(0xFFF1E4FF),
+                tone: isInternet ? BadgeTone.primary : BadgeTone.purple,
               ),
-              const SizedBox(width: 8),
               if (host.published)
-                const StatusBadge(
-                    label: 'PUBLIÉE', backgroundColor: Color(0xFFDFF5E4))
+                const StatusBadge(label: 'Publiée', tone: BadgeTone.success)
               else
                 const StatusBadge(
-                    label: 'NON PUBLIÉE', backgroundColor: Color(0xFFFFF0DC)),
+                    label: 'Non publiée', tone: BadgeTone.warning),
             ],
           ),
           const SizedBox(height: 18),
@@ -385,33 +385,22 @@ class _DiscoveredConferences extends StatelessWidget {
     return _Panel(
       title: 'Réunions disponibles',
       child: conferences.when(
-        loading: () => const Padding(
-          padding: EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'L\'annuaire des réunions est injoignable : $error',
-              style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: onRefresh,
-              icon: const Icon(Icons.refresh, size: 17),
-              label: const Text('Réessayer'),
-            ),
-          ],
+        loading: () => const DataLoadingView(
+            label: 'Recherche des réunions…', compact: true),
+        error: (error, _) => DataErrorView(
+          title: 'L\'annuaire des réunions est injoignable',
+          error: error,
+          compact: true,
+          onRetry: onRefresh,
         ),
         data: (items) {
           if (items.isEmpty) {
-            return const Text(
-              'Aucune réunion publiée pour le moment. Une réunion apparaît ici '
-              'quand son hôte l\'a ouverte ; l\'annuaire s\'appuie sur la '
-              'collection Appwrite « conference_rooms ».',
-              style: TextStyle(
-                  fontSize: 13, color: AppColors.textMuted, height: 1.5),
+            return const DataEmptyView(
+              compact: true,
+              message:
+                  'Aucune réunion publiée pour le moment. Une réunion apparaît '
+                  'ici quand son hôte l\'a ouverte ; l\'annuaire s\'appuie sur '
+                  'la collection Appwrite « conference_rooms ».',
             );
           }
           return Column(
@@ -608,18 +597,16 @@ class StatisticsScreen extends ConsumerWidget {
       subtitle: 'Analysez les performances académiques de votre établissement',
       stats: const [],
       child: statsAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsets.symmetric(vertical: 48),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, _) => _InfoPanel(
-          icon: Icons.cloud_off_outlined,
+        loading: () =>
+            const DataLoadingView(label: 'Calcul des statistiques…'),
+        error: (error, _) => DataErrorView(
           title: 'Statistiques indisponibles',
-          message: '$error',
+          error: error,
+          onRetry: () => ref.invalidate(gradeStatsProvider),
         ),
         data: (stats) {
           if (stats == null) {
-            return const _InfoPanel(
+            return const DataEmptyView(
               icon: Icons.query_stats_outlined,
               title: 'Aucune note saisie',
               message:
@@ -1284,61 +1271,67 @@ class _ManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(30, 24, 30, 30),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppTopBar(
-                title: title,
-                subtitle: subtitle,
-                actions: [
-                  if (action != null)
-                    ElevatedButton.icon(
-                      onPressed: onAction,
-                      icon: Icon(icon ?? Icons.arrow_forward, size: 16),
-                      label: Text(action!),
-                    ),
-                ],
+    // L'en-tête est hors du défilement et sans marge, comme sur les autres
+    // écrans (annuaire, emploi du temps) : posé dans la zone défilante avec
+    // 30 px de marge, il apparaissait comme une carte blanche encadrée, à
+    // 30 px du bord, alors que partout ailleurs il court d'un bord à l'autre.
+    // Le `Scaffold` imbriqué a disparu : la coquille en fournit déjà un.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppTopBar(
+          title: title,
+          subtitle: subtitle,
+          actions: [
+            if (action != null)
+              ElevatedButton.icon(
+                onPressed: onAction,
+                icon: Icon(icon ?? Icons.arrow_forward, size: 16),
+                label: Text(action!),
               ),
-              if (stats.isNotEmpty) ...[
-                const SizedBox(height: 22),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Sur une fenêtre plus étroite que la largeur nominale
-                    // d'une carte, celle-ci se réduit au lieu de dépasser.
-                    final width = constraints.maxWidth < _cardWidth
-                        ? constraints.maxWidth
-                        : _cardWidth;
-                    return Wrap(
-                      spacing: 14,
-                      runSpacing: 14,
-                      children: [
-                        for (var i = 0; i < stats.length; i++)
-                          SizedBox(
-                            width: width,
-                            child: StatCard(
-                              label: stats[i].label,
-                              value: stats[i].value,
-                              delta: stats[i].detail,
-                              icon: stats[i].icon,
-                              iconBackground: _palette[i % _palette.length],
+          ],
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xxl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (stats.isNotEmpty) ...[
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Sur une fenêtre plus étroite que la largeur nominale
+                      // d'une carte, celle-ci se réduit au lieu de dépasser.
+                      final width = constraints.maxWidth < _cardWidth
+                          ? constraints.maxWidth
+                          : _cardWidth;
+                      return Wrap(
+                        spacing: AppSpacing.lg,
+                        runSpacing: AppSpacing.lg,
+                        children: [
+                          for (var i = 0; i < stats.length; i++)
+                            SizedBox(
+                              width: width,
+                              child: StatCard(
+                                label: stats[i].label,
+                                value: stats[i].value,
+                                hint: stats[i].detail,
+                                icon: stats[i].icon,
+                                iconBackground: _palette[i % _palette.length],
+                              ),
                             ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+                child,
               ],
-              const SizedBox(height: 22),
-              child,
-            ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -1564,7 +1557,7 @@ class StructureManagementScreen extends StatelessWidget {
         title: 'Structure Académique',
         subtitle: 'Gérez les facultés, départements et niveaux',
         stats: [],
-        child: _InfoPanel(
+        child: DataEmptyView(
           icon: Icons.account_tree_outlined,
           title: 'Structure non configurée',
           message: 'Les facultés, départements et niveaux ne sont pas encore '
@@ -1583,7 +1576,7 @@ class PaymentsManagementScreen extends StatelessWidget {
         // Pas de recettes affichées : aucun flux de paiement n'alimente
         // l'application, un montant en dur donnerait une fausse vue des finances.
         stats: [],
-        child: _InfoPanel(
+        child: DataEmptyView(
           icon: Icons.account_balance_wallet_outlined,
           title: 'Aucun paiement enregistré',
           message:

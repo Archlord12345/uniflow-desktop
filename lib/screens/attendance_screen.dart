@@ -342,10 +342,9 @@ class _SessionDetail extends ConsumerWidget {
                 onRetry: () => ref.invalidate(_recordsProvider(session.id))),
             data: (items) {
               if (items.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text('Aucun émargement pour cette séance.',
-                      style: AppTextStyles.body),
+                return const DataEmptyView(
+                  compact: true,
+                  message: 'Aucun émargement pour cette séance.',
                 );
               }
               final counts = <String, int>{};
@@ -695,8 +694,11 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
         height: 420,
         child: roster.isEmpty
             ? const Center(
-                child: Text('Aucun apprenant inscrit à ce cours.',
-                    style: AppTextStyles.body))
+                child: DataEmptyView(
+                  compact: true,
+                  message: 'Aucun apprenant inscrit à ce cours.',
+                ),
+              )
             : Column(
                 children: [
                   Row(

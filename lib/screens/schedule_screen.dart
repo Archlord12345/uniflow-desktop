@@ -8,8 +8,8 @@ import '../models/schedule_scope.dart';
 import '../providers/schedule_provider.dart';
 import '../repositories/reference_repository.dart';
 import '../widgets/app_breadcrumb.dart';
-import '../widgets/status_badge.dart';
-import '../widgets/uni/uni_mascot.dart';
+import '../widgets/data_state_view.dart';
+import '../ui/status_badge.dart';
 
 /// Page "Emploi du temps" : grille hebdomadaire alimentée par
 /// `academic_schedules`, légende des types de séance, navigation de semaine,
@@ -66,10 +66,16 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => _ScheduleError(
-              error: error,
-              onRetry: () => ref.invalidate(scheduleWeekProvider),
+            loading: () => const Center(
+              child: DataLoadingView(
+                  label: 'Chargement de l\'emploi du temps…'),
+            ),
+            error: (error, _) => Center(
+              child: DataErrorView(
+                title: 'Emploi du temps indisponible',
+                error: error,
+                onRetry: () => ref.invalidate(scheduleWeekProvider),
+              ),
             ),
           ),
         ),
@@ -584,11 +590,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            StatusBadge(
-              label: event.type.label,
-              backgroundColor: event.type.color.withValues(alpha: 0.15),
-              textColor: event.type.color,
-            ),
+            StatusBadge.tinted(
+                label: event.type.label, color: event.type.color),
             const SizedBox(height: 10),
             Text(event.title,
                 style: const TextStyle(
@@ -648,91 +651,17 @@ class _EmptyWeek extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // `SingleChildScrollView` : la zone disponible dépend de la hauteur de la
-    // fenêtre ; avec une police système agrandie, le bloc dépassait vers le
-    // bas. Ici il défile au lieu de déborder.
-    return SingleChildScrollView(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.event_busy_outlined,
-                  size: 44, color: AppColors.textMuted),
-              const SizedBox(height: 14),
-              const Text(
-                'Aucun créneau pour cette semaine',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Semaine du ${weekStart.day}/${weekStart.month}/${weekStart.year} — aucun '
-                'créneau à afficher.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Les créneaux proviennent de la collection « academic_schedules ». '
-                'Ajoutez-y des séances (jour, heure de début et de fin, salle) pour '
-                'les voir apparaître ici.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 13, color: AppColors.textMuted, height: 1.45),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ScheduleError extends StatelessWidget {
-  final Object error;
-  final VoidCallback onRetry;
-
-  const _ScheduleError({required this.error, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    // Défilant : dans une fenêtre de 620 px, le message d'erreur complet
-    // débordait de 23 px sous le bouton.
+    // `DataEmptyView` défile déjà : avec une police système agrandie, le bloc
+    // dépassait vers le bas de la zone laissée par la barre d'outils.
     return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const UniMascot(pose: UniPose.sorry, size: 110),
-            const SizedBox(height: 14),
-            const Text(
-              'Emploi du temps indisponible',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 17),
-              label: const Text('Réessayer'),
-            ),
-          ],
-        ),
+      child: DataEmptyView(
+        icon: Icons.event_busy_outlined,
+        title: 'Aucun créneau pour cette semaine',
+        message:
+            'Semaine du ${weekStart.day}/${weekStart.month}/${weekStart.year} — '
+            'aucun créneau à afficher. Les créneaux proviennent de la collection '
+            '« academic_schedules » : ajoutez-y des séances (jour, heure de début '
+            'et de fin, salle) pour les voir apparaître ici.',
       ),
     );
   }
@@ -995,42 +924,12 @@ class _ScopeNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Défilant : dans une petite fenêtre avec un texte agrandi, le message
-    // dépasse la hauteur laissée sous la barre d'outils et la légende.
+    // Même état vide que les autres écrans (Uni à la loupe, titre,
+    // explication) : la version maison avait sa propre taille de mascotte et
+    // ses propres marges, et l'emploi du temps « vide » ne ressemblait pas
+    // aux programmes « vides ».
     return Center(
-      child: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Uni cherche : l'état se lit avant le texte.
-                const UniMascot(pose: UniPose.search, size: 120),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 13.5,
-                      height: 1.5,
-                      color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      child: DataEmptyView(icon: icon, title: title, message: message),
     );
   }
 }

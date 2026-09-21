@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../models/teacher.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/app_breadcrumb.dart';
-import '../widgets/status_badge.dart';
+import '../ui/status_badge.dart';
 import 'messaging_screen.dart';
 
 /// Page de détail d'un enseignant. Aucune maquette spécifique ne l'illustre,
@@ -108,9 +108,7 @@ class TeacherDetailScreen extends StatelessWidget {
                       children: [
                         Text(teacher.id, style: AppTextStyles.body),
                         const SizedBox(width: 8),
-                        StatusBadge(
-                            label: teacher.statut,
-                            backgroundColor: teacher.statutColor),
+                        StatusBadge.fromStatus(teacher.statut),
                       ],
                     ),
                   ],

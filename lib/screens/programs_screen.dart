@@ -4,7 +4,8 @@ import '../theme/app_theme.dart';
 import '../models/program_tree.dart';
 import '../providers/program_provider.dart';
 import '../widgets/app_top_bar.dart';
-import '../widgets/status_badge.dart';
+import '../widgets/data_state_view.dart';
+import '../ui/status_badge.dart';
 import '../widgets/simple_tab_bar.dart';
 
 /// Page "Programmes & Facultés" : arborescence Université > Filière > Niveau
@@ -78,22 +79,28 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         ),
         Expanded(
           child: treeAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => _Message(
-              icon: Icons.cloud_off_outlined,
-              title: 'Programmes indisponibles',
-              message: '$error',
+            loading: () => const Center(
+              child: DataLoadingView(label: 'Chargement des programmes…'),
+            ),
+            error: (error, _) => Center(
+              child: DataErrorView(
+                title: 'Programmes indisponibles',
+                error: error,
+                onRetry: () => ref.invalidate(programTreeProvider),
+              ),
             ),
             data: (faculties) {
               if (faculties.isEmpty) {
-                return const _Message(
-                  icon: Icons.account_tree_outlined,
-                  title: 'Aucune UE enregistrée',
-                  message:
-                      'L\'arborescence se construit à partir de la collection '
-                      '« academic_courses » : chaque UE y porte une université, une '
-                      'filière et un niveau. Ajoutez des UE pour voir la hiérarchie '
-                      'apparaître ici.',
+                return const Center(
+                  child: DataEmptyView(
+                    icon: Icons.account_tree_outlined,
+                    title: 'Aucune UE enregistrée',
+                    message:
+                        'L\'arborescence se construit à partir de la collection '
+                        '« academic_courses » : chaque UE y porte une université, '
+                        'une filière et un niveau. Ajoutez des UE pour voir la '
+                        'hiérarchie apparaître ici.',
+                  ),
                 );
               }
               return _buildBody(faculties);
@@ -127,10 +134,9 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 Expanded(
                   child: visible.isEmpty
                       ? const Center(
-                          child: Text(
-                            'Aucun résultat pour cette recherche.',
-                            style: TextStyle(
-                                fontSize: 13, color: AppColors.textMuted),
+                          child: DataEmptyView(
+                            compact: true,
+                            message: 'Aucun résultat pour cette recherche.',
                           ),
                         )
                       : ListView(
@@ -459,8 +465,7 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const StatusBadge(
-                    label: 'NIVEAU', backgroundColor: Color(0xFFDFF5E4)),
+                const StatusBadge(label: 'Niveau', tone: BadgeTone.success),
                 const SizedBox(width: 8),
                 Text('• Code : ${program.code}', style: AppTextStyles.body),
               ],
@@ -595,9 +600,7 @@ class _ProgramDetailPanelState extends State<_ProgramDetailPanel> {
                       flex: 2,
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: StatusBadge(
-                            label: module.type,
-                            backgroundColor: module.typeColor),
+                        child: StatusBadge.fromStatus(module.type),
                       ),
                     ),
                     Expanded(
@@ -769,49 +772,3 @@ class _StatBox extends StatelessWidget {
 }
 
 /// État vide pleine page : icône, titre, explication.
-class _Message extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-
-  const _Message(
-      {required this.icon, required this.title, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      // `SingleChildScrollView` et non `Padding` : ce message occupe la hauteur
-      // restante d'un `Expanded`, et à ×1.3 son contenu (icône, titre,
-      // explication sur plusieurs lignes) réclame 401 px dans une fenêtre de
-      // 620 qui n'en laisse que 319. Le bloc défile plutôt que de déborder.
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 44, color: AppColors.textMuted),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textMuted, height: 1.5),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

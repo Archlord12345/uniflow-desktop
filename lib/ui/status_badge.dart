@@ -23,19 +23,33 @@ class StatusBadge extends StatelessWidget {
   final bool dot;
   final IconData? icon;
 
+  /// Teinte libre, pour les données qui portent leur propre couleur (types
+  /// de séance de l'emploi du temps) : fond à 15 %, texte de la teinte pleine.
+  /// Prend le pas sur [tone].
+  final Color? color;
+
   const StatusBadge({
     super.key,
     required this.label,
     this.tone = BadgeTone.neutral,
     this.dot = false,
     this.icon,
-  });
+  }) : color = null;
 
-  /// Déduit la tonalité d'un statut textuel courant (« Actif », « En
-  /// attente », « Rejeté »…) pour les listes qui reçoivent des statuts bruts.
-  factory StatusBadge.fromStatus(String status) {
+  const StatusBadge.tinted({
+    super.key,
+    required this.label,
+    required Color this.color,
+    this.dot = false,
+    this.icon,
+  }) : tone = BadgeTone.neutral;
+
+  /// Tonalité d'un statut textuel courant (« Actif », « En attente »,
+  /// « Suspendu », « Cours magistral »…), pour les listes qui reçoivent des
+  /// libellés bruts. Exposée pour que les écrans puissent l'utiliser sans
+  /// construire le badge (légendes, tests).
+  static BadgeTone toneFor(String status) {
     final s = status.trim().toUpperCase();
-    BadgeTone tone;
     if (const {
       'ACTIF',
       'ACTIVE',
@@ -44,36 +58,53 @@ class StatusBadge extends StatelessWidget {
       'PRÉSENT',
       'PRESENT',
       'PUBLIÉ',
+      'PUBLIÉE',
       'PUBLISHED',
       'SOUMIS',
-      'NOTÉ'
+      'NOTÉ',
+      'EN ÉCOUTE',
+      'NIVEAU',
     }.contains(s)) {
-      tone = BadgeTone.success;
-    } else if (const {'EN ATTENTE', 'PENDING', 'À RENDRE', 'BROUILLON', 'DRAFT'}
-        .contains(s)) {
-      tone = BadgeTone.warning;
-    } else if (const {
+      return BadgeTone.success;
+    }
+    if (const {
+      'EN ATTENTE',
+      'PENDING',
+      'À RENDRE',
+      'BROUILLON',
+      'DRAFT',
+      'NON PUBLIÉE',
+    }.contains(s)) {
+      return BadgeTone.warning;
+    }
+    if (const {
       'REJETÉ',
       'REJECTED',
       'ABSENT',
       'EN RETARD',
       'ÉCHEC',
-      'INACTIF'
+      'INACTIF',
+      'SUSPENDU',
+      'SUSPENDED',
     }.contains(s)) {
-      tone = BadgeTone.danger;
-    } else if (const {'CM'}.contains(s)) {
-      tone = BadgeTone.primary;
-    } else if (s.startsWith('TD')) {
-      tone = BadgeTone.teal;
-    } else if (s.startsWith('TP')) {
-      tone = BadgeTone.warning;
-    } else {
-      tone = BadgeTone.neutral;
+      return BadgeTone.danger;
     }
-    return StatusBadge(label: status, tone: tone);
+    // Types de séance : les mêmes teintes que la légende de l'emploi du temps
+    // (CM bleu, TD sarcelle, TP ambre), que la base écrive le sigle ou le nom.
+    if (s == 'CM' || s == 'COURS MAGISTRAL') return BadgeTone.primary;
+    if (s.startsWith('TD') || s == 'TRAVAUX DIRIGÉS') return BadgeTone.teal;
+    if (s.startsWith('TP') || s == 'TRAVAUX PRATIQUES') return BadgeTone.warning;
+    return BadgeTone.neutral;
   }
 
+  factory StatusBadge.fromStatus(String status, {Key? key, bool dot = false}) =>
+      StatusBadge(key: key, label: status, tone: toneFor(status), dot: dot);
+
   ({Color bg, Color fg}) _palette(UniFlowColors colors) {
+    final tint = color;
+    if (tint != null) {
+      return (bg: tint.withValues(alpha: 0.15), fg: tint);
+    }
     switch (tone) {
       case BadgeTone.neutral:
         return (bg: colors.surfaceMuted, fg: colors.muted);

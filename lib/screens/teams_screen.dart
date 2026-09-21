@@ -123,13 +123,9 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
               ),
               const SizedBox(height: 18),
               if (visibles.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Text(
-                    'Aucun membre dans cette catégorie.',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodySmall,
-                  ),
+                const DataEmptyView(
+                  compact: true,
+                  message: 'Aucun membre dans cette catégorie.',
                 )
               else
                 _Grille(

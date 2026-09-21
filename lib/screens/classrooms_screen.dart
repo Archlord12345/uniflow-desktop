@@ -12,7 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
-import '../widgets/status_badge.dart';
+import '../ui/status_badge.dart';
 
 /// Page « Salles ».
 ///
@@ -362,10 +362,7 @@ class _ClassroomRow extends StatelessWidget {
                   ? const Text('—',
                       style:
                           TextStyle(fontSize: 13, color: AppColors.textMuted))
-                  : StatusBadge(
-                      label: classroom.type,
-                      backgroundColor: AppColors.inputFill,
-                      textColor: AppColors.textSecondary),
+                  : StatusBadge(label: classroom.type),
             ),
           ),
           if (canEdit)

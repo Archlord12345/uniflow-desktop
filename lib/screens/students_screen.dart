@@ -6,7 +6,7 @@ import '../providers/directory_provider.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/user_avatar.dart';
-import '../widgets/status_badge.dart';
+import '../ui/status_badge.dart';
 import 'student_detail_screen.dart';
 
 /// Page "Étudiants" : fil d'Ariane, filtres, tableau des étudiants.
@@ -460,9 +460,7 @@ class _StudentRow extends StatelessWidget {
             flex: 2,
             child: Align(
                 alignment: Alignment.centerLeft,
-                child: StatusBadge(
-                    label: student.statut,
-                    backgroundColor: student.statutColor)),
+                child: StatusBadge.fromStatus(student.statut)),
           ),
           Expanded(
               flex: 2,

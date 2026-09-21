@@ -5,7 +5,7 @@ import '../models/teaching_unit.dart';
 import '../providers/directory_provider.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/filter_dropdown.dart';
-import '../widgets/status_badge.dart';
+import '../ui/status_badge.dart';
 
 /// Page "Gestion des UE" : cartes statistiques, recherche + filtres,
 /// tableau des unités d'enseignement.
@@ -436,8 +436,6 @@ class _UnitRow extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: StatusBadge(
                 label: _orDash(unit.niveau),
-                backgroundColor: AppColors.inputFill,
-                textColor: AppColors.textSecondary,
               ),
             ),
           ),
@@ -449,8 +447,7 @@ class _UnitRow extends StatelessWidget {
                   ? const Text('—',
                       style:
                           TextStyle(fontSize: 13, color: AppColors.textMuted))
-                  : StatusBadge(
-                      label: unit.type, backgroundColor: unit.typeColor),
+                  : StatusBadge.fromStatus(unit.type),
             ),
           ),
           Expanded(
