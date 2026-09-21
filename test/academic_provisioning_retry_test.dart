@@ -18,7 +18,7 @@ import 'package:uniflow/services/uniflow_api.dart';
 import 'layout_test_support.dart';
 
 class _ApiEnregistreuse extends UniFlowApi {
-  _ApiEnregistreuse(AppwriteService service, {this.erreur}) : super(service);
+  _ApiEnregistreuse(super.service, {this.erreur});
 
   final Object? erreur;
   final List<(String, Map<String, dynamic>)> appels = [];
@@ -108,7 +108,8 @@ void main() {
     final service = AppwriteService();
     final apiEnPanne = _ApiEnregistreuse(
       service,
-      erreur: ApiException('Function indisponible', code: 'EXECUTION_FAILED'),
+      erreur:
+          const ApiException('Function indisponible', code: 'EXECUTION_FAILED'),
     );
     final depotEnPanne = AuthRepository(service, apiEnPanne);
     await expectLater(
