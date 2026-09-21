@@ -16,6 +16,7 @@ import '../utils/avatar.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/stat_card.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../widgets/user_avatar.dart';
@@ -114,10 +115,10 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
+              child: AppButton.secondary(
+                label: 'Vérifier la présence du serveur média',
+                icon: Icons.check_circle_outline,
                 onPressed: _checkBinary,
-                icon: const Icon(Icons.check_circle_outline, size: 17),
-                label: const Text('Vérifier la présence du serveur média'),
               ),
             ),
           ],
@@ -297,17 +298,15 @@ class _RunningConferencePanel extends StatelessWidget {
             runSpacing: 12,
             children: [
               if (!isInternet)
-                OutlinedButton.icon(
+                AppButton.secondary(
+                  label: 'Exposer sur internet',
+                  icon: Icons.public,
                   onPressed: onEnableInternet,
-                  icon: const Icon(Icons.public, size: 17),
-                  label: const Text('Exposer sur internet'),
                 ),
-              ElevatedButton.icon(
+              AppButton.danger(
+                label: 'Terminer la réunion',
+                icon: Icons.stop_circle_outlined,
                 onPressed: onStop,
-                icon: const Icon(Icons.stop_circle_outlined, size: 17),
-                label: const Text('Terminer la réunion'),
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
               ),
             ],
           ),
@@ -921,12 +920,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       'Changez votre mot de passe ; la session reste ouverte.',
                       style: AppTextStyles.body),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
+                  AppButton.secondary(
+                    label: 'Changer le mot de passe',
+                    icon: Icons.lock_reset_outlined,
                     onPressed: currentUser == null
                         ? null
                         : () => _changePassword(context),
-                    icon: const Icon(Icons.lock_reset_outlined, size: 18),
-                    label: const Text('Changer le mot de passe'),
                   ),
                 ],
               ),
@@ -1001,11 +1000,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    OutlinedButton.icon(
-                      onPressed: _uploading ? null : _pickAndUpload,
-                      icon: const Icon(Icons.photo_camera_outlined, size: 17),
-                      label: Text(
-                          hasPhoto ? 'Changer la photo' : 'Ajouter une photo'),
+                    AppButton.secondary(
+                      label:
+                          hasPhoto ? 'Changer la photo' : 'Ajouter une photo',
+                      icon: Icons.photo_camera_outlined,
+                      loading: _uploading,
+                      onPressed: _pickAndUpload,
                     ),
                     if (hasPhoto)
                       TextButton(
@@ -1033,23 +1033,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 spacing: 10,
                 runSpacing: 8,
                 children: [
-                  ElevatedButton.icon(
+                  // Déconnexion en secondaire : c'est une action ordinaire.
+                  // Le rouge plein est réservé à la suppression du compte,
+                  // la seule irréversible ; avant, les deux étaient rouges et
+                  // se confondaient.
+                  AppButton.secondary(
+                    label: 'Se déconnecter',
+                    icon: Icons.logout_rounded,
                     onPressed: () => signOutToLogin(context, ref),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.danger,
-                        foregroundColor: Colors.white),
-                    icon: const Icon(Icons.logout_rounded, size: 18),
-                    label: const Text('Se déconnecter'),
                   ),
                   if (currentUser != null)
-                    OutlinedButton.icon(
+                    AppButton.danger(
                       key: const Key('delete-account-open'),
+                      label: 'Supprimer mon compte',
+                      icon: Icons.delete_forever_outlined,
                       onPressed: () => showDeleteAccountFlow(context, ref),
-                      style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.danger,
-                          side: const BorderSide(color: AppColors.danger)),
-                      icon: const Icon(Icons.delete_forever_outlined, size: 18),
-                      label: const Text('Supprimer mon compte'),
                     ),
                 ],
               ),
@@ -1285,16 +1283,16 @@ class _ManagementPage extends StatelessWidget {
           subtitle: subtitle,
           actions: [
             if (action != null)
-              ElevatedButton.icon(
+              AppButton(
+                label: action!,
+                icon: icon ?? Icons.arrow_forward,
                 onPressed: onAction,
-                icon: Icon(icon ?? Icons.arrow_forward, size: 16),
-                label: Text(action!),
               ),
           ],
         ),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xxl),
+            padding: const EdgeInsets.all(AppSpacing.page),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

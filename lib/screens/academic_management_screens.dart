@@ -21,6 +21,8 @@ import '../repositories/academic_repository.dart';
 import '../repositories/management_repository.dart';
 import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
+import '../ui/app_data_table.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -126,12 +128,12 @@ class AssignmentsManagementScreen extends ConsumerWidget {
               : 'Les travaux demandés dans vos cours',
           actions: [
             if (canEdit)
-              FilledButton.icon(
+              AppButton(
+                label: 'Nouveau devoir',
+                icon: Icons.add,
                 onPressed: courseId == null
                     ? null
                     : () => _openEditor(context, ref, courseId: courseId),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Nouveau devoir'),
               ),
           ],
         ),
@@ -141,8 +143,8 @@ class AssignmentsManagementScreen extends ConsumerWidget {
                 Align(alignment: Alignment.centerLeft, child: _CoursePicker())),
         Expanded(
           child: courses.when(
-            loading: () => const Padding(
-                padding: EdgeInsets.all(28), child: CardGridSkeleton(count: 3)),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement de vos cours…'),
             error: (e, _) => DataErrorView(
                 error: e, onRetry: () => ref.invalidate(scopedCoursesProvider)),
             data: (_) {
@@ -156,9 +158,8 @@ class AssignmentsManagementScreen extends ConsumerWidget {
               final assignments =
                   ref.watch(_assignmentsOfCourseProvider(courseId));
               return assignments.when(
-                loading: () => const Padding(
-                    padding: EdgeInsets.all(28),
-                    child: CardGridSkeleton(count: 3)),
+                loading: () =>
+                    const DataLoadingView(label: 'Chargement des devoirs…'),
                 error: (e, _) => DataErrorView(
                     error: e,
                     onRetry: () =>
@@ -566,8 +567,7 @@ class _SubmissionsScreen extends ConsumerWidget {
         elevation: 0,
       ),
       body: submissions.when(
-        loading: () =>
-            const Padding(padding: EdgeInsets.all(28), child: TableSkeleton()),
+        loading: () => const DataLoadingView(label: 'Chargement des remises…'),
         error: (e, _) => DataErrorView(
             error: e,
             onRetry: () => ref.invalidate(_submissionsProvider(assignment.id))),
@@ -741,10 +741,10 @@ class GradesManagementScreen extends ConsumerWidget {
           subtitle: 'Saisie et publication des évaluations de vos cours',
           actions: [
             if (courseId != null)
-              FilledButton.icon(
+              AppButton(
+                label: 'Nouvelle évaluation',
+                icon: Icons.add,
                 onPressed: () => _addEvaluation(context, ref, courseId),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Nouvelle évaluation'),
               ),
           ],
         ),
@@ -758,9 +758,8 @@ class GradesManagementScreen extends ConsumerWidget {
                   icon: Icons.grade_outlined,
                   message: 'Aucun cours dans votre périmètre.')
               : ref.watch(_rosterProvider(courseId)).when(
-                    loading: () => const Padding(
-                        padding: EdgeInsets.all(28),
-                        child: TableSkeleton(rows: 8)),
+                    loading: () => const DataLoadingView(
+                        label: 'Chargement de la grille de notes…'),
                     error: (e, _) => DataErrorView(
                         error: e,
                         onRetry: () =>
@@ -826,43 +825,54 @@ class _GradeGrid extends ConsumerWidget {
           icon: Icons.people_outline,
           message: 'Aucun apprenant inscrit à ce cours.');
     }
+    // Une colonne par évaluation, de largeur fixe pour que les notes restent
+    // alignées ; au-delà de quelques évaluations la grille défile.
+    const evaluationWidth = 104.0;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardWhite,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.inputBorder),
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            headingTextStyle: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary,
-                fontSize: 12),
-            columns: [
-              const DataColumn(label: Text('Apprenant')),
-              for (final t in titles) DataColumn(label: Text(t)),
-              const DataColumn(label: Text('Moyenne')),
-            ],
-            rows: [
-              for (var i = 0; i < roster.students.length; i++)
-                DataRow(cells: [
-                  DataCell(Text(
-                      '${roster.students[i].name}${roster.students[i].matricule.isNotEmpty ? ' · ${roster.students[i].matricule}' : ''}')),
-                  for (final t in titles)
-                    DataCell(
-                      _GradeCell(
-                          grade: roster.gradeOf(roster.students[i].userId, t)),
-                      onTap: () => _edit(context, ref, roster.students[i], t,
-                          roster.gradeOf(roster.students[i].userId, t)),
-                    ),
-                  DataCell(Text(_average(roster.students[i].userId),
-                      style: const TextStyle(fontWeight: FontWeight.w700))),
-                ]),
-            ],
+      child: AppDataTable<RosterStudent>(
+        columns: [
+          const AppColumn('Apprenant', flex: 3),
+          for (final t in titles)
+            AppColumn(t, width: evaluationWidth, align: TextAlign.center),
+          const AppColumn('Moyenne', width: 90, align: TextAlign.right),
+        ],
+        rows: roster.students,
+        minWidth: 300 + evaluationWidth * titles.length + 90,
+        rowHeight: 46,
+        cells: (student, _) => [
+          Text(
+            '${student.name}${student.matricule.isNotEmpty ? ' · ${student.matricule}' : ''}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary),
           ),
+          for (final t in titles)
+            // Toute la cellule est cliquable, pas seulement la pastille : une
+            // case vide (« — ») serait sinon presque impossible à viser.
+            InkWell(
+              onTap: () => _edit(context, ref, student, t,
+                  roster.gradeOf(student.userId, t)),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              child: SizedBox(
+                width: evaluationWidth,
+                height: 36,
+                child: Center(
+                  child: _GradeCell(grade: roster.gradeOf(student.userId, t)),
+                ),
+              ),
+            ),
+          Text(_average(student.userId),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
+        ],
+        footer: AppTableFooter(
+          label: AppTableFooter.count(roster.students.length, 'apprenant'),
         ),
       ),
     );
@@ -1018,8 +1028,8 @@ class _MyGradesView extends ConsumerWidget {
             subtitle: 'Vos résultats, par cours et par évaluation'),
         Expanded(
           child: grades.when(
-            loading: () => const Padding(
-                padding: EdgeInsets.all(28), child: TableSkeleton()),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement de vos notes…'),
             error: (e, _) => DataErrorView(
                 error: e, onRetry: () => ref.invalidate(_myGradesProvider)),
             data: (items) {
@@ -1161,17 +1171,17 @@ class LibraryManagementScreen extends ConsumerWidget {
           subtitle: 'Supports de cours et ressources partagées',
           actions: [
             if (canUpload)
-              FilledButton.icon(
+              AppButton(
+                label: 'Téléverser',
+                icon: Icons.cloud_upload_outlined,
                 onPressed: () => _upload(context, ref),
-                icon: const Icon(Icons.cloud_upload_outlined, size: 18),
-                label: const Text('Téléverser'),
               ),
           ],
         ),
         Expanded(
           child: items.when(
-            loading: () => const Padding(
-                padding: EdgeInsets.all(28), child: CardGridSkeleton()),
+            loading: () => const DataLoadingView(
+                label: 'Chargement de la bibliothèque…'),
             error: (e, _) => DataErrorView(
                 error: e, onRetry: () => ref.invalidate(libraryProvider)),
             data: (list) {

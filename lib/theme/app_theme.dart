@@ -169,6 +169,10 @@ class AppSpacing {
   static const double xxl = 24;
   static const double xxxl = 32;
   static const double section = 40;
+
+  /// Retrait du contenu d'une page interne sous son `AppTopBar` (28 px sur
+  /// les planches) ; partagé pour que deux écrans voisins ne se décalent pas.
+  static const double page = 28;
 }
 
 /// Rayons : 12 (`rounded-xl`), 16 (`rounded-2xl`, cartes du tableau de bord),
@@ -490,6 +494,26 @@ class AppTheme {
     );
   }
 
+  /// `FilledButton` n'avait pas de thème : Material 3 le dessine en pilule
+  /// (`StadiumBorder`) alors que les `ElevatedButton` voisins ont le rayon des
+  /// cartes. Dans une même boîte de dialogue, « Enregistrer » changeait donc
+  /// de forme selon la classe que l'écran avait choisie.
+  static FilledButtonThemeData _filledButtonTheme(UniFlowColors c) =>
+      FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: c.primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: c.border,
+          disabledForegroundColor: c.muted,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusCard),
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      );
+
   static ThemeData _build(UniFlowColors c) {
     final dark = c == UniFlowColors.dark;
     final base = ThemeData(
@@ -520,6 +544,7 @@ class AppTheme {
       // les formes (rayons, densité) sont partagées avec le thème clair.
       return base.copyWith(
         textTheme: _textTheme(c.text, c.muted),
+        filledButtonTheme: _filledButtonTheme(c),
         cardTheme: CardThemeData(
           color: c.surface,
           elevation: 0,
@@ -563,6 +588,7 @@ class AppTheme {
       textTheme: _textTheme(c.text, c.muted),
 
       // --- Boutons pleins ------------------------------------------------
+      filledButtonTheme: _filledButtonTheme(c),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryBlue,

@@ -7,6 +7,7 @@ import '../repositories/management_repository.dart';
 import '../repositories/reference_repository.dart';
 import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -53,10 +54,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               ? 'Administrateur de la plateforme : tous les établissements'
               : 'Comptes de ${user?.university ?? 'votre établissement'}',
           actions: [
-            FilledButton.icon(
+            AppButton(
+              label: 'Créer un compte',
+              icon: Icons.person_add_alt_1_outlined,
               onPressed: () => _openEditor(context),
-              icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
-              label: const Text('Créer un compte'),
             ),
           ],
         ),
@@ -97,8 +98,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         ),
         Expanded(
           child: accounts.when(
-            loading: () => const Padding(
-                padding: EdgeInsets.all(28), child: TableSkeleton(rows: 8)),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement des comptes…'),
             error: (error, _) => DataErrorView(error: error, onRetry: _refresh),
             data: (items) {
               final filtered = items.where((a) {

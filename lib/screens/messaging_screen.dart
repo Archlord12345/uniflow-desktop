@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../repositories/messaging_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../utils/avatar.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
@@ -151,70 +152,80 @@ class _MessagingScreenState extends ConsumerState<MessagingScreen> {
         .firstOrNull;
     final current = match ?? _pending;
 
+    // Même squelette que les autres pages internes : l'en-tête blanc court
+    // d'un bord à l'autre et le contenu est en retrait de 28 px. Cet écran
+    // posait l'en-tête à l'intérieur d'une marge de 30 px : il apparaissait
+    // comme une carte flottante, décalée par rapport aux écrans voisins.
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(30, 24, 30, 30),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppTopBar(
-                title: 'Communications',
-                subtitle:
-                    'Messagerie adressée par pseudo — recherchez un contact pour démarrer un échange',
-                actions: [
-                  OutlinedButton.icon(
-                    onPressed: () => ref.invalidate(conversationsProvider),
-                    icon: const Icon(Icons.refresh, size: 16),
-                    label: const Text('Rafraîchir'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _startConversation(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Nouvelle conversation'),
-                  ),
-                ],
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                _ErrorBanner(
-                  message: _error!,
-                  onDismiss: () => setState(() => _error = null),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppTopBar(
+              title: 'Communications',
+              subtitle:
+                  'Messagerie adressée par pseudo — recherchez un contact pour démarrer un échange',
+              actions: [
+                AppButton.secondary(
+                  label: 'Rafraîchir',
+                  icon: Icons.refresh,
+                  onPressed: () => ref.invalidate(conversationsProvider),
+                ),
+                AppButton(
+                  label: 'Nouvelle conversation',
+                  icon: Icons.add,
+                  onPressed: () => _startConversation(),
                 ),
               ],
-              const SizedBox(height: 20),
-              Expanded(
-                child: Row(
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.page),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(
-                      width: 340,
-                      child: _ConversationList(
-                        state: conversationsAsync,
-                        conversations: conversations,
-                        selectedId: current?.id,
-                        onSelect: _openConversation,
-                        onRetry: () => ref.invalidate(conversationsProvider),
+                    if (_error != null) ...[
+                      _ErrorBanner(
+                        message: _error!,
+                        onDismiss: () => setState(() => _error = null),
                       ),
-                    ),
-                    const SizedBox(width: 18),
+                      const SizedBox(height: 14),
+                    ],
                     Expanded(
-                      child: _Thread(
-                        conversation: current,
-                        composer: _composer,
-                        scroll: _scroll,
-                        sending: _sending,
-                        onSend: _send,
-                        onStart: () => _startConversation(),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            width: 340,
+                            child: _ConversationList(
+                              state: conversationsAsync,
+                              conversations: conversations,
+                              selectedId: current?.id,
+                              onSelect: _openConversation,
+                              onRetry: () =>
+                                  ref.invalidate(conversationsProvider),
+                            ),
+                          ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: _Thread(
+                              conversation: current,
+                              composer: _composer,
+                              scroll: _scroll,
+                              sending: _sending,
+                              onSend: _send,
+                              onStart: () => _startConversation(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -431,23 +442,16 @@ class _Thread extends StatelessWidget {
       ),
       child: current == null
           ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.forum_outlined,
-                      size: 44, color: AppColors.textMuted),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Sélectionnez une conversation',
-                    style: TextStyle(fontSize: 14, color: AppColors.textMuted),
-                  ),
-                  const SizedBox(height: 14),
-                  ElevatedButton.icon(
-                    onPressed: onStart,
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Nouvelle conversation'),
-                  ),
-                ],
+              child: DataEmptyView(
+                compact: true,
+                icon: Icons.forum_outlined,
+                message: 'Sélectionnez une conversation',
+                action: AppButton(
+                  label: 'Nouvelle conversation',
+                  icon: Icons.add,
+                  height: 40,
+                  onPressed: onStart,
+                ),
               ),
             )
           : Column(
@@ -522,20 +526,11 @@ class _Thread extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      SizedBox(
-                        height: 44,
-                        child: ElevatedButton.icon(
-                          onPressed: sending ? null : () => onSend(current),
-                          icon: sending
-                              ? const SizedBox(
-                                  width: 15,
-                                  height: 15,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.send, size: 16),
-                          label: const Text('Envoyer'),
-                        ),
+                      AppButton(
+                        label: 'Envoyer',
+                        icon: Icons.send,
+                        loading: sending,
+                        onPressed: () => onSend(current),
                       ),
                     ],
                   ),

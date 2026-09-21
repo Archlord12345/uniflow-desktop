@@ -5,6 +5,7 @@ import '../models/appwrite_models.dart';
 import '../providers/auth_provider.dart';
 import '../repositories/personal_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -31,21 +32,19 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
               ? null
               : 'Vos matières et votre organisation, ${user.name}',
           actions: [
-            FilledButton.icon(
+            AppButton(
+              label: 'Nouvelle matière',
+              icon: Icons.add,
               onPressed: user == null
                   ? null
                   : () => _addSubject(context, ref, user.id),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Nouvelle matière'),
             ),
           ],
         ),
         Expanded(
           child: subjects.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(28),
-              child: CardGridSkeleton(count: 4),
-            ),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement de vos matières…'),
             error: (error, _) => DataErrorView(
               error: error,
               onRetry: () => ref.invalidate(personalSubjectsProvider),

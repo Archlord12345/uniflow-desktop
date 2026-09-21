@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import 'uni/uni_mascot.dart';
 
 /// États vides, de chargement et d'erreur, partagés par les écrans desktop qui
@@ -55,12 +56,18 @@ class DataEmptyView extends StatelessWidget {
   /// Optionnel : un état vide court se lit très bien sans.
   final String? title;
 
+  /// Bouton sous l'explication quand l'état vide a une sortie évidente
+  /// (« Nouvelle conversation »). Sans lui, les écrans recomposaient leur
+  /// propre colonne icône + texte + bouton, chacun avec ses marges.
+  final Widget? action;
+
   const DataEmptyView({
     super.key,
     required this.message,
     this.icon = Icons.inbox_outlined,
     this.compact = false,
     this.title,
+    this.action,
   });
 
   /// Largeur de lecture de l'explication : au-delà, une phrase de trois
@@ -104,6 +111,10 @@ class DataEmptyView extends StatelessWidget {
               style: AppTextStyles.body,
             ),
           ),
+          if (action != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            action!,
+          ],
         ],
       ),
     );
@@ -151,10 +162,11 @@ class DataErrorView extends StatelessWidget {
             style: AppTextStyles.body.copyWith(fontSize: 12.5),
           ),
           const SizedBox(height: AppSpacing.lg),
-          OutlinedButton.icon(
+          AppButton.secondary(
+            label: 'Réessayer',
+            icon: Icons.refresh,
+            height: 40,
             onPressed: onRetry,
-            icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('Réessayer'),
           ),
         ],
       ),

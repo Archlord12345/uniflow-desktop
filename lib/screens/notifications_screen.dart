@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../repositories/management_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -43,17 +44,17 @@ class NotificationsScreen extends ConsumerWidget {
               : '$unread non lue${unread > 1 ? 's' : ''}',
           actions: [
             if (unread > 0)
-              OutlinedButton.icon(
+              AppButton.secondary(
+                label: 'Tout marquer comme lu',
+                icon: Icons.done_all,
                 onPressed: () => _markAll(context, ref),
-                icon: const Icon(Icons.done_all, size: 18),
-                label: const Text('Tout marquer comme lu'),
               ),
           ],
         ),
         Expanded(
           child: notifications.when(
-            loading: () => const Padding(
-                padding: EdgeInsets.all(28), child: TableSkeleton()),
+            loading: () =>
+                const DataLoadingView(label: 'Chargement des notifications…'),
             error: (e, _) => DataErrorView(
                 error: e, onRetry: () => ref.invalidate(notificationsProvider)),
             data: (items) {

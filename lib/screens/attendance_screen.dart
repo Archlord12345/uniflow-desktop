@@ -15,6 +15,7 @@ import '../providers/directory_provider.dart';
 import '../repositories/management_repository.dart';
 import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
@@ -46,6 +47,11 @@ final _recordsProvider =
 
 final _selectedSessionProvider = StateProvider<String?>((ref) => null);
 
+/// Hauteur des boutons posés dans une carte, à côté d'un titre `h3` : la
+/// hauteur standard (44 px) écrase le titre de la séance ; 38 px reste
+/// cliquable à la souris et laisse le titre mener la ligne.
+const double _inlineButtonHeight = 38;
+
 class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   int _tab = 0;
 
@@ -65,10 +71,10 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           subtitle: 'Séances, appel, QR d\'émargement et assiduité',
           actions: [
             if (canRoll && courseId != null && _tab == 0)
-              FilledButton.icon(
+              AppButton(
+                label: 'Faire l\'appel',
+                icon: Icons.playlist_add_check_outlined,
                 onPressed: () => _newRoll(context, courseId),
-                icon: const Icon(Icons.playlist_add_check_outlined, size: 18),
-                label: const Text('Faire l\'appel'),
               ),
           ],
         ),
@@ -312,12 +318,16 @@ class _SessionDetail extends ConsumerWidget {
               Text('Séance du ${_formatDate(session.date)}',
                   style: AppTextStyles.h3),
               if (canRoll) ...[
-                OutlinedButton.icon(
+                AppButton.secondary(
+                  label: 'Émettre le QR',
+                  icon: Icons.qr_code_2,
+                  height: _inlineButtonHeight,
                   onPressed: () => _issueQr(context, ref),
-                  icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: const Text('Émettre le QR'),
                 ),
-                OutlinedButton.icon(
+                AppButton.secondary(
+                  label: 'Corriger l\'appel',
+                  icon: Icons.edit_outlined,
+                  height: _inlineButtonHeight,
                   onPressed: () async {
                     final saved = await showDialog<bool>(
                       context: context,
@@ -328,8 +338,6 @@ class _SessionDetail extends ConsumerWidget {
                       ref.invalidate(_recordsProvider(session.id));
                     }
                   },
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('Corriger l\'appel'),
                 ),
               ],
             ],
