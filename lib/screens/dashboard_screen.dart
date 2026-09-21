@@ -1,15 +1,49 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/dashboard_models.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_top_bar.dart';
-import '../widgets/stat_card.dart';
-import '../widgets/user_avatar.dart';
-import '../repositories/academic_repository.dart';
-import '../providers/auth_provider.dart';
-import '../utils/avatar.dart';
+
+import '../models/app_destination.dart';
 import '../models/appwrite_models.dart';
+import '../models/dashboard_models.dart';
+import '../models/dashboard_overview.dart';
+import '../models/user_role.dart';
+import '../providers/analytics_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/directory_provider.dart';
+import '../providers/navigation_provider.dart';
+import '../repositories/academic_repository.dart';
+import '../router/route_guard.dart';
+import '../theme/app_theme.dart';
+import '../utils/french_date.dart';
+import '../widgets/app_top_bar.dart';
+import '../widgets/data_state_view.dart';
+import '../widgets/stat_card.dart';
+
+/// Chiffres du tableau de bord d'un apprenant ou d'un enseignant, dans son
+/// périmètre. L'administration ne s'en sert pas : elle a ses compteurs
+/// globaux ([dashboardStatsProvider]) et ses graphiques.
+final dashboardOverviewProvider =
+    FutureProvider<DashboardOverview>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return DashboardOverview.empty;
+  final repository = ref.watch(academicRepositoryProvider);
+  final (courses, assignments, grades, attendance, students) = await (
+    ref.watch(scopedCoursesProvider.future),
+    repository.getAssignments(),
+    repository.getAllGrades(),
+    ref.watch(studentAttendanceProvider.future),
+    ref.watch(studentsProvider.future),
+  ).wait;
+  return DashboardOverview.compute(
+    role: user.userRole,
+    userId: user.id,
+    courses: courses,
+    assignments: assignments,
+    grades: grades,
+    attendance: attendance,
+    studentCount: students.length,
+  );
+});
 
 final dashboardStatsProvider =
     FutureProvider<Map<String, dynamic>>((ref) async {
@@ -47,74 +81,99 @@ final dashboardActivityProvider =
   return ref.read(academicRepositoryProvider).getRecentActivity();
 });
 
+/// Tableau de bord, par rôle.
+///
+/// Même contenu que le web pour le même compte : l'administration voit les
+/// compteurs de l'établissement, les inscriptions et les présences
+/// (`AdminDashboardPage.tsx`) ; un apprenant ou un enseignant voit **ses**
+/// cours, devoirs, notes et présences (`DashboardPage.tsx`). Le desktop
+/// affichait auparavant les compteurs d'administration à tout le monde, y
+/// compris à un étudiant, qui découvrait ainsi les effectifs de tout
+/// l'établissement.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  /// Raccourcis proposés sous les indicateurs, par rôle. Filtrés ensuite par
+  /// la garde de navigation pour qu'un compte personnel ne voie jamais un
+  /// écran d'établissement.
+  static const Map<UserRole, List<AppDestination>> quickActions = {
+    UserRole.student: [
+      AppDestination.schedule,
+      AppDestination.assignments,
+      AppDestination.grades,
+      AppDestination.library,
+    ],
+    UserRole.delegate: [
+      AppDestination.schedule,
+      AppDestination.attendance,
+      AppDestination.assignments,
+      AppDestination.students,
+    ],
+    UserRole.teacher: [
+      AppDestination.schedule,
+      AppDestination.attendance,
+      AppDestination.assignments,
+      AppDestination.grades,
+    ],
+    UserRole.admin: [
+      AppDestination.accounts,
+      AppDestination.teachers,
+      AppDestination.schedule,
+      AppDestination.statistics,
+    ],
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(dashboardStatsProvider);
     final user = ref.watch(currentUserProvider);
+    final role = ref.watch(currentRoleProvider);
+    final accountType = ref.watch(currentAccountTypeProvider);
+
+    final actions = [
+      for (final destination in quickActions[role] ?? const <AppDestination>[])
+        if (canAccess(destination, role: role, accountType: accountType))
+          destination,
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTopBar(user),
+        // La barre recherche + cloche + avatar qui coiffait cet écran a été
+        // retirée : la recherche ne cherchait rien, la cloche n'ouvrait rien,
+        // et l'avatar doublait celui de la barre latérale. Le web ouvre son
+        // tableau de bord sur un salut personnalisé ; on fait de même.
+        _DashboardHeader(user: user, role: role),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                statsAsync.when(
-                  data: (stats) => _StatGrid(
-                    cards: [
-                      StatCard(
-                        label: 'Étudiants',
-                        value: '${stats['studentCount']}',
-                        delta: 'Direct',
-                        icon: Icons.person_outline,
-                        iconBackground: AppColors.primaryBlue,
-                      ),
-                      StatCard(
-                        label: 'Enseignants',
-                        value: '${stats['teacherCount']}',
-                        delta: 'Direct',
-                        icon: Icons.school_outlined,
-                        iconBackground: AppColors.teal,
-                      ),
-                      StatCard(
-                        label: 'Cours actifs',
-                        value: '${stats['courseCount']}',
-                        delta: 'Total',
-                        icon: Icons.badge_outlined,
-                        iconBackground: AppColors.warning,
-                      ),
-                      StatCard(
-                        label: 'Sessions',
-                        value: '${stats['sessionCount']}',
-                        delta: 'Historique',
-                        icon: Icons.event_note_outlined,
-                        iconBackground: AppColors.purple,
-                      ),
-                    ],
+                if (role.isAdmin)
+                  const _AdminStats()
+                else
+                  _RoleStats(role: role),
+                if (actions.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _QuickActions(destinations: actions),
+                ],
+                if (role.isAdmin) ...[
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // ----- Graphique des inscriptions + graphique en anneau -----
+                  // Côte à côte quand la fenêtre est assez large, empilés sinon :
+                  // deux graphiques dans une fenêtre étroite deviennent
+                  // illisibles.
+                  const _ResponsiveRow(
+                    breakpoint: 900,
+                    left: _EnrollmentChartCard(),
+                    right: _AttendanceDonutCard(),
                   ),
-                  loading: () => const Center(child: LinearProgressIndicator()),
-                  error: (e, _) => Text('Erreur stats: $e'),
-                ),
-                const SizedBox(height: 18),
+                  const SizedBox(height: AppSpacing.lg),
 
-                // ----- Graphique des inscriptions + graphique en anneau -----
-                // Côte à côte quand la fenêtre est assez large, empilés sinon :
-                // deux graphiques dans une fenêtre étroite deviennent illisibles.
-                const _ResponsiveRow(
-                  breakpoint: 900,
-                  left: _EnrollmentChartCard(),
-                  right: _AttendanceDonutCard(),
-                ),
-                const SizedBox(height: 18),
-
-                // ----- Activités récentes (pleine largeur) -----
-                const _RecentActivityCard(),
+                  // ----- Activités récentes (pleine largeur) -----
+                  const _RecentActivityCard(),
+                ],
               ],
             ),
           ),
@@ -122,94 +181,236 @@ class DashboardScreen extends ConsumerWidget {
       ],
     );
   }
+}
 
-  /// Barre du haut spécifique au dashboard : recherche globale + notif + avatar
-  /// (pas de titre de page ici, contrairement aux autres écrans — fidèle à
-  /// la maquette où le nom de l'utilisateur est affiché dans la sidebar).
-  Widget _buildTopBar(UniFlowUser? user) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-      decoration: const BoxDecoration(
-        color: AppColors.cardWhite,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder)),
+/// En-tête : salut, rôle et date du jour, comme l'en-tête du tableau de bord
+/// web (« Bonjour, Prénom — Enseignant · lundi 21 septembre 2026 »).
+class _DashboardHeader extends ConsumerWidget {
+  final UniFlowUser? user;
+  final UserRole role;
+
+  const _DashboardHeader({required this.user, required this.role});
+
+  /// Le prénom seul, comme sur le web : « Bonjour, Awa » plutôt que le nom
+  /// complet, trop long pour un titre.
+  static String firstNameOf(String? fullName) {
+    final trimmed = (fullName ?? '').trim();
+    if (trimmed.isEmpty) return '';
+    return trimmed.split(RegExp(r'\s+')).first;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+    final firstName = firstNameOf(user?.name);
+    final greeting = greetingFor(now);
+
+    return AppTopBar(
+      title: firstName.isEmpty ? greeting : '$greeting, $firstName',
+      subtitle: '${role.label} · ${formatLongDate(now)}',
+      actions: [
+        // Recharge les compteurs : le tableau de bord met en cache ses
+        // requêtes tant que le compte ne change pas, et un enseignant qui
+        // vient de saisir des notes veut les voir sans se déconnecter.
+        TopBarIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: 'Actualiser',
+          onTap: () {
+            ref.invalidate(dashboardOverviewProvider);
+            ref.invalidate(dashboardStatsProvider);
+            ref.invalidate(dashboardEnrollmentsProvider);
+            ref.invalidate(dashboardAttendanceProvider);
+            ref.invalidate(dashboardActivityProvider);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// Compteurs de l'établissement : étudiants, enseignants, cours, sessions.
+class _AdminStats extends ConsumerWidget {
+  const _AdminStats();
+
+  /// « — » plutôt que « null » : une clé absente de la réponse s'affichait
+  /// littéralement « null » dans la carte.
+  static String count(Map<String, dynamic> stats, String key) {
+    final value = stats[key];
+    return value == null ? '—' : '$value';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(dashboardStatsProvider);
+    return statsAsync.when(
+      data: (stats) => _StatGrid(
+        cards: [
+          StatCard(
+            label: 'Étudiants',
+            value: count(stats, 'studentCount'),
+            hint: 'Comptes actifs',
+            icon: Icons.person_outline,
+            iconBackground: AppColors.primaryBlue,
+          ),
+          StatCard(
+            label: 'Enseignants',
+            value: count(stats, 'teacherCount'),
+            hint: 'Comptes actifs',
+            icon: Icons.school_outlined,
+            iconBackground: AppColors.teal,
+          ),
+          StatCard(
+            label: 'Cours actifs',
+            value: count(stats, 'courseCount'),
+            hint: 'Toutes filières',
+            icon: Icons.badge_outlined,
+            iconBackground: AppColors.warning,
+          ),
+          StatCard(
+            label: 'Sessions',
+            value: count(stats, 'sessionCount'),
+            hint: 'Historique',
+            icon: Icons.event_note_outlined,
+            iconBackground: AppColors.purple,
+          ),
+        ],
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Sous ce seuil, la barre de recherche ne peut plus cohabiter avec
-          // les icônes de droite : elle passe sur sa propre ligne.
-          final narrow = constraints.maxWidth < 520;
+      loading: () => const DataLoadingView(
+        label: 'Chargement des indicateurs…',
+        compact: true,
+      ),
+      error: (error, _) => DataErrorView(
+        title: 'Indicateurs indisponibles',
+        error: error,
+        compact: true,
+        onRetry: () => ref.invalidate(dashboardStatsProvider),
+      ),
+    );
+  }
+}
 
-          final searchBox = Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: AppColors.inputFill,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.inputBorder),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.search, size: 18, color: AppColors.textMuted),
-                SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Rechercher globalement...',
-                      hintStyle:
-                          TextStyle(color: AppColors.textMuted, fontSize: 13.5),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
+/// Compteurs d'un apprenant (ses cours, devoirs à rendre, moyenne, présence)
+/// ou d'un enseignant (ses cours, étudiants, devoirs, notes saisies).
+class _RoleStats extends ConsumerWidget {
+  final UserRole role;
 
-          final trailing = <Widget>[
-            // Cloche sans pastille : la version précédente affichait un « 4 »
-            // codé en dur, donc un nombre de notifications non lues qui
-            // n'existait pas. Tant qu'aucun compteur réel n'alimente ce badge,
-            // mieux vaut ne rien afficher qu'un chiffre inventé.
-            const TopBarIconButton(
-              icon: Icons.notifications_none_rounded,
-              tooltip: 'Notifications',
-            ),
-            const SizedBox(width: 18),
-            // `initialsOf` plutôt que `name.substring(0, 1)` : un nom vide faisait
-            // planter la construction de l'en-tête.
-            InitialsAvatar(
-              initials: user == null ? '?' : initialsOf(user.name),
-              avatarFileId: user?.avatarFileId,
-              size: 36,
-            ),
-          ];
+  const _RoleStats({required this.role});
 
-          if (narrow) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    const Spacer(),
-                    ...trailing,
-                  ],
-                ),
-                const SizedBox(height: 14),
-                searchBox,
-              ],
-            );
-          }
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final overviewAsync = ref.watch(dashboardOverviewProvider);
+    return overviewAsync.when(
+      data: (overview) => _StatGrid(cards: cardsFor(role, overview)),
+      loading: () => const DataLoadingView(
+        label: 'Chargement de votre tableau de bord…',
+        compact: true,
+      ),
+      error: (error, _) => DataErrorView(
+        title: 'Tableau de bord indisponible',
+        error: error,
+        compact: true,
+        onRetry: () => ref.invalidate(dashboardOverviewProvider),
+      ),
+    );
+  }
 
-          return Row(
-            children: [
-              Expanded(child: searchBox),
-              const SizedBox(width: 20),
-              ...trailing,
-            ],
-          );
-        },
+  /// Cartes par rôle, exposées pour les tests : ce sont les mêmes quatre
+  /// indicateurs que `DashboardPage.tsx` pour le même rôle.
+  static List<StatCard> cardsFor(UserRole role, DashboardOverview overview) {
+    if (role.isLearning) {
+      return [
+        StatCard(
+          label: 'Mes cours',
+          value: '${overview.courseCount}',
+          hint: 'Ce semestre',
+          icon: Icons.menu_book_outlined,
+          iconBackground: AppColors.primaryBlue,
+        ),
+        StatCard(
+          label: 'Devoirs à rendre',
+          value: '${overview.assignmentCount}',
+          hint: overview.assignmentCount == 0 ? 'Rien en attente' : 'En attente',
+          icon: Icons.task_outlined,
+          iconBackground: AppColors.warning,
+        ),
+        StatCard(
+          label: 'Moyenne générale',
+          value: overview.averageLabel,
+          hint: '${overview.gradeCount} note${overview.gradeCount > 1 ? 's' : ''}',
+          icon: Icons.grade_outlined,
+          iconBackground: AppColors.teal,
+        ),
+        StatCard(
+          label: 'Taux de présence',
+          value: overview.attendanceLabel,
+          hint: overview.attendanceRate == null
+              ? 'Aucun appel enregistré'
+              : 'Depuis la rentrée',
+          icon: Icons.event_available_outlined,
+          iconBackground: AppColors.purple,
+        ),
+      ];
+    }
+    return [
+      StatCard(
+        label: 'Mes cours',
+        value: '${overview.courseCount}',
+        hint: 'Enseignements',
+        icon: Icons.menu_book_outlined,
+        iconBackground: AppColors.primaryBlue,
+      ),
+      StatCard(
+        label: 'Mes étudiants',
+        value: '${overview.studentCount}',
+        hint: 'Inscrits à mes cours',
+        icon: Icons.people_alt_outlined,
+        iconBackground: AppColors.teal,
+      ),
+      StatCard(
+        label: 'Devoirs créés',
+        value: '${overview.assignmentCount}',
+        hint: 'Tous mes cours',
+        icon: Icons.task_outlined,
+        iconBackground: AppColors.warning,
+      ),
+      StatCard(
+        label: 'Notes saisies',
+        value: '${overview.gradeCount}',
+        hint: overview.averageOn20 == null
+            ? 'Aucune note'
+            : 'Moyenne ${overview.averageLabel}',
+        icon: Icons.grade_outlined,
+        iconBackground: AppColors.purple,
+      ),
+    ];
+  }
+}
+
+/// Rangée de raccourcis vers les écrans du rôle, comme la section « Accès
+/// rapide » du tableau de bord web.
+class _QuickActions extends ConsumerWidget {
+  final List<AppDestination> destinations;
+
+  const _QuickActions({required this.destinations});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _Card(
+      title: 'Accès rapide',
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          for (final destination in destinations)
+            OutlinedButton.icon(
+              key: ValueKey('quick-${destination.id}'),
+              onPressed: () => ref
+                  .read(currentDestinationProvider.notifier)
+                  .state = destination,
+              icon: Icon(destination.icon, size: 18),
+              label: Text(destination.label),
+            ),
+        ],
       ),
     );
   }
@@ -376,42 +577,18 @@ class _ChartEmpty extends StatelessWidget {
 
   const _ChartEmpty({required this.message});
 
+  /// Hauteur d'un graphique : l'état vide occupe la même place pour que la
+  /// carte voisine, alignée par `IntrinsicHeight`, ne change pas de taille.
+  static const double chartHeight = 180;
+
   @override
   Widget build(BuildContext context) {
+    // `DataEmptyView` (Uni à la loupe) plutôt qu'une icône grise : c'est le
+    // même état vide que partout ailleurs. Il défile dans sa hauteur fixe, donc
+    // une police système agrandie ne déborde plus vers le bas.
     return SizedBox(
-      height: 180,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          // `FittedBox` : la carte a une hauteur fixe (180 px) et le message
-          // occupe deux ou trois lignes. Avec une police système agrandie, la
-          // colonne dépassait cette hauteur et Flutter signalait un
-          // débordement vers le bas. Ici l'ensemble se réduit légèrement au
-          // lieu de déborder.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.insights_outlined,
-                    size: 34, color: AppColors.textMuted),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: 220,
-                  child: Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 12.5,
-                        color: AppColors.textMuted,
-                        height: 1.45),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      height: chartHeight,
+      child: DataEmptyView(message: message, compact: true),
     );
   }
 }
@@ -439,11 +616,19 @@ class _EnrollmentChartCard extends ConsumerWidget {
           return _EnrollmentLineChart(months: months);
         },
         loading: () => const SizedBox(
-          height: 180,
-          child: Center(child: CircularProgressIndicator()),
+          height: _ChartEmpty.chartHeight,
+          child: DataLoadingView(
+              label: 'Chargement des inscriptions…', compact: true),
         ),
-        error: (error, _) =>
-            _ChartEmpty(message: 'Inscriptions indisponibles.\n$error'),
+        error: (error, _) => SizedBox(
+          height: _ChartEmpty.chartHeight,
+          child: DataErrorView(
+            title: 'Inscriptions indisponibles',
+            error: error,
+            compact: true,
+            onRetry: () => ref.invalidate(dashboardEnrollmentsProvider),
+          ),
+        ),
       ),
     );
   }
@@ -575,11 +760,19 @@ class _AttendanceDonutCard extends ConsumerWidget {
           return _AttendanceDonut(breakdown: breakdown);
         },
         loading: () => const SizedBox(
-          height: 180,
-          child: Center(child: CircularProgressIndicator()),
+          height: _ChartEmpty.chartHeight,
+          child:
+              DataLoadingView(label: 'Chargement des présences…', compact: true),
         ),
-        error: (error, _) =>
-            _ChartEmpty(message: 'Présences indisponibles.\n$error'),
+        error: (error, _) => SizedBox(
+          height: _ChartEmpty.chartHeight,
+          child: DataErrorView(
+            title: 'Présences indisponibles',
+            error: error,
+            compact: true,
+            onRetry: () => ref.invalidate(dashboardAttendanceProvider),
+          ),
+        ),
       ),
     );
   }
@@ -616,7 +809,7 @@ class _AttendanceDonut extends StatelessWidget {
                       showTitle: false),
                   PieChartSectionData(
                       value: breakdown.late.toDouble(),
-                      color: const Color(0xFFE8724C),
+                      color: AppColors.warning,
                       radius: 22,
                       showTitle: false),
                 ],
@@ -643,7 +836,7 @@ class _AttendanceDonut extends StatelessWidget {
                     value: percent(breakdown.absent)),
                 const SizedBox(height: 14),
                 _LegendRow(
-                    color: const Color(0xFFE8724C),
+                    color: AppColors.warning,
                     label: 'Retard',
                     value: percent(breakdown.late)),
                 const SizedBox(height: 14),
@@ -721,12 +914,9 @@ class _RecentActivityCard extends ConsumerWidget {
       child: activityAsync.when(
         data: (entries) {
           if (entries.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                'Aucune activité enregistrée pour le moment.',
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
-              ),
+            return const DataEmptyView(
+              message: 'Aucune activité enregistrée pour le moment.',
+              compact: true,
             );
           }
           return Column(
@@ -734,13 +924,13 @@ class _RecentActivityCard extends ConsumerWidget {
             children: [for (final entry in entries) _ActivityRow(entry: entry)],
           );
         },
-        loading: () => const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: LinearProgressIndicator(),
-        ),
-        error: (error, _) => Text(
-          'Activités indisponibles : $error',
-          style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+        loading: () => const DataLoadingView(
+            label: 'Chargement des activités…', compact: true),
+        error: (error, _) => DataErrorView(
+          title: 'Activités indisponibles',
+          error: error,
+          compact: true,
+          onRetry: () => ref.invalidate(dashboardActivityProvider),
         ),
       ),
     );
@@ -761,7 +951,7 @@ class _ActivityRow extends StatelessWidget {
   static const Map<ActivityKind, Color> _colors = {
     ActivityKind.enrollment: AppColors.primaryBlue,
     ActivityKind.course: AppColors.success,
-    ActivityKind.schedule: Color(0xFF8B5CF6),
+    ActivityKind.schedule: AppColors.purple,
   };
 
   /// « Nom ajouté à l'annuaire », « Cours « X » créé »…

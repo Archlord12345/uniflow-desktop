@@ -112,8 +112,8 @@ List<TeamMember> equipeDeTest() => [
       ),
     ];
 
-List<Override> _overrides() => [
-      currentUserProvider.overrideWith((ref) => testUser()),
+List<Override> _overrides(UniFlowUser user) => [
+      currentUserProvider.overrideWith((ref) => user),
       sessionCheckProvider.overrideWith((ref) async {}),
       directoryProvider.overrideWith((ref) async => <AcademicDirectoryEntry>[]),
       studentsProvider.overrideWith((ref) async => <Student>[]),
@@ -237,11 +237,19 @@ class FakeMessagingRepository extends MessagingRepository {
 /// attendu par les `InkWell`, `TextField` et `DropdownButton`. Les peindre nus
 /// produisait une avalanche de « No Material widget found » sans rapport avec
 /// la mise en page que l'on veut mesurer.
-Widget host(Widget child, {List<Override> overrides = const []}) {
+///
+/// `user` : compte connecté simulé (administrateur par défaut). Les écrans par
+/// rôle — tableau de bord, menu — se testent en passant un étudiant ou un
+/// enseignant.
+Widget host(
+  Widget child, {
+  List<Override> overrides = const [],
+  UniFlowUser? user,
+}) {
   final service = AppwriteService();
   return ProviderScope(
     overrides: [
-      ..._overrides(),
+      ..._overrides(user ?? testUser()),
       ...overrides,
       appwriteServiceProvider.overrideWithValue(service),
       academicRepositoryProvider

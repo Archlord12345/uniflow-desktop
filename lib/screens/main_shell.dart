@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_destination.dart';
 import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../router/route_guard.dart';
 import '../ui/ui.dart';
 import 'academic_management_screens.dart';
@@ -27,11 +28,10 @@ import 'teachers_screen.dart';
 import 'teaching_units_screen.dart';
 import 'teams_screen.dart';
 
-/// Destination courante de la coquille, partagée pour que n'importe quel écran
-/// (une fiche, un bouton « voir mes devoirs ») puisse demander une navigation
-/// sans tenir la coquille par la main.
-final currentDestinationProvider =
-    StateProvider<AppDestination?>((ref) => null);
+// La destination courante (`currentDestinationProvider`) vit désormais dans
+// `providers/navigation_provider.dart` ; réexportée pour les appelants
+// historiques (connexion, déconnexion).
+export '../providers/navigation_provider.dart' show currentDestinationProvider;
 
 /// Coquille principale une fois connecté : barre latérale à gauche (repliée en
 /// rail sur une fenêtre étroite), écran actif à droite.

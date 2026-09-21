@@ -7,7 +7,15 @@ import '../theme/app_theme.dart';
 class StatCard extends StatelessWidget {
   final String label;
   final String value;
-  final String delta;
+
+  /// Variation affichée avec une flèche. `null` : pas de flèche — un taux de
+  /// présence ou une moyenne n'a pas de « tendance » à montrer, et la flèche
+  /// verte faisait croire à une hausse qui n'existait pas.
+  final String? delta;
+
+  /// Précision affichée sans flèche à la place de [delta] (« ce semestre »,
+  /// « sur 20 »…).
+  final String? hint;
   final bool isPositive;
   final IconData icon;
   final Color iconBackground;
@@ -16,7 +24,8 @@ class StatCard extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
-    required this.delta,
+    this.delta,
+    this.hint,
     required this.icon,
     required this.iconBackground,
     this.isPositive = true,
@@ -67,32 +76,47 @@ class StatCard extends StatelessWidget {
                   color: AppColors.textPrimary),
             ),
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 13,
-                color: isPositive ? AppColors.success : AppColors.textMuted,
-              ),
-              const SizedBox(width: 2),
-              // Sans `Flexible`, cette Row n'avait aucun enfant capable de se
-              // réduire : dès que la carte était plus étroite que l'icône plus
-              // le texte, Flutter signalait un débordement au lieu de tronquer.
-              Flexible(
-                child: Text(
-                  delta,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: isPositive ? AppColors.success : AppColors.textMuted,
+          if (delta != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 13,
+                  color: isPositive ? AppColors.success : AppColors.textMuted,
+                ),
+                const SizedBox(width: 2),
+                // Sans `Flexible`, cette Row n'avait aucun enfant capable de se
+                // réduire : dès que la carte était plus étroite que l'icône plus
+                // le texte, Flutter signalait un débordement au lieu de tronquer.
+                Flexible(
+                  child: Text(
+                    delta!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          isPositive ? AppColors.success : AppColors.textMuted,
+                    ),
                   ),
                 ),
+              ],
+            ),
+          ] else if (hint != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              hint!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
               ),
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
