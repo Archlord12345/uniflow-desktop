@@ -7,9 +7,11 @@ import '../app_info.dart';
 import '../models/appwrite_models.dart';
 import '../models/statistics_models.dart';
 import '../providers/analytics_provider.dart';
+import '../providers/attendance_provider.dart';
 import '../providers/conference_provider.dart';
 import '../services/conference/conference_host_state.dart';
 import '../services/conference/conference_models.dart';
+import 'conference_attendance_panel.dart';
 import '../services/profile_photo_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
@@ -54,6 +56,11 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
   Widget build(BuildContext context) {
     final host = ref.watch(conferenceHostProvider);
     final activeAsync = ref.watch(activeConferencesProvider);
+    final attendance = ref.watch(liveAttendanceProvider);
+    // La carte « Présence » remplace « Participants max » pendant la réunion :
+    // la capacité est une constante, le nombre de connectés est ce que l'hôte
+    // regarde.
+    final attendanceSummary = attendance?.summaryAt(DateTime.now());
 
     return _ManagementPage(
       title: 'Gestion des conférences',
@@ -70,8 +77,16 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
               Icons.key_outlined),
           _Metric('Adresse locale', host.localIp ?? '—', 'Réseau de l\'hôte',
               Icons.lan_outlined),
-          _Metric('Participants max', '${host.conference!.maxParticipants}',
-              'Capacité de la salle', Icons.groups_outlined),
+          if (attendanceSummary != null)
+            _Metric(
+                'Présence',
+                '${attendanceSummary.connectedNow} en ligne',
+                '${attendanceSummary.present} présents / '
+                    '${attendanceSummary.invited} invités',
+                Icons.fact_check_outlined)
+          else
+            _Metric('Participants max', '${host.conference!.maxParticipants}',
+                'Capacité de la salle', Icons.groups_outlined),
         ],
       ],
       child: Column(
@@ -122,6 +137,8 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 26),
+          const _Panel(title: 'Présence', child: AttendancePanel()),
           const SizedBox(height: 26),
           _DiscoveredConferences(
             conferences: activeAsync,

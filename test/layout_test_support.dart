@@ -20,8 +20,10 @@ import 'package:uniflow/models/student.dart';
 import 'package:uniflow/models/teacher.dart';
 import 'package:uniflow/models/teaching_unit.dart';
 import 'package:uniflow/models/team_member.dart';
+import 'package:uniflow/services/conference/attendance_store.dart';
 import 'package:uniflow/services/conference/conference_models.dart';
 import 'package:uniflow/providers/analytics_provider.dart';
+import 'package:uniflow/providers/attendance_provider.dart';
 import 'package:uniflow/providers/auth_provider.dart';
 import 'package:uniflow/providers/conference_provider.dart';
 import 'package:uniflow/providers/directory_provider.dart';
@@ -134,6 +136,9 @@ List<Override> _overrides(UniFlowUser user) => [
       conversationsProvider.overrideWith((ref) async => <Conversation>[]),
       activeConferencesProvider
           .overrideWith((ref) async => <DiscoveredConference>[]),
+      // Le panneau « Présence » relit les feuilles du poste : le test ne doit
+      // ni dépendre du dossier personnel de qui le lance, ni y écrire.
+      attendanceStoreProvider.overrideWithValue(InMemoryAttendanceStore()),
       dashboardStatsProvider.overrideWith((ref) async => <String, dynamic>{}),
       dashboardEnrollmentsProvider
           .overrideWith((ref) async => <MonthlyCount>[]),
