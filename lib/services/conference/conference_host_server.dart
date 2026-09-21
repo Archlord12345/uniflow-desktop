@@ -2,8 +2,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'conference_models.dart';
 import 'livekit_token_service.dart';
+import 'livekit_webhook.dart';
+
+/// Appelé quand l'API délivre un ticket de jonction.
+typedef TicketIssuedCallback = void Function(IssuedTicket ticket);
+
+/// Appelé pour chaque webhook authentique du serveur média.
+typedef WebhookEventCallback = void Function(LiveKitWebhookEvent event);
 
 /// API de jonction embarquée dans l'application desktop.
 ///
@@ -13,9 +22,17 @@ import 'livekit_token_service.dart';
 /// lui signe un jeton d'accès. Le secret de signature ne quitte donc jamais
 /// le poste de l'hôte.
 ///
+/// Elle reçoit aussi les webhooks de `livekit-server` (arrivées et départs),
+/// qui alimentent la feuille de présence : c'est le seul canal par lequel
+/// l'hôte apprend qui est réellement connecté sans être lui-même dans la
+/// salle.
+///
 /// Le serveur n'écoute que sur le réseau local de l'hôte ; c'est
 /// [ConferenceHostService] qui décide de l'exposer plus largement.
 class ConferenceHostServer {
+  /// Chemin sur lequel le serveur média doit poster ses webhooks.
+  static const String webhookPath = '/livekit/webhook';
+
   HttpServer? _server;
 
   /// Salles ouvertes, indexées par identifiant de réunion.
@@ -27,10 +44,24 @@ class ConferenceHostServer {
   /// Au-delà de ce nombre d'échecs sur une minute, l'adresse est ignorée.
   static const int _maxAttemptsPerMinute = 10;
 
-  final LiveKitTokenService _tokens;
+  /// Taille maximale d'un webhook accepté. Un événement fait quelques
+  /// centaines d'octets ; au-delà, c'est une machine du réseau qui teste le
+  /// service, pas le serveur média.
+  static const int _maxWebhookBytes = 64 * 1024;
 
-  ConferenceHostServer({LiveKitTokenService? tokenService})
-      : _tokens = tokenService ?? const LiveKitTokenService();
+  final LiveKitTokenService _tokens;
+  final LiveKitWebhookVerifier _webhooks;
+
+  TicketIssuedCallback? onTicketIssued;
+  WebhookEventCallback? onWebhookEvent;
+
+  ConferenceHostServer({
+    LiveKitTokenService? tokenService,
+    LiveKitWebhookVerifier? webhookVerifier,
+    this.onTicketIssued,
+    this.onWebhookEvent,
+  })  : _tokens = tokenService ?? const LiveKitTokenService(),
+        _webhooks = webhookVerifier ?? const LiveKitWebhookVerifier();
 
   bool get isRunning => _server != null;
 
@@ -117,7 +148,65 @@ class ConferenceHostServer {
       return _end(request, segments[1]);
     }
 
+    // POST /livekit/webhook
+    if (request.method == 'POST' && request.uri.path == webhookPath) {
+      return _webhook(request);
+    }
+
     return _json(request, HttpStatus.notFound, {'error': 'Route inconnue.'});
+  }
+
+  /// Reçoit un événement du serveur média.
+  ///
+  /// Le corps est lu en octets bruts avant tout décodage : l'empreinte signée
+  /// porte sur ces octets exacts, et un JSON ré-encodé ne donnerait pas la
+  /// même empreinte. La salle est lue dans le corps pour retrouver la clé qui
+  /// a signé ; un événement pour une salle inconnue (fermée entre-temps, ou
+  /// inventé) est accepté et ignoré : répondre une erreur ferait réessayer le
+  /// serveur média plusieurs fois pour rien.
+  Future<void> _webhook(HttpRequest request) async {
+    final body = <int>[];
+    await for (final chunk in request) {
+      body.addAll(chunk);
+      if (body.length > _maxWebhookBytes) {
+        return _json(request, HttpStatus.requestEntityTooLarge,
+            {'error': 'Événement trop volumineux.'});
+      }
+    }
+
+    final now = DateTime.now();
+    LiveKitWebhookEvent? event;
+    try {
+      event = LiveKitWebhookEvent.fromJson(jsonDecode(utf8.decode(body)),
+          now: now);
+    } on FormatException {
+      event = null;
+    }
+    if (event == null) {
+      return _json(
+          request, HttpStatus.badRequest, {'error': 'Événement illisible.'});
+    }
+
+    final room = event.roomName == null ? null : _rooms[event.roomName];
+    if (room == null) {
+      return _json(request, HttpStatus.ok, {'status': 'ignored'});
+    }
+
+    final refusal = _webhooks.verify(
+      body: body,
+      authorization: request.headers.value(HttpHeaders.authorizationHeader),
+      apiKey: room.credentials.apiKey,
+      apiSecret: room.credentials.apiSecret,
+      now: now,
+    );
+    if (refusal != null) {
+      debugPrint('Webhook LiveKit refusé (${event.rawType}) : $refusal');
+      return _json(
+          request, HttpStatus.unauthorized, {'error': 'Signature refusée.'});
+    }
+
+    onWebhookEvent?.call(event);
+    return _json(request, HttpStatus.ok, {'status': 'ok'});
   }
 
   /// Délivre un jeton d'accès à un participant qui présente le bon code.
@@ -159,6 +248,18 @@ class ConferenceHostServer {
       identity: identity,
       displayName: displayName.isEmpty ? null : displayName,
     );
+
+    // Le ticket est signalé avant la réponse : la feuille de présence doit
+    // porter l'invité même si le client referme la connexion sans lire le
+    // jeton.
+    final userId = (query['userId'] ?? '').trim();
+    onTicketIssued?.call(IssuedTicket(
+      roomId: room.conference.id,
+      identity: identity,
+      displayName: displayName,
+      userId: userId.isEmpty ? null : userId,
+      issuedAt: DateTime.now(),
+    ));
 
     return _json(request, HttpStatus.ok, {
       'token': token,

@@ -245,6 +245,29 @@ class JoinTicket {
       );
 }
 
+/// Un ticket de jonction que l'API de l'hôte vient de délivrer.
+///
+/// C'est la première trace d'un participant sur la feuille de présence : s'il
+/// ne se connecte jamais au serveur média ensuite, il y restera comme invité
+/// absent. [userId] est l'identifiant Appwrite que le client a déclaré ; il
+/// n'est pas vérifié par l'hôte (aucun serveur central ne le pourrait hors
+/// ligne), il sert à rapprocher la feuille des comptes de la plateforme.
+class IssuedTicket {
+  final String roomId;
+  final String identity;
+  final String displayName;
+  final String? userId;
+  final DateTime issuedAt;
+
+  const IssuedTicket({
+    required this.roomId,
+    required this.identity,
+    this.displayName = '',
+    this.userId,
+    required this.issuedAt,
+  });
+}
+
 /// Erreur métier du service de visioconférence, porteuse d'un message
 /// directement affichable.
 class ConferenceException implements Exception {

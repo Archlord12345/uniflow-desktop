@@ -239,6 +239,28 @@ class ConferenceAttendance {
   Duration requiredPresenceAt(DateTime now) =>
       durationAt(now) * presenceThreshold;
 
+  /// Dernier instant dont la feuille a connaissance : début, ticket, arrivée
+  /// ou départ le plus tardif.
+  ///
+  /// C'est la fin qu'on donne à une réunion dont l'application s'est arrêtée
+  /// sans la clore (coupure de courant) : sinon ses participants « encore
+  /// connectés » cumuleraient des jours de présence à la relecture.
+  DateTime get lastActivityAt {
+    var last = endedAt ?? startedAt;
+    void consider(DateTime? instant) {
+      if (instant != null && instant.isAfter(last)) last = instant;
+    }
+
+    for (final entry in entries) {
+      consider(entry.invitedAt);
+      for (final session in entry.sessions) {
+        consider(session.joinedAt);
+        consider(session.leftAt);
+      }
+    }
+    return last;
+  }
+
   /// Verdict d'un participant à l'instant [now].
   ///
   /// Pendant la réunion le verdict est provisoire : la durée exigée grandit

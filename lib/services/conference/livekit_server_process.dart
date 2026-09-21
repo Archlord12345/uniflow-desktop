@@ -93,6 +93,7 @@ class LiveKitServerProcess {
     required int rtcTcpPort,
     required int rtcUdpPort,
     required String workingDirectory,
+    String? webhookUrl,
   }) async {
     if (_process != null) {
       throw const ConferenceException('Le serveur média tourne déjà.');
@@ -110,6 +111,7 @@ class LiveKitServerProcess {
         apiPort: apiPort,
         rtcTcpPort: rtcTcpPort,
         rtcUdpPort: rtcUdpPort,
+        webhookUrl: webhookUrl,
       ),
     );
     _configFile = configFile;
@@ -176,12 +178,26 @@ class LiveKitServerProcess {
   /// `auto_create` évite d'avoir à déclarer chaque salle à l'avance : l'hôte
   /// en ouvre une nouvelle à chaque réunion. La plage UDP est restreinte pour
   /// rester ouverte sur un pare-feu de poste de travail.
+  ///
+  /// [webhookUrl] fait poster au serveur média ses événements (arrivées,
+  /// départs) à l'API de jonction, signés avec la clé de la réunion : c'est
+  /// ce qui alimente la feuille de présence. Sans lui, la feuille ne
+  /// connaîtrait que les tickets délivrés, jamais les connexions réelles.
   static String buildConfig({
     required ConferenceCredentials credentials,
     required int apiPort,
     required int rtcTcpPort,
     required int rtcUdpPort,
+    String? webhookUrl,
   }) {
+    final webhook = webhookUrl == null || webhookUrl.isEmpty
+        ? ''
+        : '''
+webhook:
+  api_key: ${credentials.apiKey}
+  urls:
+    - $webhookUrl
+''';
     return '''
 # Généré par UniFlow — serveur média embarqué.
 port: $apiPort
@@ -197,7 +213,7 @@ room:
   departure_timeout: 20
 turn:
   enabled: false
-logging:
+${webhook}logging:
   level: info
 ''';
   }

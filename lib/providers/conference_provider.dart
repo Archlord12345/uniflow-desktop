@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/appwrite_service.dart';
@@ -7,10 +5,12 @@ import '../services/conference/conference_host_server.dart';
 import '../services/conference/conference_host_state.dart';
 import '../services/conference/conference_models.dart';
 import '../services/conference/conference_network.dart';
+import '../services/conference/conference_paths.dart';
 import '../services/conference/conference_registry.dart';
 import '../services/conference/livekit_server_process.dart';
 import '../services/conference/livekit_token_service.dart';
 import 'appwrite_provider.dart';
+import 'attendance_provider.dart';
 
 /// Annuaire des réunions publiées dans Appwrite.
 final conferenceRegistryProvider = Provider<ConferenceRegistry>((ref) {
@@ -124,7 +124,9 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
       );
       final roomId = generator.roomId();
 
-      // 5. Lancement du serveur média.
+      // 5. Lancement du serveur média. Il postera ses événements (arrivées,
+      //    départs) à l'API de jonction, sur la boucle locale : c'est la
+      //    source de la feuille de présence.
       final process = LiveKitServerProcess();
       await process.start(
         executable: executable,
@@ -132,13 +134,20 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
         apiPort: mediaPort,
         rtcTcpPort: rtcTcpPort,
         rtcUdpPort: rtcUdpPort,
-        workingDirectory: _workingDirectory(),
+        workingDirectory: conferenceHomeDirectory(),
+        webhookUrl:
+            'http://127.0.0.1:$joinPort${ConferenceHostServer.webhookPath}',
       );
       _process = process;
 
-      // 6. Ouverture de l'API de jonction, qui signe les jetons.
-      final server =
-          ConferenceHostServer(tokenService: const LiveKitTokenService());
+      // 6. Ouverture de l'API de jonction, qui signe les jetons et relaie à
+      //    la feuille de présence les tickets délivrés et les webhooks.
+      final attendance = ref.read(liveAttendanceProvider.notifier);
+      final server = ConferenceHostServer(
+        tokenService: const LiveKitTokenService(),
+        onTicketIssued: attendance.recordTicket,
+        onWebhookEvent: attendance.recordWebhook,
+      );
       await server.start(port: joinPort);
       _server = server;
 
@@ -157,6 +166,7 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
 
       server.openRoom(conference: conference, credentials: credentials);
       _credentials = credentials;
+      attendance.open(conference);
 
       // 7. Publication dans l'annuaire : c'est un confort pour les
       //    participants distants, pas une condition de fonctionnement. Un
@@ -256,19 +266,14 @@ class ConferenceHostController extends Notifier<ConferenceHostState> {
   List<String> get serverLog => _process?.log ?? const [];
 
   Future<void> _teardown() async {
+    // La feuille se clôt avant que le serveur média s'arrête : les derniers
+    // webhooks de départ ne viendront plus, ce sont les connexions encore
+    // ouvertes qu'on ferme ici, à l'instant de l'arrêt.
+    await ref.read(liveAttendanceProvider.notifier).close();
     await _server?.stop();
     _server = null;
     await _process?.stop();
     _process = null;
     _credentials = null;
-  }
-
-  /// Répertoire de travail du serveur média : sa configuration et ses
-  /// éventuels journaux y sont écrits.
-  static String _workingDirectory() {
-    final home = Platform.environment['HOME'] ??
-        Platform.environment['USERPROFILE'] ??
-        Directory.systemTemp.path;
-    return '$home/.uniflow/conference';
   }
 }
