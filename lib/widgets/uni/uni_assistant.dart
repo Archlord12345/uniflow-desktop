@@ -11,7 +11,8 @@ import '../../services/uniflow_api.dart';
 import 'uni_mascot.dart';
 
 /// Uni, l'assistant conversationnel d'UniFlow, côté desktop : un bouton
-/// flottant en bas à droite et un panneau ancré, comme sur le web.
+/// flottant et un panneau ancré dans un coin du corps ([UniDock] — en bas à
+/// droite, sauf quand l'écran y pose un composeur), comme sur le web.
 ///
 /// Le modèle (Gemini 3.1 Flash-Lite, repli Mistral) n'est jamais appelé
 /// depuis l'application : tout passe par le service `/assistant` de la
@@ -202,56 +203,135 @@ final uniAssistantProvider =
 /// Panneau ouvert ou non (état d'interface, indépendant de la conversation).
 final uniPanelOpenProvider = StateProvider<bool>((ref) => false);
 
+/// Coin du corps de la coquille où Uni s'accroche.
+///
+/// Dérivé du `BottomEdge` déclaré par l'écran affiché (`AppShell` fait la
+/// correspondance) : le bouton ne doit jamais recouvrir une commande de
+/// l'écran, et c'est l'écran qui sait ce qu'il pose en bas à droite.
+enum UniDock {
+  /// En bas à droite, sa place ordinaire.
+  right,
+
+  /// En bas à gauche du corps : le corps commence après la barre latérale, ce
+  /// coin est donc libre. Uni s'y écarte quand l'écran pose un composeur à
+  /// droite — sur la messagerie, il recouvrait le bouton « Envoyer ».
+  left;
+
+  /// Écart du bouton et du panneau avec le bord latéral du corps.
+  static const double edgeInset = 20;
+
+  /// Écart du bouton avec le bord inférieur du corps.
+  static const double bottomInset = 20;
+
+  /// Écart du panneau ancré avec le bord inférieur : il s'ouvre au-dessus du
+  /// bouton, sans le toucher.
+  static const double panelBottomInset = bottomInset + UniLauncher.size + 12;
+
+  /// Coin d'où le panneau grandit et où le bouton se range.
+  Alignment get alignment => switch (this) {
+        UniDock.right => Alignment.bottomRight,
+        UniDock.left => Alignment.bottomLeft,
+      };
+
+  /// Abscisse du bord gauche d'un élément large de [childWidth] rangé dans ce
+  /// coin d'un corps large de [width] — la géométrie que le test vérifie.
+  double leftIn(double width, double childWidth) => switch (this) {
+        UniDock.left => edgeInset,
+        UniDock.right => width - edgeInset - childWidth,
+      };
+}
+
 /// Bouton flottant + panneau ancré : à poser au-dessus du corps du shell.
+///
+/// Les deux se rangent dans le coin [dock]. Le passage d'un coin à l'autre est
+/// animé par un `AnimatedAlign` plutôt qu'un `AnimatedPositioned` sur `left` :
+/// l'alignement ne change pas quand la fenêtre est redimensionnée, alors
+/// qu'une abscisse recalculée à chaque image aurait fait traîner Uni derrière
+/// le bord pendant tout le glissement de la poignée.
 class UniAssistantDock extends ConsumerWidget {
-  const UniAssistantDock({super.key});
+  final UniDock dock;
+
+  const UniAssistantDock({super.key, this.dock = UniDock.right});
+
+  /// Durée du glissement d'un coin à l'autre au changement d'écran.
+  static const Duration slideDuration = Duration(milliseconds: 320);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final open = ref.watch(uniPanelOpenProvider);
-    final reduce = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final size = MediaQuery.sizeOf(context);
-    final panelHeight = math.min(640.0, size.height - 96);
-    final panelWidth = math.min(420.0, size.width - 32);
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    final slide = reduce ? Duration.zero : slideDuration;
 
-    return Stack(
-      children: [
-        Positioned(
-          right: 20,
-          bottom: 92,
-          child: IgnorePointer(
-            ignoring: !open,
-            child: AnimatedScale(
-              scale: open ? 1 : 0.92,
-              alignment: Alignment.bottomRight,
-              duration:
-                  reduce ? Duration.zero : const Duration(milliseconds: 220),
-              curve: Curves.easeOutBack,
-              child: AnimatedOpacity(
-                opacity: open ? 1 : 0,
-                duration:
-                    reduce ? Duration.zero : const Duration(milliseconds: 180),
-                child: SizedBox(
-                  width: panelWidth,
-                  height: panelHeight,
-                  child: open
-                      ? const UniAssistantPanel()
-                      : const SizedBox.shrink(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Le panneau se dimensionne sur le corps, pas sur la fenêtre : mesuré
+        // sur la fenêtre, il dépassait l'en-tête dans une fenêtre de 700 px.
+        final size = MediaQuery.sizeOf(context);
+        final width =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : size.width;
+        final height = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : size.height;
+        final panelWidth = math.min(420.0, width - 2 * UniDock.edgeInset);
+        final panelHeight = math.max(
+            0.0, math.min(640.0, height - UniDock.panelBottomInset - 12));
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(UniDock.edgeInset, 0,
+                    UniDock.edgeInset, UniDock.panelBottomInset),
+                child: AnimatedAlign(
+                  alignment: dock.alignment,
+                  duration: slide,
+                  curve: Curves.easeInOutCubic,
+                  child: IgnorePointer(
+                    ignoring: !open,
+                    child: AnimatedScale(
+                      scale: open ? 1 : 0.92,
+                      alignment: dock.alignment,
+                      duration: reduce
+                          ? Duration.zero
+                          : const Duration(milliseconds: 220),
+                      curve: Curves.easeOutBack,
+                      child: AnimatedOpacity(
+                        opacity: open ? 1 : 0,
+                        duration: reduce
+                            ? Duration.zero
+                            : const Duration(milliseconds: 180),
+                        child: SizedBox(
+                          width: panelWidth,
+                          height: panelHeight,
+                          child: open
+                              ? const UniAssistantPanel()
+                              : const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        Positioned(
-          right: 20,
-          bottom: 20,
-          child: UniLauncher(
-            open: open,
-            onToggle: () =>
-                ref.read(uniPanelOpenProvider.notifier).state = !open,
-          ),
-        ),
-      ],
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(UniDock.edgeInset, 0,
+                    UniDock.edgeInset, UniDock.bottomInset),
+                child: AnimatedAlign(
+                  alignment: dock.alignment,
+                  duration: slide,
+                  curve: Curves.easeInOutCubic,
+                  child: UniLauncher(
+                    open: open,
+                    onToggle: () =>
+                        ref.read(uniPanelOpenProvider.notifier).state = !open,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -263,6 +343,10 @@ class UniLauncher extends StatefulWidget {
   final VoidCallback onToggle;
 
   const UniLauncher({super.key, required this.open, required this.onToggle});
+
+  /// Côté de la pastille ; `UniDock` s'en sert pour placer le panneau
+  /// au-dessus et `AppShell` pour dégager la première apparition d'Uni.
+  static const double size = 60;
 
   @override
   State<UniLauncher> createState() => _UniLauncherState();
@@ -326,8 +410,8 @@ class _UniLauncherState extends State<UniLauncher>
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      width: 60,
-                      height: 60,
+                      width: UniLauncher.size,
+                      height: UniLauncher.size,
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: Colors.white,

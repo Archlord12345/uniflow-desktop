@@ -88,7 +88,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         ),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+            padding: AppSpacing.pageScroll,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

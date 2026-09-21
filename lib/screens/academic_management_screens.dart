@@ -178,7 +178,7 @@ class AssignmentsManagementScreen extends ConsumerWidget {
                     );
                   }
                   return ListView.builder(
-                    padding: const EdgeInsets.all(28),
+                    padding: AppSpacing.pageScroll,
                     itemCount: items.length,
                     itemBuilder: (context, i) => CascadeIn(
                       index: i,
@@ -581,7 +581,7 @@ class _SubmissionsScreen extends ConsumerWidget {
                 icon: UniIcons.tray(), message: 'Aucun rendu pour l\'instant.');
           }
           return ListView.builder(
-            padding: const EdgeInsets.all(28),
+            padding: AppSpacing.pageScroll,
             itemCount: items.length,
             itemBuilder: (context, i) {
               final s = items[i];
@@ -834,7 +834,7 @@ class _GradeGrid extends ConsumerWidget {
     // alignées ; au-delà de quelques évaluations la grille défile.
     const evaluationWidth = 104.0;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(28),
+      padding: AppSpacing.pageScroll,
       child: AppDataTable<RosterStudent>(
         columns: [
           const AppColumn('Apprenant', flex: 3),
@@ -1055,7 +1055,7 @@ class _MyGradesView extends ConsumerWidget {
               }
               final codes = byCourse.keys.toList()..sort();
               return ListView.builder(
-                padding: const EdgeInsets.all(28),
+                padding: AppSpacing.pageScroll,
                 itemCount: codes.length,
                 itemBuilder: (context, i) {
                   final list = byCourse[codes[i]]!;
@@ -1223,7 +1223,7 @@ class LibraryManagementScreen extends ConsumerWidget {
                     message: 'Aucune ressource pour l\'instant.');
               }
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(28),
+                padding: AppSpacing.pageScroll,
                 child: Wrap(
                   spacing: 16,
                   runSpacing: 16,

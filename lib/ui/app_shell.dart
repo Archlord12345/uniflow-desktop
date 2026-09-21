@@ -39,6 +39,7 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = UniFlowColors.of(context);
     final sync = ref.watch(syncStateProvider);
+    final dock = uniDockFor(selected.bottomEdge);
     return Scaffold(
       backgroundColor: colors.background,
       body: Row(
@@ -60,15 +61,24 @@ class AppShell extends ConsumerWidget {
                   child: Stack(
                     children: [
                       body,
-                      // Uni : bouton flottant + panneau ancré, et sa première
-                      // apparition par le bord droit (une fois par lancement).
-                      const Positioned.fill(child: UniAssistantDock()),
+                      // Uni : bouton flottant + panneau ancré. Son coin dépend
+                      // de ce que l'écran pose en bas à droite (voir
+                      // `BottomEdge`) : il glisse à gauche devant un composeur
+                      // au lieu de recouvrir le bouton « Envoyer » comme avant.
+                      Positioned.fill(child: UniAssistantDock(dock: dock)),
+                      // Sa première apparition (une fois par lancement), par
+                      // le bord du même coin, au-dessus de la hauteur du bouton.
                       Positioned.fill(
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 90),
+                          padding: const EdgeInsets.only(
+                              bottom:
+                                  UniDock.bottomInset + UniLauncher.size + 12),
                           child: Consumer(
                             builder: (context, ref, _) => UniPeek(
                               id: 'hello-shell',
+                              edge: dock == UniDock.left
+                                  ? UniPeekEdge.left
+                                  : UniPeekEdge.right,
                               message:
                                   'Salut ! Je suis Uni. Une question sur tes cours ou l’application ? Clique-moi.',
                               onTap: () => ref
@@ -89,6 +99,12 @@ class AppShell extends ConsumerWidget {
     );
   }
 }
+
+/// Le coin d'Uni pour un écran dont le bord inférieur est [edge].
+UniDock uniDockFor(BottomEdge edge) => switch (edge) {
+      BottomEdge.free => UniDock.right,
+      BottomEdge.composer => UniDock.left,
+    };
 
 /// En-tête de la coquille. Sous 720 px de largeur de contenu, la recherche
 /// se replie en icône : la barre doit tenir dans une fenêtre 800×600 avec la

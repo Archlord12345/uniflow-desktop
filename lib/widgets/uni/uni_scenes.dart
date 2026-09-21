@@ -173,7 +173,11 @@ class UniCrashScreen extends StatelessWidget {
 }
 
 /// Bord par lequel Uni passe la tête.
-enum UniPeekEdge { right, bottom }
+///
+/// `left` suit le bouton d'Uni quand la coquille le range dans le coin gauche
+/// (écran à composeur) : l'apparition par le bord droit y aurait recouvert le
+/// composeur de la messagerie. La pose est celle du bord droit, retournée.
+enum UniPeekEdge { right, left, bottom }
 
 /// Uni passe la tête par le bord de l'écran avec un mot, une fois par
 /// `id` et par lancement de l'application, puis se retire tout seul.
@@ -238,12 +242,16 @@ class _UniPeekState extends State<UniPeek> {
   @override
   Widget build(BuildContext context) {
     final reduce = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final pose = widget.edge == UniPeekEdge.right
-        ? UniPose.peekRight
-        : UniPose.peekBottom;
-    final hidden = widget.edge == UniPeekEdge.right
-        ? const Offset(1.2, 0)
-        : const Offset(0, 1.2);
+    final hidden = switch (widget.edge) {
+      UniPeekEdge.right => const Offset(1.2, 0),
+      UniPeekEdge.left => const Offset(-1.2, 0),
+      UniPeekEdge.bottom => const Offset(0, 1.2),
+    };
+    final alignment = switch (widget.edge) {
+      UniPeekEdge.right => Alignment.bottomRight,
+      UniPeekEdge.left => Alignment.bottomLeft,
+      UniPeekEdge.bottom => Alignment.bottomCenter,
+    };
 
     final body = GestureDetector(
       onTap: () {
@@ -253,28 +261,44 @@ class _UniPeekState extends State<UniPeek> {
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: widget.edge == UniPeekEdge.right
-            // La bulle est souple : dans une fenêtre étroite (420 px avec la
-            // barre latérale), une largeur fixe débordait de 55 px à droite.
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                      child: UniBubble(
-                          side: UniBubbleSide.left,
-                          child: Text(widget.message))),
-                  const SizedBox(width: 4),
-                  UniMascot(pose: pose, size: 96, effects: false),
-                ],
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  UniBubble(
-                      side: UniBubbleSide.top, child: Text(widget.message)),
-                  UniMascot(pose: pose, size: 90, effects: false),
-                ],
-              ),
+        child: switch (widget.edge) {
+          // La bulle est souple : dans une fenêtre étroite (420 px avec la
+          // barre latérale), une largeur fixe débordait de 55 px à droite.
+          UniPeekEdge.right => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                    child: UniBubble(
+                        side: UniBubbleSide.left, child: Text(widget.message))),
+                const SizedBox(width: 4),
+                const UniMascot(
+                    pose: UniPose.peekRight, size: 96, effects: false),
+              ],
+            ),
+          UniPeekEdge.left => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Transform.flip(
+                  flipX: true,
+                  child: const UniMascot(
+                      pose: UniPose.peekRight, size: 96, effects: false),
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                    child: UniBubble(
+                        side: UniBubbleSide.right,
+                        child: Text(widget.message))),
+              ],
+            ),
+          UniPeekEdge.bottom => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                UniBubble(side: UniBubbleSide.top, child: Text(widget.message)),
+                const UniMascot(
+                    pose: UniPose.peekBottom, size: 90, effects: false),
+              ],
+            ),
+        },
       ),
     );
 
@@ -287,12 +311,7 @@ class _UniPeekState extends State<UniPeek> {
         child: AnimatedOpacity(
           opacity: _visible ? 1 : 0,
           duration: const Duration(milliseconds: 250),
-          child: Align(
-            alignment: widget.edge == UniPeekEdge.right
-                ? Alignment.bottomRight
-                : Alignment.bottomCenter,
-            child: body,
-          ),
+          child: Align(alignment: alignment, child: body),
         ),
       ),
     );

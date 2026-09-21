@@ -61,7 +61,7 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
                 );
               }
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(28),
+                padding: AppSpacing.pageScroll,
                 child: Wrap(
                   spacing: 16,
                   runSpacing: 16,

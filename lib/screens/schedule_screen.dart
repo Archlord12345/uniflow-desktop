@@ -443,7 +443,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     final totalHeight = hourCount * _hourHeight;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, AppSpacing.uniClearance),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final gridWidth = constraints.maxWidth;

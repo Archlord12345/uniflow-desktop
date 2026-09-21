@@ -94,7 +94,7 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
                 ? 2
                 : 1;
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: AppSpacing.pageScroll,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

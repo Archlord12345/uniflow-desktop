@@ -146,7 +146,8 @@ class DashboardScreen extends ConsumerWidget {
         _DashboardHeader(user: user, role: role),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xxl),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl,
+                AppSpacing.xxl, AppSpacing.uniClearance),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

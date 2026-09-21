@@ -236,7 +236,7 @@ class _SessionsView extends ConsumerWidget {
               );
             }
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(28),
+              padding: AppSpacing.pageScroll,
               child:
                   Column(children: [list, const SizedBox(height: 20), detail]),
             );
@@ -876,7 +876,7 @@ class _AttendanceStatsView extends ConsumerWidget {
         // Les moins assidus d'abord : c'est eux que l'administration cherche.
         final sorted = [...students]..sort((a, b) => a.rate.compareTo(b.rate));
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: AppSpacing.pageScroll,
           child: AppDataTable<StudentAttendance>(
             columns: _columns,
             rows: sorted,

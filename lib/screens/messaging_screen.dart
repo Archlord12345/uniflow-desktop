@@ -338,8 +338,11 @@ class _ConversationList extends StatelessWidget {
       );
     }
 
+    // Uni se range dans le coin bas gauche sur cet écran (le composeur occupe
+    // le coin droit) : la marge basse laisse la dernière conversation visible
+    // une fois la liste déroulée, au lieu de la cacher sous son bouton.
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.fromLTRB(0, 6, 0, AppSpacing.uniClearance),
       itemCount: conversations.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {

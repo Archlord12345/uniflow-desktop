@@ -173,6 +173,21 @@ class AppSpacing {
   /// Retrait du contenu d'une page interne sous son `AppTopBar` (28 px sur
   /// les planches) ; partagé pour que deux écrans voisins ne se décalent pas.
   static const double page = 28;
+
+  /// Marge basse d'une liste ou d'un tableau qui défile jusqu'au bord du
+  /// corps de la coquille.
+  ///
+  /// Le bouton d'Uni (60 px, à 20 px du bord) flotte au bas du corps : sans
+  /// cette marge, la dernière ligne d'une liste déroulée au bout finit sous
+  /// lui et son icône d'action de droite devient inatteignable — c'est ce que
+  /// `uni_dock_test.dart` vérifie, listes déroulées. 20 + 60 + 8 de
+  /// respiration, la même valeur que `uniClearance` sur le mobile.
+  static const double uniClearance = 88;
+
+  /// Marges d'une page qui défile jusqu'au bord du corps : [page] sur les
+  /// côtés et en haut, [uniClearance] en bas.
+  static const EdgeInsets pageScroll =
+      EdgeInsets.fromLTRB(page, page, page, uniClearance);
 }
 
 /// Rayons : 12 (`rounded-xl`), 16 (`rounded-2xl`, cartes du tableau de bord),

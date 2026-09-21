@@ -67,7 +67,7 @@ class NotificationsScreen extends ConsumerWidget {
                 );
               }
               return ListView.builder(
-                padding: const EdgeInsets.all(28),
+                padding: AppSpacing.pageScroll,
                 itemCount: items.length,
                 itemBuilder: (context, i) => CascadeIn(
                   index: i,

@@ -153,7 +153,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         // ----- Panneau droit : détail du niveau sélectionné -----
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
+            padding:
+                const EdgeInsets.fromLTRB(32, 32, 32, AppSpacing.uniClearance),
             child: selected == null
                 ? const Text(
                     'Sélectionnez un niveau dans l\'arborescence.',

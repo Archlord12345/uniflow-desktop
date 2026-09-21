@@ -73,7 +73,7 @@ class _TeachingUnitsScreenState extends ConsumerState<TeachingUnitsScreen> {
         _buildTopBar(),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+            padding: AppSpacing.pageScroll,
             child: unitsAsync.when(
               loading: () => const DataLoadingView(
                 label: 'Chargement des unités d\'enseignement…',

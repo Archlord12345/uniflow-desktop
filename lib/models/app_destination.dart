@@ -259,3 +259,55 @@ enum AppDestination {
   PhosphorIconData icon([UniIconStyle style = UniIcons.defaultStyle]) =>
       phosphor(style);
 }
+
+/// Ce qu'un écran pose dans le coin inférieur droit du corps de la coquille,
+/// là où vit le bouton d'Uni.
+///
+/// Uni était posé au même endroit sur tous les écrans et recouvrait le bouton
+/// « Envoyer » de la messagerie (constat du propriétaire sur le mobile le
+/// 2026-09-21, même défaut sur le desktop). L'écran qui occupe ce coin le
+/// **déclare** ici, et `AppShell` en déduit où accrocher Uni. Le `switch` de
+/// [AppDestinationBottomEdge.bottomEdge] est exhaustif : une destination
+/// ajoutée sans déclaration ne compile pas, et `test/uni_dock_test.dart`
+/// monte chaque écran dans la coquille pour attraper une déclaration fausse.
+enum BottomEdge {
+  /// Rien : Uni garde son coin, en bas à droite.
+  free,
+
+  /// Un composeur (champ de saisie et bouton d'envoi) finit en bas à droite
+  /// du corps : Uni glisse dans le coin bas gauche, qui est libre puisque le
+  /// corps commence après la barre latérale.
+  composer,
+}
+
+extension AppDestinationBottomEdge on AppDestination {
+  /// Le bord inférieur de cet écran. Une entrée par destination, sans
+  /// `default` : c'est ce qui oblige à se poser la question pour chaque
+  /// nouvel écran.
+  BottomEdge get bottomEdge => switch (this) {
+        AppDestination.dashboard => BottomEdge.free,
+        AppDestination.personalWorkspace => BottomEdge.free,
+        AppDestination.notifications => BottomEdge.free,
+        AppDestination.students => BottomEdge.free,
+        AppDestination.teachers => BottomEdge.free,
+        AppDestination.programs => BottomEdge.free,
+        AppDestination.teachingUnits => BottomEdge.free,
+        AppDestination.structure => BottomEdge.free,
+        AppDestination.classrooms => BottomEdge.free,
+        AppDestination.schedule => BottomEdge.free,
+        AppDestination.attendance => BottomEdge.free,
+        AppDestination.assignments => BottomEdge.free,
+        AppDestination.grades => BottomEdge.free,
+        AppDestination.library => BottomEdge.free,
+        AppDestination.conferences => BottomEdge.free,
+        // Liste des conversations à gauche, fil à droite : le composeur
+        // (champ + « Envoyer ») termine le fil, en bas à droite du corps.
+        AppDestination.messaging => BottomEdge.composer,
+        AppDestination.teams => BottomEdge.free,
+        AppDestination.accounts => BottomEdge.free,
+        AppDestination.statistics => BottomEdge.free,
+        AppDestination.sentinelle => BottomEdge.free,
+        AppDestination.payments => BottomEdge.free,
+        AppDestination.settings => BottomEdge.free,
+      };
+}

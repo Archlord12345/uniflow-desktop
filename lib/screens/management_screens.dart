@@ -1605,7 +1605,7 @@ class _ManagementPage extends StatelessWidget {
         ),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.page),
+            padding: AppSpacing.pageScroll,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

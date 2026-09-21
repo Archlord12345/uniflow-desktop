@@ -69,7 +69,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         _buildTopBar(),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+            padding: AppSpacing.pageScroll,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

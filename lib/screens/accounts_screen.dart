@@ -119,7 +119,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 );
               }
               return ListView.builder(
-                padding: const EdgeInsets.all(28),
+                padding: AppSpacing.pageScroll,
                 itemCount: filtered.length,
                 itemBuilder: (context, i) => CascadeIn(
                   index: i,
