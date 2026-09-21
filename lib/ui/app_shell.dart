@@ -11,6 +11,8 @@ import '../theme/app_theme.dart';
 import '../utils/avatar.dart';
 import '../widgets/app_sidebar.dart';
 import '../widgets/user_avatar.dart';
+import '../widgets/uni/uni_assistant.dart';
+import '../widgets/uni/uni_scenes.dart';
 import 'form_fields.dart';
 import 'motion_in.dart';
 
@@ -53,7 +55,28 @@ class AppShell extends ConsumerWidget {
                       ? OfflineBanner(state: sync)
                       : const SizedBox(width: double.infinity),
                 ),
-                Expanded(child: body),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      body,
+                      // Uni : bouton flottant + panneau ancré, et sa première
+                      // apparition par le bord droit (une fois par lancement).
+                      const Positioned.fill(child: UniAssistantDock()),
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 90),
+                          child: Consumer(
+                            builder: (context, ref, _) => UniPeek(
+                              id: 'hello-shell',
+                              message: 'Salut ! Je suis Uni. Une question sur tes cours ou l’application ? Clique-moi.',
+                              onTap: () => ref.read(uniPanelOpenProvider.notifier).state = true,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

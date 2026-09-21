@@ -6,11 +6,16 @@ import 'providers/preferences_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_shell.dart';
+import 'widgets/uni/uni_mascot.dart';
+import 'widgets/uni/uni_scenes.dart';
 
 /// Point d'entrée de l'application Flutter.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  // Une erreur de rendu non rattrapée affiche Uni qui s'excuse plutôt que le
+  // rectangle rouge de Flutter.
+  ErrorWidget.builder = (details) => UniCrashScreen(details: details.exceptionAsString());
   runApp(const ProviderScope(child: UniFlowApp()));
 }
 
@@ -55,10 +60,14 @@ class _SplashScreen extends StatelessWidget {
     return const Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: SizedBox(
-          width: 34,
-          height: 34,
-          child: CircularProgressIndicator(strokeWidth: 3),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Uni accueille pendant que la session locale se résout.
+            UniMascot(pose: UniPose.wave, size: 150),
+            SizedBox(height: 16),
+            UniDots(),
+          ],
         ),
       ),
     );

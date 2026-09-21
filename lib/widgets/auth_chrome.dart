@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/user_role.dart';
 import '../theme/app_theme.dart';
 import 'motion.dart';
+import 'uni/uni_mascot.dart';
 
 /// Habillage commun des écrans d'authentification (connexion, inscription) :
 /// fond « mesh », carte blanche, panneau visuel à gauche et formulaire à
@@ -408,6 +409,9 @@ class AuthHeroPanel extends StatelessWidget {
         // Sous ~620 px de haut, les cartes d'arguments n'ont plus leur place :
         // on les retire plutôt que de faire défiler un panneau décoratif.
         final showFeatures = constraints.maxHeight >= 620;
+        // Uni salue au-dessus du logo dès que la hauteur le permet ; sous
+        // 560 px il céderait la place au formulaire.
+        final showUni = constraints.maxHeight >= 560;
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: pad, vertical: pad * 0.8),
           child: ConstrainedBox(
@@ -420,6 +424,15 @@ class AuthHeroPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (showUni) ...[
+                      Center(
+                        child: UniMascot(
+                          pose: UniPose.wave,
+                          size: (scale.title * 5.2).clamp(110.0, 160.0),
+                        ),
+                      ),
+                      SizedBox(height: pad * 0.4),
+                    ],
                     Center(child: _logoPlaque(logoWidth, dpr)),
                     SizedBox(height: pad * 0.7),
                     Text(

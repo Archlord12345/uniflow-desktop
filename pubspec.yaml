@@ -53,6 +53,13 @@ flutter:
     # Page web de participation à une visioconférence, servie par le poste hôte
     # aux navigateurs du réseau local (bundle livekit-client inclus, Apache-2.0).
     - assets/conference_web/
+    # Uni, la mascotte (12 poses WebP), son avatar et le logo KERNEL FORGE :
+    # embarqués pour s'afficher hors ligne et sur les écrans d'erreur, là où
+    # rien ne peut plus être téléchargé.
+    - assets/mascot/
+    - assets/assistant/
+    - assets/logos/
+    - assets/onboarding/
     - .env
   # Inter (SIL OFL 1.1, licence dans assets/fonts/) : la police du web.
   # Le thème la nommait sans l'embarquer et Flutter retombait sur la police

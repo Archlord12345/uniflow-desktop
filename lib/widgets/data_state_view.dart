@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'uni/uni_mascot.dart';
 
 /// États vides, de chargement et d'erreur, partagés par les écrans desktop qui
 /// lisent Appwrite.
@@ -13,18 +14,18 @@ class DataLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60),
+    // Défilant : Uni est plus haut que l'ancien cercle et la vue est souvent
+    // posée dans un `Expanded` d'une fenêtre basse.
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
-            width: 28,
-            height: 28,
-            child: CircularProgressIndicator(strokeWidth: 2.5),
-          ),
-          const SizedBox(height: 14),
-          Text(label, style: AppTextStyles.body),
+          const UniMascot(pose: UniPose.thinking, size: 96),
+          const SizedBox(height: 10),
+          const UniDots(),
+          const SizedBox(height: 12),
+          Text(label, textAlign: TextAlign.center, style: AppTextStyles.body),
         ],
       ),
     );
@@ -51,7 +52,9 @@ class DataEmptyView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 42, color: AppColors.textMuted),
+          // Uni cherche à la loupe : l'icône passée reste disponible pour
+          // les appels qui la personnalisent, en petit sous le personnage.
+          const UniMascot(pose: UniPose.search, size: 110),
           const SizedBox(height: 12),
           Text(
             message,
@@ -77,8 +80,7 @@ class DataErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off_outlined,
-              size: 42, color: AppColors.danger),
+          const UniMascot(pose: UniPose.sorry, size: 110),
           const SizedBox(height: 12),
           const Text(
             'Lecture Appwrite impossible',

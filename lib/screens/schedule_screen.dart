@@ -9,6 +9,7 @@ import '../providers/schedule_provider.dart';
 import '../repositories/reference_repository.dart';
 import '../widgets/app_breadcrumb.dart';
 import '../widgets/status_badge.dart';
+import '../widgets/uni/uni_mascot.dart';
 
 /// Page "Emploi du temps" : grille hebdomadaire alimentée par
 /// `academic_schedules`, légende des types de séance, navigation de semaine,
@@ -262,52 +263,74 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       child: Row(
         children: [
           Flexible(
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _RoundIconButton(
-                      icon: Icons.chevron_left,
-                      onTap: () =>
-                          ref.read(weekOffsetProvider.notifier).state--,
-                    ),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        // `Flexible` + ellipse : « 13 – 19 septembre 2026 » est
-                        // long, et la rangée poussait les flèches hors de la
-                        // barre dans une fenêtre étroite.
-                        child: Text(
-                          week?.rangeLabel ?? '—',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary),
+            // Le Wrap donne une largeur non bornée à ses enfants : la rangée
+            // de navigation ne pouvait donc pas rétrécir son libellé et
+            // débordait de 55 px dans une fenêtre de 420 px. On lui repasse
+            // la largeur réellement disponible.
+            child: LayoutBuilder(
+              builder: (context, constraints) => Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth.isFinite
+                            ? constraints.maxWidth
+                            : double.infinity),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _RoundIconButton(
+                          icon: Icons.chevron_left,
+                          onTap: () =>
+                              ref.read(weekOffsetProvider.notifier).state--,
                         ),
-                      ),
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            // `Flexible` + ellipse : « 13 – 19 septembre 2026 » est
+                            // long, et la rangée poussait les flèches hors de la
+                            // barre dans une fenêtre étroite.
+                            child: Text(
+                              week?.rangeLabel ?? '—',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary),
+                            ),
+                          ),
+                        ),
+                        _RoundIconButton(
+                          icon: Icons.chevron_right,
+                          onTap: () =>
+                              ref.read(weekOffsetProvider.notifier).state++,
+                        ),
+                        // Bouton rond plutôt qu'un TextButton « Aujourd'hui » :
+                        // avec ses 112 px il ne laissait au libellé de semaine
+                        // aucune place dans les 176 px d'une fenêtre étroite.
+                        if (week != null && _offsetOf(week) != 0)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Tooltip(
+                              message: 'Revenir à la semaine en cours',
+                              child: _RoundIconButton(
+                                icon: Icons.today_outlined,
+                                onTap: () => ref
+                                    .read(weekOffsetProvider.notifier)
+                                    .state = 0,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    _RoundIconButton(
-                      icon: Icons.chevron_right,
-                      onTap: () =>
-                          ref.read(weekOffsetProvider.notifier).state++,
-                    ),
-                    if (week != null && _offsetOf(week) != 0)
-                      TextButton(
-                        onPressed: () =>
-                            ref.read(weekOffsetProvider.notifier).state = 0,
-                        child: const Text('Aujourd\'hui'),
-                      ),
-                  ],
-                ),
-                ..._buildScopeControls(week, scope),
-                _ViewToggle(),
-              ],
+                  ),
+                  ..._buildScopeControls(week, scope),
+                  _ViewToggle(),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -678,14 +701,15 @@ class _ScheduleError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Défilant : dans une fenêtre de 620 px, le message d'erreur complet
+    // débordait de 23 px sous le bouton.
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_outlined,
-                size: 44, color: AppColors.textMuted),
+            const UniMascot(pose: UniPose.sorry, size: 110),
             const SizedBox(height: 14),
             const Text(
               'Emploi du temps indisponible',
@@ -982,15 +1006,8 @@ class _ScopeNotice extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, size: 26, color: AppColors.primaryBlue),
-                ),
+                // Uni cherche : l'état se lit avant le texte.
+                const UniMascot(pose: UniPose.search, size: 120),
                 const SizedBox(height: 16),
                 Text(
                   title,
