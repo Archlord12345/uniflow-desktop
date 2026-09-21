@@ -10,6 +10,7 @@ import '../providers/auth_provider.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/auth_chrome.dart';
 import '../widgets/motion.dart';
@@ -291,11 +292,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onPressed: _busy ? null : () => _submit(reference),
         ),
         const SizedBox(height: 12),
-        TextButton.icon(
+        AppButton.ghost(
+          label: 'S\'inscrire sur le web',
+          icon: Icons.open_in_new,
+          expand: true,
           onPressed: _busy ? null : _openWebRegistration,
-          icon: const Icon(Icons.open_in_new, size: 16),
-          label:
-              const Text('S\'inscrire sur le web', style: AppTextStyles.link),
         ),
       ],
     );

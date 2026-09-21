@@ -538,10 +538,9 @@ class _OriginDialogState extends State<_OriginDialog> {
         ),
       ),
       actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler')),
-        FilledButton(onPressed: _submit, child: const Text('Émettre')),
+        AppButton.secondary(
+            label: 'Annuler', onPressed: () => Navigator.pop(context)),
+        AppButton(label: 'Émettre', onPressed: _submit),
       ],
     );
   }
@@ -628,16 +627,17 @@ class _QrDialogState extends ConsumerState<_QrDialog> {
         ),
       ),
       actions: [
-        TextButton.icon(
+        AppButton.ghost(
+          label: 'Copier le jeton',
+          icon: Icons.copy,
           onPressed: () {
             Clipboard.setData(ClipboardData(text: widget.qr.token));
             showFeedback(context, message: 'Jeton copié.');
           },
-          icon: const Icon(Icons.copy, size: 16),
-          label: const Text('Copier le jeton'),
         ),
         if (!expired)
-          TextButton(
+          AppButton.danger(
+            label: 'Révoquer',
             onPressed: () async {
               try {
                 await ref.read(attendanceApiProvider).revoke(widget.qr.token);
@@ -651,12 +651,8 @@ class _QrDialogState extends ConsumerState<_QrDialog> {
                 }
               }
             },
-            child: const Text('Révoquer',
-                style: TextStyle(color: AppColors.danger)),
           ),
-        FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer')),
+        AppButton(label: 'Fermer', onPressed: () => Navigator.pop(context)),
       ],
     );
   }
@@ -713,7 +709,10 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
                   Row(
                     children: [
                       if (widget.date == null)
-                        TextButton.icon(
+                        AppButton.ghost(
+                          label: 'Changer la date',
+                          icon: Icons.event_outlined,
+                          height: 36,
                           onPressed: () async {
                             final picked = await showDatePicker(
                               context: context,
@@ -725,17 +724,16 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
                             );
                             if (picked != null) setState(() => _date = picked);
                           },
-                          icon: const Icon(Icons.event_outlined, size: 16),
-                          label: const Text('Changer la date'),
                         ),
                       const Spacer(),
-                      TextButton(
+                      AppButton.ghost(
+                        label: 'Tous présents',
+                        height: 36,
                         onPressed: () => setState(() {
                           for (final s in roster) {
                             _status[s.id] = 'PRESENT';
                           }
                         }),
-                        child: const Text('Tous présents'),
                       ),
                     ],
                   ),
@@ -785,17 +783,13 @@ class _RollDialogState extends ConsumerState<_RollDialog> {
               ),
       ),
       actions: [
-        TextButton(
-            onPressed: _busy ? null : () => Navigator.pop(context, false),
-            child: const Text('Annuler')),
-        FilledButton(
+        AppButton.secondary(
+            label: 'Annuler',
+            onPressed: _busy ? null : () => Navigator.pop(context, false)),
+        AppButton(
+          label: 'Enregistrer l\'appel',
+          loading: _busy,
           onPressed: _busy || roster.isEmpty ? null : _save,
-          child: _busy
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Enregistrer l\'appel'),
         ),
       ],
     );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 
 /// Boîte à outils d'animation partagée par tous les écrans.
 ///
@@ -607,12 +608,10 @@ class ResultView extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     children: [
                       if (secondaryLabel != null)
-                        OutlinedButton(
-                            onPressed: onSecondary,
-                            child: Text(secondaryLabel!)),
+                        AppButton.secondary(
+                            label: secondaryLabel!, onPressed: onSecondary),
                       if (actionLabel != null)
-                        FilledButton(
-                            onPressed: onAction, child: Text(actionLabel!)),
+                        AppButton(label: actionLabel!, onPressed: onAction),
                     ],
                   ),
                 ),

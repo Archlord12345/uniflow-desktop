@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/auth_chrome.dart';
 import '../widgets/motion.dart';
 import 'login_screen.dart';
@@ -147,42 +148,34 @@ class _ForgotPasswordDialogState extends ConsumerState<_ForgotPasswordDialog> {
       ),
       actions: switch (_step) {
         _Step.request => [
-            TextButton(
-                onPressed: _busy ? null : () => Navigator.pop(context),
-                child: const Text('Annuler')),
-            TextButton(
+            AppButton.ghost(
+                label: 'Annuler',
+                onPressed: _busy ? null : () => Navigator.pop(context)),
+            AppButton.secondary(
+              label: 'J\'ai déjà le lien',
               onPressed:
                   _busy ? null : () => setState(() => _step = _Step.complete),
-              child: const Text('J\'ai déjà le lien'),
             ),
-            FilledButton(
+            AppButton(
+              label: 'Envoyer l\'email',
+              loading: _busy,
               onPressed: _busy ? null : _sendEmail,
-              child: _busy
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Envoyer l\'email'),
             ),
           ],
         _Step.complete => [
-            TextButton(
-                onPressed: _busy ? null : () => Navigator.pop(context),
-                child: const Text('Annuler')),
-            FilledButton(
+            AppButton.secondary(
+                label: 'Annuler',
+                onPressed: _busy ? null : () => Navigator.pop(context)),
+            AppButton(
+              label: 'Changer le mot de passe',
+              loading: _busy,
               onPressed: _busy ? null : _complete,
-              child: _busy
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Changer le mot de passe'),
             ),
           ],
         _Step.done => [
-            FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Se connecter')),
+            AppButton(
+                label: 'Se connecter',
+                onPressed: () => Navigator.pop(context)),
           ],
       },
     );

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/team_member.dart';
 import '../repositories/team_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/toast.dart';
 import '../widgets/app_page_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/user_avatar.dart';
@@ -47,10 +48,7 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
     final opened =
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Aucune application ne peut ouvrir ce lien.')),
-      );
+      Toast.error(context, 'Aucune application ne peut ouvrir ce lien.');
     }
   }
 

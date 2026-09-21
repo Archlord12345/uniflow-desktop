@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../repositories/personal_repository.dart';
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
+import '../ui/app_dialog.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -119,12 +120,12 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Ajouter')),
+          AppButton.secondary(
+              label: 'Annuler',
+              onPressed: () => Navigator.pop(dialogContext, false)),
+          AppButton(
+              label: 'Ajouter',
+              onPressed: () => Navigator.pop(dialogContext, true)),
         ],
       ),
     );
@@ -153,24 +154,14 @@ class PersonalWorkspaceScreen extends ConsumerWidget {
 
   Future<void> _deleteSubject(
       BuildContext context, WidgetRef ref, PersonalSubject subject) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer la matière ?'),
-        content: Text('« ${subject.name} » sera retirée de votre espace.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Supprimer la matière ?',
+      message: '« ${subject.name} » sera retirée de votre espace.',
+      confirmLabel: 'Supprimer',
+      destructive: true,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
     try {
       await ref.read(personalRepositoryProvider).deleteSubject(subject.id);
       ref.invalidate(personalSubjectsProvider);

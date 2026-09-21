@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/session_provider.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/motion.dart';
 import 'login_screen.dart';
 import 'main_shell.dart';
@@ -201,21 +202,15 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        AppButton.secondary(
+          label: 'Annuler',
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
         ),
-        FilledButton(
+        AppButton.danger(
           key: const Key('delete-account-confirm'),
-          style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+          label: _step == 0 ? 'Continuer' : 'Supprimer définitivement',
+          loading: _busy,
           onPressed: _busy ? null : _submit,
-          child: _busy
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white))
-              : Text(_step == 0 ? 'Continuer' : 'Supprimer définitivement'),
         ),
       ],
     );

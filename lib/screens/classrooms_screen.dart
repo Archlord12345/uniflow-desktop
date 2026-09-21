@@ -11,6 +11,7 @@ import '../repositories/reference_repository.dart';
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
+import '../ui/app_dialog.dart';
 import '../ui/status_badge.dart';
 import '../ui/table_action_icon.dart';
 import '../widgets/app_page_bar.dart';
@@ -180,26 +181,15 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
   }
 
   Future<void> _delete(Classroom room) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Retirer cette salle du catalogue ?'),
-        content:
-            Text('« ${room.nom} » ne sera plus proposée dans les formulaires. '
-                'Les créneaux déjà planifiés qui la citent sont conservés.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Retirer'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Retirer cette salle du catalogue ?',
+      message: '« ${room.nom} » ne sera plus proposée dans les formulaires. '
+          'Les créneaux déjà planifiés qui la citent sont conservés.',
+      confirmLabel: 'Retirer',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     try {
       await ref
           .read(referenceRepositoryProvider)
@@ -540,17 +530,13 @@ class _ClassroomEditorDialogState
         ),
       ),
       actions: [
-        TextButton(
-            onPressed: _busy ? null : () => Navigator.pop(context, false),
-            child: const Text('Annuler')),
-        FilledButton(
+        AppButton.secondary(
+            label: 'Annuler',
+            onPressed: _busy ? null : () => Navigator.pop(context, false)),
+        AppButton(
+          label: widget.existing == null ? 'Ajouter' : 'Enregistrer',
+          loading: _busy,
           onPressed: _busy ? null : _save,
-          child: _busy
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(widget.existing == null ? 'Ajouter' : 'Enregistrer'),
         ),
       ],
     );

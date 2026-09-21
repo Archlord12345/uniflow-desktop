@@ -707,9 +707,9 @@ class _NewConversationDialogState
         ),
       ),
       actions: [
-        TextButton(
+        AppButton.secondary(
+          label: 'Annuler',
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
         ),
       ],
     );

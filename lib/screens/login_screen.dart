@@ -6,6 +6,7 @@ import '../models/user_role.dart';
 import '../providers/auth_provider.dart';
 import '../repositories/auth_repository.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/auth_chrome.dart';
 import '../widgets/motion.dart';
@@ -225,18 +226,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () => showForgotPasswordDialog(
+            // Un lien, pas un bouton : le `TextButton` Material posait 8 px de
+            // marge et une hauteur minimale de 40 px qui désalignaient la ligne
+            // avec la case « Rester connecté ».
+            InkWell(
+              onTap: () => showForgotPasswordDialog(
                 context,
                 initialEmail: _emailController.text,
               ),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              borderRadius: BorderRadius.circular(6),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                child: Text('Mot de passe oublié ?', style: AppTextStyles.link),
               ),
-              child: const Text('Mot de passe oublié ?',
-                  style: AppTextStyles.link),
             ),
           ],
         ),
@@ -259,18 +261,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ],
         ),
         const SizedBox(height: 14),
-        OutlinedButton.icon(
+        AppButton.secondary(
+          label: _accountType == AccountType.university
+              ? 'Créer un compte étudiant'
+              : 'Créer un compte indépendant',
+          icon: Icons.person_add_alt_1_outlined,
+          expand: true,
+          height: scale.field - 4,
           onPressed: _isLoading ? null : _openRegister,
-          icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
-          label: Text(
-            _accountType == AccountType.university
-                ? 'Créer un compte étudiant'
-                : 'Créer un compte indépendant',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          style: OutlinedButton.styleFrom(
-              minimumSize: Size.fromHeight(scale.field - 4)),
         ),
       ],
     );

@@ -7,6 +7,7 @@ import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
 import '../ui/surface_card.dart';
+import '../ui/toast.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/simple_tab_bar.dart';
@@ -66,11 +67,11 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             AppButton(
               label: 'Ajouter programme',
               icon: Icons.add,
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('La création de programmes se fait depuis la '
-                      'gestion des UE : chaque UE porte sa filière et son niveau.'),
-                ),
+              onPressed: () => Toast.info(
+                context,
+                'Les programmes se créent depuis les UE.',
+                detail: 'Chaque UE porte sa filière et son niveau : ajoutez '
+                    'une UE et le programme apparaît ici.',
               ),
             ),
           ],

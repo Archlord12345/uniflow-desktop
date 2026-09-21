@@ -21,6 +21,7 @@ import '../widgets/stat_card.dart';
 import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
 import '../ui/status_badge.dart';
+import '../ui/toast.dart';
 import '../widgets/user_avatar.dart';
 import '../providers/appwrite_provider.dart';
 import '../providers/auth_provider.dart';
@@ -170,6 +171,7 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
         started
             ? 'Réunion ouverte. Communiquez le code aux participants.'
             : 'La réunion n\'a pas pu être ouverte.',
+        success: started,
       );
     } finally {
       if (mounted) setState(() => _working = false);
@@ -198,9 +200,11 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
     final ok =
         await ref.read(conferenceHostProvider.notifier).enableInternetMode(url);
     if (!mounted) return;
-    _notify(ok
-        ? 'Adresse publique publiée : les participants distants peuvent rejoindre.'
-        : 'L\'adresse publique n\'a pas pu être publiée.');
+    _notify(
+        ok
+            ? 'Adresse publique publiée : les participants distants peuvent rejoindre.'
+            : 'L\'adresse publique n\'a pas pu être publiée.',
+        success: ok);
   }
 
   Future<void> _checkBinary() async {
@@ -209,17 +213,25 @@ class _ConferencesScreenState extends ConsumerState<ConferencesScreen> {
       final available =
           await ref.read(conferenceHostProvider.notifier).isBinaryAvailable();
       if (!mounted) return;
-      _notify(available
-          ? 'Le serveur média est installé sur cette machine.'
-          : 'Serveur média introuvable : suivez les indications ci-dessus.');
+      _notify(
+          available
+              ? 'Le serveur média est installé sur cette machine.'
+              : 'Serveur média introuvable : suivez les indications ci-dessus.',
+          success: available);
     } finally {
       if (mounted) setState(() => _working = false);
     }
   }
 
-  void _notify(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+  /// Toast du design system plutôt qu'un `SnackBar` : en bas à gauche d'une
+  /// fenêtre de bureau, la barre passait inaperçue et ne distinguait pas un
+  /// échec (« serveur introuvable ») d'un succès.
+  void _notify(String message, {bool success = true}) {
+    if (success) {
+      Toast.success(context, message);
+    } else {
+      Toast.error(context, message);
+    }
   }
 }
 
@@ -374,9 +386,7 @@ class _CopyField extends StatelessWidget {
             tooltip: 'Copier',
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('« $value » copié.')),
-              );
+              Toast.success(context, '« $value » copié.');
             },
             icon: const Icon(Icons.copy_rounded,
                 size: 17, color: AppColors.textSecondary),
@@ -519,11 +529,11 @@ class _ConferenceNameDialogState extends State<_ConferenceNameDialog> {
         ],
       ),
       actions: [
-        TextButton(
+        AppButton.secondary(
+          label: 'Annuler',
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
         ),
-        ElevatedButton(onPressed: _submit, child: const Text('Ouvrir')),
+        AppButton(label: 'Ouvrir', onPressed: _submit),
       ],
     );
   }
@@ -578,11 +588,11 @@ class _PublicUrlDialogState extends State<_PublicUrlDialog> {
         ],
       ),
       actions: [
-        TextButton(
+        AppButton.secondary(
+          label: 'Annuler',
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
         ),
-        ElevatedButton(onPressed: _submit, child: const Text('Publier')),
+        AppButton(label: 'Publier', onPressed: _submit),
       ],
     );
   }
@@ -814,12 +824,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Changer')),
+          AppButton.secondary(
+              label: 'Annuler',
+              onPressed: () => Navigator.pop(dialogContext, false)),
+          AppButton(
+              label: 'Changer',
+              onPressed: () => Navigator.pop(dialogContext, true)),
         ],
       ),
     );
@@ -1025,10 +1035,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: _pickAndUpload,
                     ),
                     if (hasPhoto)
-                      TextButton(
+                      AppButton.ghost(
+                        label: 'Retirer',
+                        icon: Icons.delete_outline,
                         onPressed: _uploading ? null : _removePhoto,
-                        child: const Text('Retirer',
-                            style: TextStyle(color: AppColors.danger)),
                       ),
                   ],
                 ),

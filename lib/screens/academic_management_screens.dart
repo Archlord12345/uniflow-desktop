@@ -23,6 +23,7 @@ import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
 import '../ui/app_data_table.dart';
+import '../ui/app_dialog.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -214,25 +215,15 @@ class AssignmentsManagementScreen extends ConsumerWidget {
 
   Future<void> _delete(BuildContext context, WidgetRef ref,
       AcademicAssignment assignment) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer ce devoir ?'),
-        content: Text(
-            '« ${assignment.title} » disparaîtra pour tous les étudiants du cours.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Supprimer ce devoir ?',
+      message:
+          '« ${assignment.title} » disparaîtra pour tous les étudiants du cours.',
+      confirmLabel: 'Supprimer',
+      destructive: true,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
     try {
       await ref.read(assignmentsApiProvider).delete(assignment.id);
       ref.invalidate(_assignmentsOfCourseProvider(assignment.courseId));
@@ -532,17 +523,13 @@ class _AssignmentEditorDialogState
         ),
       ),
       actions: [
-        TextButton(
-            onPressed: _busy ? null : () => Navigator.pop(context, false),
-            child: const Text('Annuler')),
-        FilledButton(
+        AppButton.secondary(
+            label: 'Annuler',
+            onPressed: _busy ? null : () => Navigator.pop(context, false)),
+        AppButton(
+          label: widget.existing == null ? 'Publier' : 'Enregistrer',
+          loading: _busy,
           onPressed: _busy ? null : _save,
-          child: _busy
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(widget.existing == null ? 'Publier' : 'Enregistrer'),
         ),
       ],
     );
@@ -626,10 +613,10 @@ class _SubmissionsScreen extends ConsumerWidget {
                               .fileViewUrl(s.fileId))),
                           icon: const Icon(Icons.attach_file, size: 20),
                         ),
-                      FilledButton.tonal(
+                      AppButton.secondary(
+                        label: s.score == null ? 'Noter' : 'Modifier la note',
+                        height: 38,
                         onPressed: () => _grade(context, ref, s),
-                        child: Text(
-                            s.score == null ? 'Noter' : 'Modifier la note'),
                       ),
                     ],
                   ),
@@ -670,12 +657,12 @@ class _SubmissionsScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Enregistrer')),
+          AppButton.secondary(
+              label: 'Annuler',
+              onPressed: () => Navigator.pop(dialogContext, false)),
+          AppButton(
+              label: 'Enregistrer',
+              onPressed: () => Navigator.pop(dialogContext, true)),
         ],
       ),
     );
@@ -788,12 +775,12 @@ class GradesManagementScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Ajouter')),
+          AppButton.secondary(
+              label: 'Annuler',
+              onPressed: () => Navigator.pop(dialogContext, false)),
+          AppButton(
+              label: 'Ajouter',
+              onPressed: () => Navigator.pop(dialogContext, true)),
         ],
       ),
     );
@@ -930,17 +917,16 @@ class _GradeGrid extends ConsumerWidget {
         ),
         actions: [
           if (existing != null)
-            TextButton(
+            AppButton.danger(
+              label: 'Supprimer',
               onPressed: () => Navigator.pop(dialogContext, 'delete'),
-              child: const Text('Supprimer',
-                  style: TextStyle(color: AppColors.danger)),
             ),
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, null),
-              child: const Text('Annuler')),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, 'save'),
-              child: const Text('Enregistrer')),
+          AppButton.secondary(
+              label: 'Annuler',
+              onPressed: () => Navigator.pop(dialogContext, null)),
+          AppButton(
+              label: 'Enregistrer',
+              onPressed: () => Navigator.pop(dialogContext, 'save')),
         ],
       ),
     );
@@ -1284,12 +1270,12 @@ class LibraryManagementScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Annuler')),
-            FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Téléverser')),
+            AppButton.secondary(
+                label: 'Annuler',
+                onPressed: () => Navigator.pop(dialogContext, false)),
+            AppButton(
+                label: 'Téléverser',
+                onPressed: () => Navigator.pop(dialogContext, true)),
           ],
         ),
       ),

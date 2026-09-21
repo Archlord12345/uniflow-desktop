@@ -14,6 +14,7 @@ import '../providers/navigation_provider.dart';
 import '../repositories/academic_repository.dart';
 import '../router/route_guard.dart';
 import '../theme/app_theme.dart';
+import '../ui/app_button.dart';
 import '../utils/french_date.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
@@ -402,13 +403,14 @@ class _QuickActions extends ConsumerWidget {
         runSpacing: AppSpacing.sm,
         children: [
           for (final destination in destinations)
-            OutlinedButton.icon(
+            AppButton.secondary(
               key: ValueKey('quick-${destination.id}'),
+              label: destination.label,
+              icon: destination.icon,
+              height: 40,
               onPressed: () => ref
                   .read(currentDestinationProvider.notifier)
                   .state = destination,
-              icon: Icon(destination.icon, size: 18),
-              label: Text(destination.label),
             ),
         ],
       ),

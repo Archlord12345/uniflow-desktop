@@ -8,6 +8,7 @@ import '../repositories/reference_repository.dart';
 import '../services/uniflow_api.dart';
 import '../theme/app_theme.dart';
 import '../ui/app_button.dart';
+import '../ui/app_dialog.dart';
 import '../widgets/app_top_bar.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/motion.dart';
@@ -145,28 +146,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   }
 
   Future<void> _delete(ManagedAccount account) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer ce compte ?'),
-        content: Text(
-          '${account.name} (${account.email}) sera supprimé d\'Appwrite. '
-          'Un compte qui porte des notes ou des présences est refusé par le serveur : '
-          'passez-le alors en SUSPENDED.',
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annuler')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Supprimer ce compte ?',
+      message: '${account.name} (${account.email}) sera supprimé d\'Appwrite. '
+          'Un compte qui porte des notes ou des présences est refusé par le '
+          'serveur : passez-le alors en SUSPENDED.',
+      confirmLabel: 'Supprimer',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     try {
       await ref.read(adminDirectoryApiProvider).delete(account.userId);
       if (mounted) showFeedback(context, message: 'Compte supprimé.');
@@ -543,17 +532,13 @@ class _AccountEditorDialogState extends ConsumerState<_AccountEditorDialog> {
         ),
       ),
       actions: [
-        TextButton(
-            onPressed: _busy ? null : () => Navigator.pop(context, false),
-            child: const Text('Annuler')),
-        FilledButton(
+        AppButton.secondary(
+            label: 'Annuler',
+            onPressed: _busy ? null : () => Navigator.pop(context, false)),
+        AppButton(
+          label: _isEdit ? 'Enregistrer' : 'Créer',
+          loading: _busy,
           onPressed: _busy ? null : _save,
-          child: _busy
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(_isEdit ? 'Enregistrer' : 'Créer'),
         ),
       ],
     );

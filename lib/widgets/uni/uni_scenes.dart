@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../ui/app_button.dart';
 import 'uni_mascot.dart';
 
 /// Scènes prêtes à l'emploi autour d'Uni : chargement, erreur, vide, et la
@@ -141,12 +142,15 @@ class UniCrashScreen extends StatelessWidget {
             title: 'Oups, quelque chose s’est mal passé',
             message: 'Uni est désolé. Cette partie de l’écran n’a pas pu s’afficher. '
                 'Vous pouvez revenir en arrière ou réessayer.',
+            // Le bouton du design system se contente du `Material` posé
+            // au-dessus et retombe sur la palette claire sans thème : il reste
+            // donc affichable dans un arbre cassé, comme le reste de l'écran.
             action: onRetry == null
                 ? null
-                : FilledButton.icon(
+                : AppButton(
+                    label: 'Réessayer',
+                    icon: Icons.refresh_rounded,
                     onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Réessayer'),
                   ),
             secondaryAction: details == null
                 ? null
