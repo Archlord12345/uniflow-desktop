@@ -113,15 +113,15 @@ class StatusBadge extends StatelessWidget {
       case BadgeTone.teal:
         return (bg: AppColors.teal50, fg: AppColors.teal);
       case BadgeTone.success:
-        return (bg: const Color(0xFFD1FAE5), fg: const Color(0xFF047857));
+        return (bg: AppColors.success100, fg: AppColors.successDark);
       case BadgeTone.warning:
-        return (bg: const Color(0xFFFEF3C7), fg: const Color(0xFFB45309));
+        return (bg: AppColors.warning100, fg: AppColors.warningDark);
       case BadgeTone.danger:
-        return (bg: const Color(0xFFFEE2E2), fg: const Color(0xFFB91C1C));
+        return (bg: AppColors.danger100, fg: AppColors.dangerDark);
       case BadgeTone.info:
-        return (bg: const Color(0xFFDBEAFE), fg: const Color(0xFF1D4ED8));
+        return (bg: AppColors.info100, fg: AppColors.infoDark);
       case BadgeTone.purple:
-        return (bg: const Color(0xFFEDE9FE), fg: AppColors.purple);
+        return (bg: AppColors.purple100, fg: AppColors.purple);
     }
   }
 

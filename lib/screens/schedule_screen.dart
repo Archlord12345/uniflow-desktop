@@ -118,16 +118,18 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     final count = week.unplacedCount;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
-      color: const Color(0xFFFFF6E5),
+      color: AppColors.warning100,
       child: Row(
         children: [
-          const Icon(Icons.info_outline, size: 17, color: Color(0xFFB27B16)),
+          const Icon(Icons.info_outline,
+              size: 17, color: AppColors.warningDark),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               '$count créneau${count > 1 ? 'x' : ''} de la base n\'ont pas pu être '
               'positionnés (jour ou horaire illisible) et ne figurent pas dans la grille.',
-              style: const TextStyle(fontSize: 12.5, color: Color(0xFF8A5F0B)),
+              style: const TextStyle(
+                  fontSize: 12.5, color: AppColors.warningDark),
             ),
           ),
         ],

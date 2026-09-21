@@ -29,7 +29,7 @@ class SignOutButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tint = color ?? Colors.red;
+    final tint = color ?? AppColors.danger;
     if (compact) {
       return IconButton(
         tooltip: 'Se déconnecter',
@@ -149,7 +149,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
     return AlertDialog(
       title: const Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.red),
+          Icon(Icons.warning_amber_rounded, color: AppColors.danger),
           SizedBox(width: 10),
           Expanded(child: Text('Supprimer mon compte')),
         ],
@@ -194,7 +194,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
               if (_error != null) ...[
                 const SizedBox(height: 10),
                 Text(_error!,
-                    style: const TextStyle(color: Colors.red, fontSize: 12.5)),
+                    style: const TextStyle(color: AppColors.danger, fontSize: 12.5)),
               ],
             ],
           ),
@@ -207,7 +207,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
         ),
         FilledButton(
           key: const Key('delete-account-confirm'),
-          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
           onPressed: _busy ? null : _submit,
           child: _busy
               ? const SizedBox(

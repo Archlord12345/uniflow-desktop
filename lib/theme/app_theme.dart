@@ -83,6 +83,19 @@ class AppColors {
   /// teinte que [warning], nommée comme dans `docs/design/README.md`.
   static const Color amber = warning;
 
+  /// Teintes pâles et foncées des couleurs d'état (Tailwind `-100` / `-700`),
+  /// pour les fonds de pastilles et de bandeaux et leur texte. Centralisées :
+  /// chaque écran redéfinissait son propre ambre pâle (`#FFF6E5`, `#FEF3C7`…).
+  static const Color success100 = Color(0xFFD1FAE5);
+  static const Color successDark = Color(0xFF047857);
+  static const Color warning100 = Color(0xFFFEF3C7);
+  static const Color warningDark = Color(0xFFB45309);
+  static const Color danger100 = Color(0xFFFEE2E2);
+  static const Color dangerDark = Color(0xFFB91C1C);
+  static const Color info100 = Color(0xFFDBEAFE);
+  static const Color infoDark = Color(0xFF1D4ED8);
+  static const Color purple100 = Color(0xFFEDE9FE);
+
   // --- Sidebar (thème sombre) ---------------------------------------------
   // Depuis les planches du 2026-09-21, la barre latérale est claire en thème
   // clair (`SidebarPalette.light`) ; ces teintes ne servent qu'au thème sombre.

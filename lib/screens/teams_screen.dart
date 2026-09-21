@@ -699,7 +699,7 @@ class _AppelGithub extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.auto_awesome, color: Color(0xFFFCD34D), size: 28),
+          const Icon(Icons.auto_awesome, color: AppColors.warning, size: 28),
           const SizedBox(height: 8),
           const Text(
             'Rejoignez l\'organisation KERNEL FORGE',

@@ -208,7 +208,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 label: const Text('Supprimer',
                     style: TextStyle(color: AppColors.danger)),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFF6C6C6)),
+                  side: const BorderSide(color: AppColors.danger100),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                   shape: RoundedRectangleBorder(
