@@ -1,0 +1,18 @@
+#!/bin/sh
+# set -e serait une erreur ici : un cache d'icônes qui refuse de se régénérer
+# ne doit pas mettre le paquet en demi-configuration (état « half-configured »),
+# alors que l'application, elle, est bien installée.
+for cmd in gtk-update-icon-cache update-desktop-database; do
+  if command -v "$cmd" >/dev/null 2>&1; then
+    case "$cmd" in
+      gtk-update-icon-cache)
+        gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor 2>/dev/null || true
+        ;;
+      update-desktop-database)
+        update-desktop-database -q /usr/share/applications 2>/dev/null || true
+        ;;
+    esac
+  fi
+done
+
+exit 0

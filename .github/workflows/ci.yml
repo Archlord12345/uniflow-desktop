@@ -91,11 +91,19 @@ jobs:
           if-no-files-found: error
 
   build-windows:
-    name: Build Windows
+    name: Build Windows (installateur .exe)
     needs: qualite
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Numéro de version à quatre segments
+        id: version
+        shell: bash
+        # Windows exige `MAJOR.MINOR.PATCH.BUILD` : c'est `VERSION_MSIX` de la
+        # source de vérité commune, donc le même numéro que le pubspec.
+        run: |
+          eval "$(bash tool/version.sh)"
+          echo "num=$VERSION_MSIX" >> "$GITHUB_OUTPUT"
       - name: Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
@@ -113,15 +121,76 @@ jobs:
           APPWRITE_STORAGE_BUCKET_ID: ${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}
           APPWRITE_API_FUNCTION_ID: ${{ secrets.APPWRITE_API_FUNCTION_ID }}
       - run: flutter build windows --release
-      - name: Archive du dossier Release
+      - name: Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress -y
+      - name: Compilation de l'installateur
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force dist | Out-Null
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath dist/uniflow-desktop-windows-x64.zip
+          $ErrorActionPreference = 'Stop'
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            throw "ISCC.exe introuvable : l'installation d'Inno Setup n'a rien déposé."
+          }
+          & $iscc `
+            "/DVersion=${{ steps.version.outputs.num }}" `
+            "/DWorkspace=$($env:GITHUB_WORKSPACE)\build\windows\x64\runner\Release" `
+            "/DOutput=$($env:GITHUB_WORKSPACE)\dist\windows" `
+            "packaging\windows\uniflow.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC a rendu le code $LASTEXITCODE." }
+      - name: Installation silencieuse, vérification, désinstallation
+        shell: pwsh
+        # Le Store et winget n'acceptent pas un installateur qu'ils ne savent pas
+        # poser sans interaction ni retirer proprement. Ces trois vérifications
+        # sont ce que leurs bots rejouent : les jouer ici évite une semaine
+        # d'allers-retours avec un `Needs-Author-Feedback`.
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Get-ChildItem "$($env:GITHUB_WORKSPACE)\dist\windows\uniflow-desktop-*.exe" |
+            Select-Object -First 1
+          if (-not $exe) { throw "Aucun installateur produit." }
+
+          $install = Start-Process $exe.FullName `
+            -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' `
+            -Wait -PassThru
+          if ($install.ExitCode -ne 0) {
+            throw "Installation silencieuse refusée : code retour $($install.ExitCode)."
+          }
+
+          $binaire = "$env:ProgramFiles\UniFlow\uniflow_app.exe"
+          if (-not (Test-Path $binaire)) {
+            throw "uniflow_app.exe absent de $binaire après installation."
+          }
+          $cle = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{8F4C1D7B-5A62-4E9F-9C31-2D7E8B0A4F55}_is1'
+          if (-not (Test-Path $cle)) {
+            throw "Entrée de désinstallation absente du registre : winget ne verrait pas le paquet."
+          }
+
+          $desinstall = Start-Process "$env:ProgramFiles\UniFlow\unins000.exe" `
+            -ArgumentList '/VERYSILENT','/NORESTART' -Wait -PassThru
+          if ($desinstall.ExitCode -ne 0) {
+            throw "Désinstallation silencieuse refusée : code retour $($desinstall.ExitCode)."
+          }
+          if (Test-Path $binaire) { throw "Le binaire survit à la désinstallation." }
+
+          # Ces trois valeurs sont celles qu'exige une demande winget (chemin,
+          # hachage, commutateurs) et le formulaire « Packages » du Store.
+          $sha = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          @(
+            "### Installateur Windows",
+            "",
+            "| Champ | Valeur |",
+            "| --- | --- |",
+            "| Fichier | ``$($exe.Name)`` |",
+            "| Taille | ``{0:N1} Mo`` |" -f ($exe.Length / 1MB),
+            "| InstallerSha256 | ``$sha`` |",
+            "| Silent / SilentWithProgress | ``/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`` |",
+            "| Code de retour installation réussie | ``0`` |",
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY
       - uses: actions/upload-artifact@v4
         with:
           name: uniflow-desktop-windows
-          path: dist/uniflow-desktop-windows-x64.zip
+          path: dist/windows/uniflow-desktop-*.exe
           if-no-files-found: error
 
   build-android-tablet:
@@ -178,6 +247,6 @@ jobs:
         with:
           files: |
             dist/uniflow-desktop-linux-x64.tar.gz
-            dist/uniflow-desktop-windows-x64.zip
+            dist/uniflow-desktop-*.exe
             dist/uniflow-desktop-tablette.apk
           generate_release_notes: true

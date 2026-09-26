@@ -169,3 +169,15 @@ uniflow-desktop/
 - `docs/integration-continue.md` — le workflow GitHub Actions (`ci.yml`) : qualité → builds Linux / Windows / Android → release.
 - `docs/depannage.md` — symptômes connus et réparations (archive libwebrtc tronquée, webkit2gtk, verrou Flutter…).
 - À la racine de l'espace de travail : `ETAT-DU-PROJET.md` et `TRAVAUX-RESTANTS.md`.
+# Nettoyer
+flutter clean
+
+# Récupérer les dépendances
+flutter pub get
+
+# Générer le build Linux Release
+flutter build linux --release
+
+# Générer le paquet DEB avec Fastforge
+fastforge package --platform=linux --targets=deb
+
