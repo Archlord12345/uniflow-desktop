@@ -42,11 +42,6 @@ jobs:
         run: flutter analyze
       - name: Tests
         run: flutter test --coverage
-      - uses: actions/upload-artifact@v4
-        with:
-          name: couverture-lcov
-          path: coverage/lcov.info
-          if-no-files-found: error
 
   build-linux:
     name: Build Linux
@@ -89,6 +84,7 @@ jobs:
           name: uniflow-desktop-linux
           path: dist/uniflow-desktop-linux-x64.tar.gz
           if-no-files-found: error
+          retention-days: 3
 
   build-windows:
     name: Build Windows (installateur .exe)
@@ -150,14 +146,19 @@ jobs:
             Select-Object -First 1
           if (-not $exe) { throw "Aucun installateur produit." }
 
+          # Dossier d'installation imposé par /DIR : rien n'est deviné de
+          # l'emplacement par défaut, du contexte de sécurité du runner, ni du
+          # choix « pour tous / seulement moi » que PrivilegesRequiredOverrides
+          # autorise. Le registre, lui, est bien en HKLM : la pose est admin.
+          $cible = "$env:RUNNER_TEMP\uniflow-installation-essai"
           $install = Start-Process $exe.FullName `
-            -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' `
+            -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES',"/DIR=$cible" `
             -Wait -PassThru
           if ($install.ExitCode -ne 0) {
             throw "Installation silencieuse refusée : code retour $($install.ExitCode)."
           }
 
-          $binaire = "$env:ProgramFiles\UniFlow\uniflow_app.exe"
+          $binaire = Join-Path $cible 'uniflow_app.exe'
           if (-not (Test-Path $binaire)) {
             throw "uniflow_app.exe absent de $binaire après installation."
           }
@@ -166,15 +167,15 @@ jobs:
             throw "Entrée de désinstallation absente du registre : winget ne verrait pas le paquet."
           }
 
-          $desinstall = Start-Process "$env:ProgramFiles\UniFlow\unins000.exe" `
+          $desinstall = Start-Process (Join-Path $cible 'unins000.exe') `
             -ArgumentList '/VERYSILENT','/NORESTART' -Wait -PassThru
           if ($desinstall.ExitCode -ne 0) {
             throw "Désinstallation silencieuse refusée : code retour $($desinstall.ExitCode)."
           }
           if (Test-Path $binaire) { throw "Le binaire survit à la désinstallation." }
 
-          # Ces trois valeurs sont celles qu'exige une demande winget (chemin,
-          # hachage, commutateurs) et le formulaire « Packages » du Store.
+          # Ces valeurs sont celles qu'exige une demande winget (chemin, hachage,
+          # commutateurs) et le formulaire « Packages » du Store.
           $sha = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
           $taille = '{0:N1} Mo' -f ($exe.Length / 1MB)
           @(
@@ -193,6 +194,7 @@ jobs:
           name: uniflow-desktop-windows
           path: dist/windows/uniflow-desktop-*.exe
           if-no-files-found: error
+          retention-days: 3
 
   build-android-tablet:
     name: Build Android (tablette)
@@ -231,6 +233,7 @@ jobs:
           name: uniflow-desktop-android-tablette
           path: dist/uniflow-desktop-tablette.apk
           if-no-files-found: error
+          retention-days: 3
 
   release:
     name: Publication GitHub

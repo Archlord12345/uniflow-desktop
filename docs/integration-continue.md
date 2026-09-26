@@ -17,11 +17,19 @@ Un seul workflow, « UniFlow Desktop », découpé en jobs chaînés. L'ancien
 
 | Job | Machine | Rôle |
 |---|---|---|
-| `qualite` | ubuntu | Flutter **3.47.1** épinglé (`subosito/flutter-action`, cache), `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test --coverage`. Artefact : `couverture-lcov` (`coverage/lcov.info`). |
+| `qualite` | ubuntu | Flutter **3.47.1** épinglé (`subosito/flutter-action`, cache), `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test --coverage`. Aucun artefact : la couverture sert aux tests, pas à la distribution, et chaque artefact consomme le quota de stockage des Actions. |
 | `build-linux` | ubuntu, `needs: qualite` | Dépendances apt (clang, cmake, ninja, gtk3, liblzma, libstdc++-12, **libwebkit2gtk-4.1**, **libpulse-dev**), `.env` depuis les secrets, `flutter build linux --release`. Artefact : `uniflow-desktop-linux-x64.tar.gz`. |
-| `build-windows` | windows, `needs: qualite` | `flutter build windows --release`. Artefact : `uniflow-desktop-windows-x64.zip`. |
+| `build-windows` | **windows-latest**, `needs: qualite` | `flutter build windows --release`, puis `choco install innosetup` et `ISCC.exe packaging\windows\uniflow.iss`. Artefact : `uniflow-desktop-<VERSION>-x64.exe`, un installateur Inno Setup — **pas une archive** : le Store et winget n'acceptent qu'un programme d'installation capable de se poser en silence. Le job installe puis désinstalle cet `.exe` sur la machine de build et vérifie le binaire et la clé de registre `Uninstall\` avant de publier l'artefact ; le `InstallerSha256` et les commutateurs silencieux sont écrits dans le résumé du run. |
 | `build-android-tablet` | ubuntu, `needs: qualite` | JDK 21 (zulu), `flutter build apk --release`. Artefact : `uniflow-desktop-tablette.apk`. |
-| `release` | ubuntu, `needs` des trois builds, **tag `v*` seulement** | GitHub Release (`softprops/action-gh-release@v2`) avec les trois archives et des notes générées. |
+| `release` | ubuntu, `needs` des trois builds, **tag `v*` seulement** | GitHub Release (`softprops/action-gh-release@v2`) avec le bundle Linux, l'installateur Windows et l'APK, plus des notes générées. |
+
+Les trois artefacts de build sont purgés automatiquement au bout de
+**3 jours** (`retention-days: 3`) : le quota de stockage d'un plan privé est de
+500 Mo et 99 artefacts pesant 2,4 Go l'avaient atteint — depuis,
+`upload-artifact` échouait sur `Failed to CreateArtifact` et le `release` ne
+recevait plus rien. Mesuré avec
+`gh api repos/KERNEL-FORGE-G/uniflow-desktop/actions/artifacts`. Ce qui doit
+survivre à un run passe par la GitHub Release, pas par le magasin d'artefacts.
 
 Pourquoi ces dépendances Linux :
 
