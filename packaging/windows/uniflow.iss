@@ -43,15 +43,12 @@ AppUpdatesURL=https://github.com/KERNEL-FORGE-G/uniflow-desktop/releases/latest
 DefaultDirName={autopf}\UniFlow
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-DisableReports=yes
-; Le nom du fichier porte la version et l'architecture, comme les autres
-; paquets du dépôt : un étudiant qui hésite sait lequel il a téléchargé.
+; Le nom du fichier porte la version à quatre segments et l'architecture.
 OutputDir={#Output}
 OutputBaseFilename=uniflow-desktop-{#Version}-x64
 SetupIconFile=..\..\windows\runner\resources\app_icon.ico
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
-UninstallFilesDir={app}
 ; `x64compatible` (Inno 6.3+) couvre x64 et ARM64 sur Windows ARM ; l'application
 ; elle-même n'est compilée qu'en x64, donc le refus des x86 purs est voulu.
 ArchitecturesAllowed=x64compatible

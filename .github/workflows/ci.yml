@@ -176,13 +176,14 @@ jobs:
           # Ces trois valeurs sont celles qu'exige une demande winget (chemin,
           # hachage, commutateurs) et le formulaire « Packages » du Store.
           $sha = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          $taille = '{0:N1} Mo' -f ($exe.Length / 1MB)
           @(
             "### Installateur Windows",
             "",
             "| Champ | Valeur |",
             "| --- | --- |",
             "| Fichier | ``$($exe.Name)`` |",
-            "| Taille | ``{0:N1} Mo`` |" -f ($exe.Length / 1MB),
+            "| Taille | ``$taille`` |",
             "| InstallerSha256 | ``$sha`` |",
             "| Silent / SilentWithProgress | ``/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`` |",
             "| Code de retour installation réussie | ``0`` |",
