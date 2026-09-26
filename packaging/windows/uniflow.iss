@@ -44,8 +44,8 @@ DefaultDirName={autopf}\UniFlow
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 DisableReports=yes
-; Le chemin d'installation porte le nom long et l'architecture : un étudiant qui
-; hésite entre les deux finds sait lequel il a téléchargé.
+; Le nom du fichier porte la version et l'architecture, comme les autres
+; paquets du dépôt : un étudiant qui hésite sait lequel il a téléchargé.
 OutputDir={#Output}
 OutputBaseFilename=uniflow-desktop-{#Version}-x64
 SetupIconFile=..\..\windows\runner\resources\app_icon.ico
@@ -62,9 +62,9 @@ MinVersion=10.0
 ; « seulement moi » sur un poste d'étudiant sans droit d'administrateur.
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
+; `ultra64` porte déjà le dictionnaire et le multithreading au maximum : les
+; clés LZMA* séparées ont été retirées plutôt que devinées.
 Compression=lzma2/ultra64
-LZMADictionarySize=max
-LZMACompressionThreads=inherit
 SolidCompression=yes
 WizardStyle=modern
 VersionInfoVersion={#Version}

@@ -51,3 +51,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Sorties de packaging (deb, exe, rpm, snap, AppImage) : elles vivent sur
+# la release GitHub, jamais dans l`histoire Git.
+/dist/
