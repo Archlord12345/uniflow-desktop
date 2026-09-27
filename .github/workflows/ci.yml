@@ -187,7 +187,7 @@ jobs:
             "| Taille | ``$taille`` |",
             "| InstallerSha256 | ``$sha`` |",
             "| Silent / SilentWithProgress | ``/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`` |",
-            "| Code de retour installation réussie | ``0`` |",
+            "| Code de retour installation réussie | ``0`` |"
           ) | Add-Content $env:GITHUB_STEP_SUMMARY
       - uses: actions/upload-artifact@v4
         with:
