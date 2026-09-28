@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dépôt AppStream : lu par GNOME Software, le centre de logiciels KDE
+     (Discover) et `appstreamcli`. La date de `<release>` est réécrite par
+     tool/build-deb.sh à chaque packaging pour ne pas mentir sur la version
+     publiée. -->
+<component type="desktop-application">
+  <id>codes.kernelforge.uniflow</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary=https://kernelforge.codes/licence</project_license>
+  <name>UniFlow</name>
+  <summary>Plateforme de gestion académique intelligente</summary>
+  <description>
+    <p>
+      UniFlow centralise la vie d'un campus : inscriptions, étudiants,
+      enseignants, programmes et unités d'enseignement, emplois du temps,
+      feuilles de présence, visioconférence embarquée, annonces et
+      statistiques. Les exports PDF et classeur se produisent sur le poste,
+      donc restent disponibles hors connexion.
+    </p>
+  </description>
+  <categories>
+    <category>Education</category>
+    <category>Office</category>
+  </categories>
+  <url type="homepage">https://uniflow.kernelforge.codes</url>
+  <url type="bugtracker">https://github.com/KERNEL-FORGE-G/uniflow-desktop/issues</url>
+  <!-- `<developer id=…>` est la forme moderne, mais `appstreamcli` 1.0.2 (le
+       paquet d'Ubuntu 24.04) la rejette avec `developer-name-missing` : on garde
+       l'ancienne balise, que les deux générations d'outils acceptent. -->
+  <developer_name>KERNEL FORGE</developer_name>
+  <launchable type="desktop-id">uniflow.desktop</launchable>
+  <provides>
+    <binary>uniflow</binary>
+  </provides>
+  <releases>
+    <release version="@VERSION_DEB@" date="@RELEASE_DATE@"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>
