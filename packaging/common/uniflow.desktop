@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=UniFlow
+GenericName=Gestion académique
+GenericName[fr]=Gestion académique
+Comment=Plateforme de gestion académique intelligente
+Comment[fr]=Plateforme de gestion académique intelligente
+Exec=uniflow %U
+Icon=codes.kernelforge.uniflow
+Terminal=false
+Categories=Education;ProjectManagement;
+Keywords=campus;etudiants;enseignants;notes;presence;emploi du temps;scolarite;
+StartupWMClass=codes.kernelforge.uniflow
+# Le WMClass vient de `g_set_prgname(APPLICATION_ID)` dans linux/runner/main.cc :
+# sans cette ligne, le dock GNOME affiche deux icônes distinctes.
+SingleMainWindow=true

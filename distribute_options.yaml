@@ -1,0 +1,30 @@
+# Configuration de `flutter_distributor` (dart pub global activate flutter_distributor).
+#
+# Une seule source de vérité pour le nommage et la destination des paquets :
+# la même commande tourne sur le poste Windows d'un développeur et dans le job
+# `build-windows` de la CI. Les champs de chaque cible vivent à côté, dans
+# `<platform>/packaging/<target>/make_config.yaml` — c'est l'emplacement que
+# lit le packager, pas un choix maison.
+#
+#   flutter_distributor package --platform windows --targets exe --skip-clean
+#   flutter_distributor package --platform linux   --targets deb
+#
+# Sortie : `dist/<version>/<nom>.<ext>` (dossier créé par l'outil), d'où
+# `/dist/` dans le `.gitignore`.
+output: dist/
+
+releases:
+  - name: local
+    jobs:
+      - name: windows-setup
+        package:
+          platform: windows
+          target: exe
+      # Le maker `deb` délègue à `fpm` (Ruby) : sans lui sur la machine, cette
+      # job échoue. La CI Linux installe fpm avant d'appeler l'outil ; le script
+      # `tool/build-deb.sh`, lui, produit le même .deb avec dpkg-deb et sert de
+      # contrôle croisé (champs de contrôle, dépendances mesurées).
+      - name: linux-deb
+        package:
+          platform: linux
+          target: deb

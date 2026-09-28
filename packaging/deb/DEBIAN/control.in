@@ -1,0 +1,20 @@
+Package: uniflow
+Version: @VERSION_DEB@
+Architecture: @ARCH_DEB@
+Maintainer: KERNEL FORGE <contact@kernelforge.codes>
+Homepage: https://uniflow.kernelforge.codes
+Section: education
+Priority: optional
+Installed-Size: @INSTALLED_SIZE@
+Depends: @DEPENDS@
+Recommends: @RECOMMENDS@
+Description: plateforme de gestion académique intelligente
+ UniFlow centralise la vie d'un campus : inscriptions, étudiants, enseignants,
+ programmes et unités d'enseignement, emplois du temps, feuilles de présence,
+ visioconférence embarquée, annonces et statistiques.
+ .
+ Les exports PDF et classeur sont produits sur le poste, donc restent
+ disponibles hors connexion. Les données d'appel passent par Appwrite Cloud.
+ .
+ Paquet destiné à Ubuntu 24.04 et Debian 13 ou plus récents : il dépend des
+ bibliothèques de paquets portant le suffixe « t64 » (transition 64 bits time_t).

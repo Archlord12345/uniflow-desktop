@@ -1,0 +1,8 @@
+#!/bin/sh
+# Le paquet installe l'application dans /opt/uniflow_app (bundle Flutter complet,
+# bibliothèques privées comprises) et n'expose que ce wrapper dans /usr/bin.
+# Rien n'est copié dans les chemins système : deux UniFlow installés par des
+# voies différentes (APT, AUR, AppImage) ne se marchent pas dessus.
+set -e
+
+exec /opt/uniflow_app/uniflow_app "$@"

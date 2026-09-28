@@ -1,0 +1,11 @@
+display_name: UniFlow
+package_name: uniflow
+maintainer:
+  name: KERNEL FORGE
+  email: contact@kernelforge.codes
+description: Plateforme éducative UniFlow
+priority: optional
+section: education
+installed_size: 100000
+essential: false
+homepage: https://uniflow.kernelforge.codes

@@ -51,3 +51,32 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ---- Sorties de packaging ----------------------------------------------------
+# Les paquets ne vivent que sur la release GitHub : `tool/build-deb.sh`, le job
+# Windows et la régénération du dépôt APT écrivent dans `/dist/`. Les motifs qui
+# suivent ne sont qu'un filet pour un paquet égaré ailleurs dans l'arbre.
+/dist/
+*.deb
+*.ddeb
+*.snap
+*.rpm
+*.AppImage
+*.exe
+*.msi
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+
+# Snapcraft, lancé à la main, écrit ses trois arbres intermédiaires à côté de
+# `snap/snapcraft.yaml` : des gigaoctets de décompressé qui ne sont rien d'autre
+# que `build/linux/...` copié.
+parts/
+stage/
+prime/
+
+# Les `.zip` ne sont pas exclus partout : un `assets/*.zip` devenu ressource de
+# l'application disparaîtrait du paquet sans que `git add` se plaigne. Seul celui
+# de la racine, produit par un essai local, est ignoré.
+/*.zip
