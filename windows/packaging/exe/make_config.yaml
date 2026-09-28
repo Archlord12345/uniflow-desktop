@@ -30,10 +30,23 @@ executable_name: uniflow.exe
 install_dir_name: '{autopf64}\UniFlow'
 setup_icon_file: windows/runner/resources/app_icon.ico
 
-# `none` = installation par utilisateur, sans UAC. Choix délibéré : la cible
-# est un poste d'étudiant qui n'a pas les droits administrateur, et le
+# `none` = l'installateur ne demande jamais l'élévation UAC. Choix délibéré : la
+# cible est un poste d'étudiant qui n'a pas les droits administrateur, et le
 # formulaire « Packages » du Store comme la validation winget exigent seulement
 # un installateur capable de se poser tout seul sans interaction.
+#
+# Ce que `none` ne fait PAS : imposer une pose par utilisateur. Le mode
+# d'installation se décide au lancement selon le jeton déjà présent
+# (`InitializeAdminInstallMode(IsAdmin and PrivilegesRequired <> prLowest)`
+# dans `Setup.MainFunc.pas`). Sans droits admin => pose par utilisateur, dossier
+# `%LOCALAPPDATA%\Programs`, clé d'enregistrement en HKCU. Avec un compte
+# administrateur déjà élevé (un poste d'enseignant, le compte `runneradmin` d'un
+# runner GitHub) => pose par machine, Program Files, clé en HKLM. C'est ce
+# partage qui rend `install_dir_name: '{autopf64}\UniFlow'` correct dans les deux
+# cas — `{autopf64}` suit le mode réel — et qui impose à la CI de ne pas écrire
+# « HKCU » en dur dans sa vérification d'installation.
+# La valeur `lowest` serait une autre décision : pose par utilisateur dans tous
+# les cas, donc deux installations sur un poste partagé.
 privileges_required: none
 
 # La application n'est qu'en français (aucun `.arb`, aucun `flutter_localizations`) ;

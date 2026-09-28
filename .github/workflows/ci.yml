@@ -149,6 +149,12 @@ jobs:
           if (-not $setup) {
             throw "Aucun installateur sous dist/ après flutter_distributor."
           }
+          # L'identité gravée dans le script Inno décide du nom de la clé
+          # d'enregistrement et du rattachement des mises à jour : imprimée ici,
+          # elle ne se devine plus quand la vérification d'après-installation
+          # échoue. Le maker écrit `<base>_exe.iss` à côté de l'installateur.
+          $iss = Join-Path $setup.DirectoryName "$($setup.BaseName)_exe.iss"
+          if (Test-Path $iss) { Get-Content $iss } else { Write-Warning "Script Inno introuvable : $iss" }
           # Transmis à l'étape de vérification : reconstruire le motif `1.0.0+1`
           # en PowerShell serait plus fragile que de le garder en mémoire ici.
           "SETUP_EXE=$($setup.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -164,10 +170,6 @@ jobs:
 
           # Dossier d'installation imposé par /DIR : rien n'est deviné de
           # l'emplacement par défaut ni du contexte de sécurité du runner.
-          # `privileges_required: none` dans make_config.yaml => pose par
-          # utilisateur, donc la clé d'installation est en HKCU et il n'y a pas
-          # d'élévation à attendre (c'est aussi ce qui la rend possible sur un
-          # poste d'élève sans droit administrateur).
           $cible = "$env:RUNNER_TEMP\uniflow-installation-essai"
           $install = Start-Process $exe.FullName `
             -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES',"/DIR=$cible" `
@@ -185,9 +187,42 @@ jobs:
               ForEach-Object { $_.Name }) -join ' '
             throw "uniflow.exe absent de $cible. Ce que l'installateur y a laissé : $vu"
           }
-          $cle = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\codes.kernelforge.uniflow_is1'
-          if (-not (Test-Path $cle)) {
-            throw "Entrée de désinstallation absente du registre : winget ne verrait pas le paquet."
+
+          # Le nom de la clé d'enregistrement est `<AppId>_is1` : la doc Inno
+          # Setup le dit littéralement (« AppId also determines the actual name
+          # of the Uninstall registry key, to which Inno Setup tacks on "_is1" »)
+          # et rien dans le maker n'ajoute ce suffixe à la place.
+          # Sa ruche, elle, dépend du jeton du processus et non de la
+          # configuration : `Setup.MainFunc.pas` pose le mode d'installation
+          # machine par `InitializeAdminInstallMode(IsAdmin and
+          # (PrivilegesRequired <> prLowest))`. Le compte `runneradmin` d'un
+          # runner GitHub est administrateur, donc avec `privileges_required:
+          # none` l'installateur écrit bien en HKLM ici — et en HKCU sur le
+          # poste d'élève sans droit. Ne tester que HKCU faisait échouer la CI
+          # pour un motif qui n'existe pas chez l'utilisateur.
+          # `shell: pwsh` est le PowerShell 7 64 bits du runner : il lit la même
+          # vue du registre que l'installateur, qui pose en 64 bits
+          # (`architectures_install_in_64bit_mode`). Un `powershell` 32 bits
+          # chercherait dans `WOW6432Node` et ne verrait rien.
+          $nom = 'codes.kernelforge.uniflow_is1'
+          $racine = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
+          # `@(...)` : sans lui, un seul résultat de `Where-Object` est déroulé
+          # en chaîne, et `$ruches[0]` rendrait alors le premier caractère de
+          # « HKLM » — un chemin qui commencerait par « H ».
+          $ruches = @(@('HKCU', 'HKLM') | Where-Object { Test-Path "${_}:\$racine\$nom" })
+          if ($ruches.Count -eq 0) {
+            $voisines = @(Get-ChildItem "HKCU:\$racine", "HKLM:\$racine" -ErrorAction SilentlyContinue |
+              ForEach-Object { $_.PSChildName }) -join ' '
+            throw "Entrée de désinstallation « $nom » introuvable, en HKCU comme en HKLM. Clés voisines : $voisines"
+          }
+          if ($ruches.Count -gt 1) {
+            throw "Entrée de désinstallation présente à la fois en HKCU et en HKLM : « Applications et fonctionnalités » afficherait UniFlow deux fois."
+          }
+          # Ce que winget et l'appli « Applications et fonctionnalités » lisent
+          # pour afficher le nom et proposer le retrait du paquet.
+          $info = Get-ItemProperty "$($ruches[0]):\$racine\$nom"
+          if (-not $info.UninstallString) {
+            throw "Clé présente en $($ruches[0]) mais sans UninstallString : ni winget ni « Applications et fonctionnalités » ne pourraient retirer le paquet."
           }
 
           $desinstall = Start-Process (Join-Path $cible 'unins000.exe') `
@@ -196,6 +231,11 @@ jobs:
             throw "Désinstallation silencieuse refusée : code retour $($desinstall.ExitCode)."
           }
           if (Test-Path $binaire) { throw "Le binaire survit à la désinstallation." }
+          foreach ($ruche in $ruches) {
+            if (Test-Path "${ruche}:\$racine\$nom") {
+              throw "La clé d'enregistrement survit à la désinstallation en $ruche : « Applications et fonctionnalités » garderait un UniFlow fantôme."
+            }
+          }
 
           # Ces valeurs sont celles qu'exige une demande winget (chemin, hachage,
           # commutateurs) et le formulaire « Packages » du Store.
@@ -208,6 +248,8 @@ jobs:
             "| --- | --- |",
             "| Fichier | ``$($exe.Name)`` |",
             "| Taille | ``$taille`` |",
+            "| Clé d'enregistrement | ```$($ruches[0])\$racine\$nom``` |",
+            "| DisplayName / UninstallString | ``$($info.DisplayName)`` / ``$($info.UninstallString)`` |",
             "| InstallerSha256 | ``$sha`` |",
             "| Silent / SilentWithProgress | ``/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`` |",
             "| Code de retour installation réussie | ``0`` |"
