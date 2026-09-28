@@ -92,14 +92,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Numéro de version à quatre segments
-        id: version
-        shell: bash
-        # Windows exige `MAJOR.MINOR.PATCH.BUILD` : c'est `VERSION_MSIX` de la
-        # source de vérité commune, donc le même numéro que le pubspec.
-        run: |
-          eval "$(bash tool/version.sh)"
-          echo "num=$VERSION_MSIX" >> "$GITHUB_OUTPUT"
       - name: Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
@@ -116,24 +108,50 @@ jobs:
           APPWRITE_DATABASE_ID: ${{ secrets.APPWRITE_DATABASE_ID }}
           APPWRITE_STORAGE_BUCKET_ID: ${{ secrets.APPWRITE_STORAGE_BUCKET_ID }}
           APPWRITE_API_FUNCTION_ID: ${{ secrets.APPWRITE_API_FUNCTION_ID }}
-      - run: flutter build windows --release
-      - name: Inno Setup
+      - name: Inno Setup 6
         shell: powershell
+        # `flutter_distributor` ne compresse rien lui-même : il engendre un
+        # script Inno Setup depuis windows/packaging/exe/make_config.yaml puis
+        # appelle ISCC.exe. Sans Inno installé, le maker `exe` lève
+        # « Inno Setup 6 was not installed ».
         run: choco install innosetup --no-progress -y
       - name: Compilation de l'installateur
         shell: pwsh
+        # Le même appel que sur le poste d'un développeur Windows, à ceci près
+        # que la version vient du pubspec (l'outil lit `pubspec.yaml` lui-même).
+        # `--no-version-check` : par défaut l'outil interroge pub.dev à chaque
+        # lancement et imprime un spinner — une dépendance réseau de plus,
+        # gratuite à supprimer.
+        # `dart pub global run flutter_distributor:main` plutôt que le shim
+        # `flutter_distributor.bat` : le répertoire `bin` de pub global n'est
+        # pas dans le PATH du runner, et `executables:` mappe
+        # `flutter_distributor` sur `bin/main.dart`.
         run: |
           $ErrorActionPreference = 'Stop'
-          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          if (-not (Test-Path $iscc)) {
-            throw "ISCC.exe introuvable : l'installation d'Inno Setup n'a rien déposé."
+          # Version épinglée : c'est celle dont le comportement a été lu dans
+          # `.pub-cache` (le maker `exe`, ses noms de champs, son dossier de
+          # sortie). Une montée de version doit être un choix, pas une surprise
+          # de la CI.
+          dart pub global activate flutter_distributor 0.6.10
+          dart pub global run flutter_distributor:main --no-version-check `
+            package --platform windows --targets exe --skip-clean
+          if ($LASTEXITCODE -ne 0) {
+            throw "flutter_distributor a rendu le code $LASTEXITCODE."
           }
-          & $iscc `
-            "/DVersion=${{ steps.version.outputs.num }}" `
-            "/DWorkspace=$($env:GITHUB_WORKSPACE)\build\windows\x64\runner\Release" `
-            "/DOutput=$($env:GITHUB_WORKSPACE)\dist\windows" `
-            "packaging\windows\uniflow.iss"
-          if ($LASTEXITCODE -ne 0) { throw "ISCC a rendu le code $LASTEXITCODE." }
+          # L'appel sort en code 0 même quand aucun paquet n'a été produit (il
+          # se contente d'un avertissement si une étape est sautée) : c'est
+          # l'étape suivante qui attrape le problème, pas celle-ci.
+          # L'outil range le paquet dans `dist/<version>/` (ici
+          # `dist/1.0.0+1/`) : il faut donc chercher en profondeur, le motif
+          # `dist\*-windows-setup.exe` ne correspondrait à rien.
+          $setup = Get-ChildItem "$($env:GITHUB_WORKSPACE)\dist" -Recurse -Filter '*-windows-setup.exe' |
+            Select-Object -First 1
+          if (-not $setup) {
+            throw "Aucun installateur sous dist/ après flutter_distributor."
+          }
+          # Transmis à l'étape de vérification : reconstruire le motif `1.0.0+1`
+          # en PowerShell serait plus fragile que de le garder en mémoire ici.
+          "SETUP_EXE=$($setup.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Installation silencieuse, vérification, désinstallation
         shell: pwsh
         # Le Store et winget n'acceptent pas un installateur qu'ils ne savent pas
@@ -142,14 +160,14 @@ jobs:
         # d'allers-retours avec un `Needs-Author-Feedback`.
         run: |
           $ErrorActionPreference = 'Stop'
-          $exe = Get-ChildItem "$($env:GITHUB_WORKSPACE)\dist\windows\uniflow-desktop-*.exe" |
-            Select-Object -First 1
-          if (-not $exe) { throw "Aucun installateur produit." }
+          $exe = Get-Item $env:SETUP_EXE
 
           # Dossier d'installation imposé par /DIR : rien n'est deviné de
-          # l'emplacement par défaut, du contexte de sécurité du runner, ni du
-          # choix « pour tous / seulement moi » que PrivilegesRequiredOverrides
-          # autorise. Le registre, lui, est bien en HKLM : la pose est admin.
+          # l'emplacement par défaut ni du contexte de sécurité du runner.
+          # `privileges_required: none` dans make_config.yaml => pose par
+          # utilisateur, donc la clé d'installation est en HKCU et il n'y a pas
+          # d'élévation à attendre (c'est aussi ce qui la rend possible sur un
+          # poste d'élève sans droit administrateur).
           $cible = "$env:RUNNER_TEMP\uniflow-installation-essai"
           $install = Start-Process $exe.FullName `
             -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES',"/DIR=$cible" `
@@ -162,7 +180,7 @@ jobs:
           if (-not (Test-Path $binaire)) {
             throw "uniflow_app.exe absent de $binaire après installation."
           }
-          $cle = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{8F4C1D7B-5A62-4E9F-9C31-2D7E8B0A4F55}_is1'
+          $cle = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\codes.kernelforge.uniflow_is1'
           if (-not (Test-Path $cle)) {
             throw "Entrée de désinstallation absente du registre : winget ne verrait pas le paquet."
           }
@@ -192,7 +210,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: uniflow-desktop-windows
-          path: dist/windows/uniflow-desktop-*.exe
+          path: dist/**/*-windows-setup.exe
           if-no-files-found: error
           retention-days: 3
 
@@ -251,6 +269,6 @@ jobs:
         with:
           files: |
             dist/uniflow-desktop-linux-x64.tar.gz
-            dist/uniflow-desktop-*.exe
+            dist/**/*-windows-setup.exe
             dist/uniflow-desktop-tablette.apk
           generate_release_notes: true

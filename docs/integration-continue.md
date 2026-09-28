@@ -19,7 +19,7 @@ Un seul workflow, « UniFlow Desktop », découpé en jobs chaînés. L'ancien
 |---|---|---|
 | `qualite` | ubuntu | Flutter **3.47.1** épinglé (`subosito/flutter-action`, cache), `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test --coverage`. Aucun artefact : la couverture sert aux tests, pas à la distribution, et chaque artefact consomme le quota de stockage des Actions. |
 | `build-linux` | ubuntu, `needs: qualite` | Dépendances apt (clang, cmake, ninja, gtk3, liblzma, libstdc++-12, **libwebkit2gtk-4.1**, **libpulse-dev**), `.env` depuis les secrets, `flutter build linux --release`. Artefact : `uniflow-desktop-linux-x64.tar.gz`. |
-| `build-windows` | **windows-latest**, `needs: qualite` | `flutter build windows --release`, puis `choco install innosetup` et `ISCC.exe packaging\windows\uniflow.iss`. Artefact : `uniflow-desktop-<VERSION>-x64.exe`, un installateur Inno Setup — **pas une archive** : le Store et winget n'acceptent qu'un programme d'installation capable de se poser en silence. Le job installe puis désinstalle cet `.exe` sur la machine de build et vérifie le binaire et la clé de registre `Uninstall\` avant de publier l'artefact ; le `InstallerSha256` et les commutateurs silencieux sont écrits dans le résumé du run. |
+| `build-windows` | **windows-latest**, `needs: qualite` | `choco install innosetup`, puis `flutter_distributor package --platform windows --targets exe --skip-clean` (l'outil lance `flutter build windows` lui-même, engendre un script Inno Setup depuis `windows/packaging/exe/make_config.yaml`, appelle `ISCC.exe` et vérifie que le paquet est sorti). Artefact : `dist/<version>/uniflow-<version>-windows-setup.exe` — un installateur, **pas une archive** : le Store et winget n'acceptent qu'un programme d'installation capable de se poser en silence. Le job installe cet `.exe` sur la machine de build (`/VERYSILENT` + `/DIR=` d'un dossier temporaire), vérifie le binaire et la clé `HKCU:\…\Uninstall\codes.kernelforge.uniflow_is1`, le désinstalle, puis publie taille, `InstallerSha256` et commutateurs dans le résumé du run. |
 | `build-android-tablet` | ubuntu, `needs: qualite` | JDK 21 (zulu), `flutter build apk --release`. Artefact : `uniflow-desktop-tablette.apk`. |
 | `release` | ubuntu, `needs` des trois builds, **tag `v*` seulement** | GitHub Release (`softprops/action-gh-release@v2`) avec le bundle Linux, l'installateur Windows et l'APK, plus des notes générées. |
 
@@ -38,6 +38,41 @@ Pourquoi ces dépendances Linux :
   échoue sur `pkg_check_modules(webkit2gtk-4.0)`.
 - `libpulse-dev` : le plugin `flutter_webrtc` (visioconférence embarquée) lie
   PulseAudio quand il le trouve ; sans les en-têtes, l'édition de liens échoue.
+
+## Paqueter une cible depuis son poste
+
+Le même outil pilote la CI et le poste de développement : `flutter_distributor`
+(épinglé en **0.6.10** dans le job Windows — c'est la version dont les sources
+ont été lues, une montée de version doit être délibérée).
+
+```bash
+dart pub global activate flutter_distributor 0.6.10
+
+# Windows, sur un poste Windows : sort dist/1.0.0+1/uniflow-1.0.0+1-windows-setup.exe
+flutter_distributor --no-version-check package --platform windows --targets exe --skip-clean
+```
+
+`--skip-clean` évite un `flutter clean` complet ; l'outil lance tout de même
+`flutter build windows` avant d'appeler `ISCC.exe`. Deux pièces de configuration
+seulement : `distribute_options.yaml` (racine, dossier de sortie et jobs de
+publication) et `windows/packaging/exe/make_config.yaml` (le contenu de
+l'installateur). L'emplacement `<plateforme>/packaging/<cible>/make_config.yaml`
+est imposé par le packager, pas par nous.
+
+Trois pièges relevés dans les sources, à connaître avant de conclure qu'un
+artefact existe :
+
+- **Le maker `exe` n'existe que sur Windows** (`isSupportedOnCurrentPlatform`).
+  Lancée sur Linux, la commande affiche `Warning: AppBuilderWindows is not
+  supported on the current platform` et **sort en code 0 sans produire de
+  fichier**. Le job Windows vérifie donc la présence réelle du `.exe` au lieu de
+  se fier au code de retour.
+- Le paquet est rangé dans `dist/<version>/`, pas à la racine de `dist/` : tout
+  motif de recherche doit descendre d'un niveau.
+- `pubspec.yaml` fournit le nom et la version : `uniflow` + `1.0.0+1` donnent
+  `uniflow-1.0.0+1-windows-setup.exe`. Le `+` est un caractère valide dans un
+  chemin Windows, mais il interdit de déduire la version du nom du fichier par
+  une simple découpe.
 
 ## Secrets attendus
 

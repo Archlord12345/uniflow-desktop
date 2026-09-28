@@ -1,0 +1,50 @@
+# Installateur Windows produit par `flutter_distributor package --platform
+# windows --targets exe`. L'outil génère un script Inno Setup 6 depuis ce
+# fichier, appelle `ISCC.exe` (cherché dans `C:\Program Files (x86)\Inno Setup
+# 6`, puis `INNO_SETUP_PATH`, puis le `PATH`), et vérifie que l'`.exe` est bien
+# sorti dans `dist/<version>/`.
+#
+# Tous les noms de champs viennent de `MakeExeConfig.fromJson` : un clé
+# inventée est simplement ignorée, sans avertissement.
+
+# Clé d'enregistrement stable : c'est elle qui décide si une mise à jour
+# remplace UniFlow ou laisse deux entrées côte à côte dans « Applications et
+# fonctionnalités ». Elle donne la sous-clé `codes.kernelforge.uniflow_is1`.
+# Ne jamais la changer après une publication.
+app_id: codes.kernelforge.uniflow
+
+display_name: UniFlow
+publisher_name: KERNEL FORGE
+publisher_url: https://uniflow.kernelforge.codes
+
+# Le binaire du runner Flutter ; sans cette clé l'outil prendrait le premier
+# `.exe` trouvé dans le dossier, ce qui deviendrait faux si un second y
+# apparaissait (un désinstalleur embarqué, un utilitaire LiveKit...).
+executable_name: uniflow_app.exe
+
+# `{autopf64}` suit le mode de pose : Program Files pour tous si quelqu'un
+# élève, `%LOCALAPPDATA%\Programs` sinon.
+install_dir_name: '{autopf64}\UniFlow'
+setup_icon_file: windows/runner/resources/app_icon.ico
+
+# `none` = installation par utilisateur, sans UAC. Choix délibéré : la cible
+# est un poste d'étudiant qui n'a pas les droits administrateur, et le
+# formulaire « Packages » du Store comme la validation winget exigent seulement
+# un installateur capable de se poser tout seul sans interaction.
+privileges_required: none
+
+# La application n'est qu'en français (aucun `.arb`, aucun `flutter_localizations`) ;
+# `fr` reste en tête. L'outil filtre de lui-même les `.isl` absents de
+# l'installation d'Inno et retombe sur `en`, donc cette liste ne peut pas
+# casser un build.
+locales:
+  - fr
+  - en
+
+create_desktop_icon: false
+launch_at_startup: false
+
+# Le projet ne compile qu'en x64 ; `x64compatible` autorise aussi bien les x64
+# natifs que les Windows ARM (où l'émulation x64 tourne).
+architectures_allowed: x64compatible
+architectures_install_in_64bit_mode: x64compatible
