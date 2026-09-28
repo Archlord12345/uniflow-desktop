@@ -176,9 +176,14 @@ jobs:
             throw "Installation silencieuse refusée : code retour $($install.ExitCode)."
           }
 
-          $binaire = Join-Path $cible 'uniflow_app.exe'
+          # `uniflow.exe` : nom du lanceur Windows, donné par BINARY_NAME dans
+          # windows/CMakeLists.txt — ce n'est PAS `uniflow_app.exe`, qui est le
+          # nom du binaire Linux (autre CMakeLists, autre valeur).
+          $binaire = Join-Path $cible 'uniflow.exe'
           if (-not (Test-Path $binaire)) {
-            throw "uniflow_app.exe absent de $binaire après installation."
+            $vu = (Get-ChildItem $cible -ErrorAction SilentlyContinue |
+              ForEach-Object { $_.Name }) -join ' '
+            throw "uniflow.exe absent de $cible. Ce que l'installateur y a laissé : $vu"
           }
           $cle = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\codes.kernelforge.uniflow_is1'
           if (-not (Test-Path $cle)) {

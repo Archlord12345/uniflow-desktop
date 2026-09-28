@@ -17,10 +17,13 @@ display_name: UniFlow
 publisher_name: KERNEL FORGE
 publisher_url: https://uniflow.kernelforge.codes
 
-# Le binaire du runner Flutter ; sans cette clé l'outil prendrait le premier
-# `.exe` trouvé dans le dossier, ce qui deviendrait faux si un second y
-# apparaissait (un désinstalleur embarqué, un utilitaire LiveKit...).
-executable_name: uniflow_app.exe
+# Le lanceur Windows s'appelle `uniflow.exe`, pas `uniflow_app.exe` : le nom
+# vient de `set(BINARY_NAME ...)` dans `windows/CMakeLists.txt` (ligne 7), qui
+# dit `uniflow`, alors que `linux/CMakeLists.txt` dit `uniflow_app` pour le
+# même projet. Sans cette clé, l'outil aurait pris le premier `.exe` du dossier
+# — et le raccourci du menu Démarrer pointerait sur un fichier inexistant si un
+# second exécutable apparaissait un jour.
+executable_name: uniflow.exe
 
 # `{autopf64}` suit le mode de pose : Program Files pour tous si quelqu'un
 # élève, `%LOCALAPPDATA%\Programs` sinon.
